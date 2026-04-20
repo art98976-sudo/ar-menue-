@@ -242,19 +242,32 @@ function openAR(modelId) {
 // CLOSE AR
 // ============================================
 function closeAR() {
-    document.getElementById('menu-page').style.display = 'flex';
-    document.getElementById('bottom-nav').style.display = 'flex';
+    currentModel = null;
+
     document.getElementById('ar-topbar').style.display = 'none';
     document.getElementById('ar-bottombar').style.display = 'none';
+    document.getElementById('menu-page').style.display = 'flex';
+    document.getElementById('bottom-nav').style.display = 'flex';
 
     Object.keys(menuData).forEach(id => {
         const el = document.getElementById(id);
         if (el) el.setAttribute('visible', 'false');
     });
 
-    currentModel = null;
     updateCartBar();
 }
+
+// Fix for mobile: listen for touchend on back button too
+document.addEventListener('DOMContentLoaded', function () {
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAR();
+        });
+    }
+});
 
 // ============================================
 // RESET MODEL
