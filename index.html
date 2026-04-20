@@ -5,25 +5,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
-
-    <!-- ── STYLES ── -->
     <link rel="stylesheet" href="style.css" />
-
-    <!-- ── AR LIBRARIES ── -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 </head>
 
 <body>
 
+    <!-- ============================================ -->
+    <!-- FLOATING BACK BUTTON — completely outside    -->
+    <!-- A-Frame, highest z-index, always on top      -->
+    <!-- ============================================ -->
+    <button id="back-btn" onclick="closeAR()" ontouchend="event.preventDefault(); closeAR();">← Menu</button>
+
+    <!-- AR TOPBAR (name + price only, no back btn) -->
+    <div id="ar-topbar">
+        <div id="ar-food-name">Pizza</div>
+        <div id="ar-food-price">Rs. 150</div>
+    </div>
+
     <!-- AR PAGE -->
     <div id="ar-page">
-        <div id="ar-topbar">
-            <button id="back-btn">← Menu</button>
-            <div id="ar-food-name">Pizza</div>
-            <div id="ar-food-price">Rs. 150</div>
-        </div>
-
         <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" renderer="colorManagement: true"
             vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
             <a-assets>
@@ -38,31 +40,32 @@
                 <a-gltf-model id="drink"  src="#drinkModel"  position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0" visible="false"></a-gltf-model>
             </a-entity>
         </a-scene>
+    </div>
 
-        <div id="ar-bottombar">
-            <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to resize</div>
-            <div id="ar-detail-card">
-                <div id="ar-detail-top">
-                    <div id="ar-detail-name">Margherita Pizza</div>
-                    <div id="ar-detail-price">Rs. 150</div>
-                </div>
-                <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
-                <div id="ar-cal-row">
-                    <div class="cal-badge">🔥 320 kcal</div>
-                    <div class="cal-badge">⏱️ 15 min</div>
-                    <div class="cal-badge">⭐ 4.8</div>
-                </div>
-                <div id="ar-qty-row">
-                    <div id="ar-qty-label">Quantity</div>
-                    <button class="ar-qty-btn" onclick="changeQty(-1)">−</button>
-                    <div id="ar-qty-num">1</div>
-                    <button class="ar-qty-btn" onclick="changeQty(1)">+</button>
-                </div>
-                <div id="ar-action-row">
-                    <button id="ar-cart-btn"  onclick="addToCart()">🛒 Add to Cart</button>
-                    <button id="ar-order-btn" onclick="orderNow()">⚡ Order Now</button>
-                    <button id="ar-reset-btn" onclick="resetModel()">⟳</button>
-                </div>
+    <!-- AR BOTTOM BAR -->
+    <div id="ar-bottombar">
+        <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to resize</div>
+        <div id="ar-detail-card">
+            <div id="ar-detail-top">
+                <div id="ar-detail-name">Margherita Pizza</div>
+                <div id="ar-detail-price">Rs. 150</div>
+            </div>
+            <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
+            <div id="ar-cal-row">
+                <div class="cal-badge">🔥 320 kcal</div>
+                <div class="cal-badge">⏱️ 15 min</div>
+                <div class="cal-badge">⭐ 4.8</div>
+            </div>
+            <div id="ar-qty-row">
+                <div id="ar-qty-label">Quantity</div>
+                <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
+                <div id="ar-qty-num">1</div>
+                <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
+            </div>
+            <div id="ar-action-row">
+                <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
+                <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+                <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
             </div>
         </div>
     </div>
@@ -197,8 +200,6 @@
         <div class="toast-sub"  id="toast-sub"></div>
     </div>
 
-    <!-- ── SCRIPT ── -->
     <script src="script.js"></script>
-
 </body>
 </html>

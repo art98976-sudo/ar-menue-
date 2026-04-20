@@ -235,6 +235,7 @@ function openAR(modelId) {
     document.getElementById('cart-bar').classList.remove('visible');
     document.getElementById('ar-topbar').style.display = 'flex';
     document.getElementById('ar-bottombar').style.display = 'flex';
+    document.getElementById('back-btn').classList.add('visible');
 
     Object.keys(menuData).forEach(id => {
         const el = document.getElementById(id);
@@ -264,6 +265,7 @@ function closeAR() {
 
     document.getElementById('ar-topbar').style.display = 'none';
     document.getElementById('ar-bottombar').style.display = 'none';
+    document.getElementById('back-btn').classList.remove('visible');
     document.getElementById('menu-page').style.display = 'flex';
     document.getElementById('bottom-nav').style.display = 'flex';
 
