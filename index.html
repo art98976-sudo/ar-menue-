@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Cafe Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        /* ── MENU PAGE ── */
+        #menu-page {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f5f0eb;
+            padding-bottom: 120px;
+        }
+
+        /* ── HEADER ── */
+        #header {
+            background: #2c1810;
+            padding: 28px 20px 20px;
+            text-align: center;
+        }
+
+        #header .cafe-label {
+            color: #d4a574;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        #header h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #header p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        #header .ar-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+            background: #d4a574;
+            color: #2c1810;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 14px;
+            border-radius: 20px;
+        }
+
+        .section-title {
+            padding: 16px 16px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #8b6914;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ── GRID ── */
+        #grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px 16px;
+        }
+
+        /* ── FOOD CARD ── */
+        .food-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-img-placeholder {
+            width: 100%;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-img-placeholder img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-img-placeholder span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ar-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 9px;
+            padding: 3px 7px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .card-body {
+            padding: 10px 12px 12px;
+        }
+
+        .card-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2c1810;
+            margin-bottom: 2px;
+        }
+
+        .card-desc {
+            font-size: 10px;
+            color: #888;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .card-cal {
+            font-size: 10px;
+            color: #888;
+            background: #f5f0eb;
+            padding: 3px 7px;
+            border-radius: 8px;
+        }
+
+        .card-price {
+            background: #2c1810;
+            color: #d4a574;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 10px;
+        }
+
+        /* card buttons row */
+        .card-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .card-ar-btn {
+            flex: 1;
+            background: #f5f0eb;
+            color: #2c1810;
+            border: none;
+            padding: 7px 4px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .card-add-btn {
+            background: #2c1810;
+            color: white;
+            border: none;
+            padding: 7px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* ── CART BAR — fixed bottom ── */
+        #cart-bar {
+            position: fixed;
+            bottom: 60px;
+            left: 16px;
+            right: 16px;
+            z-index: 300;
+            background: #2c1810;
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        #cart-bar.visible {
+            display: flex;
+        }
+
+        #cart-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #cart-count {
+            color: #d4a574;
+            font-size: 11px;
+        }
+
+        #cart-total {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #cart-checkout-btn {
+            background: #d4a574;
+            color: #2c1810;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #cart-badge {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 400;
+            background: #d4a574;
+            color: #2c1810;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── BOTTOM NAV ── */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            z-index: 200;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 10px;
+            color: #888;
+            gap: 3px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: #2c1810;
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* ── CART PAGE ── */
+        #cart-page {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: #f5f0eb;
+            display: none;
+            flex-direction: column;
+        }
+
+        #cart-page.open {
+            display: flex;
+        }
+
+        #cart-header {
+            background: #2c1810;
+            padding: 24px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #cart-back {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #cart-header h2 {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cart-item {
+            background: white;
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .cart-item-icon {
+            font-size: 36px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c1810;
+        }
+
+        .cart-item-price {
+            font-size: 13px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* quantity controls */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            background: #f5f0eb;
+            color: #2c1810;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-num {
+            font-size: 15px;
+            font-weight: bold;
+            color: #2c1810;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* cart summary */
+        #cart-summary {
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .summary-row.total {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c1810;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f0e8dc;
+        }
+
+        #place-order-btn {
+            width: 100%;
+            background: #2c1810;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        #empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+            font-size: 14px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #empty-cart .empty-icon {
+            font-size: 48px;
+        }
+
+        /* ── AR PAGE ── */
+        #ar-page {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: block;
+        }
+
+        #ar-topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75), transparent);
+        }
+
+        #back-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #ar-food-name {
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+
+        #ar-food-price {
+            background: #d4a574;
+            color: #2c1810;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+
+        #ar-bottombar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+        }
+
+        #ar-hint-bar {
+            background: rgba(0, 0, 0, 0.55);
+            padding: 8px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11px;
+        }
+
+        #ar-detail-card {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            padding: 16px 20px 24px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        #ar-detail-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        #ar-detail-name {
+            font-size: 17px;
+            font-weight: bold;
+            color: #2c1810;
+            flex: 1;
+        }
+
+        #ar-detail-price {
+            background: #2c1810;
+            color: #d4a574;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 12px;
+        }
+
+        #ar-detail-desc {
+            color: #888;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        #ar-cal-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .cal-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f5f0eb;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        /* quantity selector in AR */
+        #ar-qty-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        #ar-qty-label {
+            font-size: 13px;
+            color: #888;
+            flex: 1;
+        }
+
+        .ar-qty-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            border: none;
+            background: #f5f0eb;
+            color: #2c1810;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #ar-qty-num {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c1810;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        #ar-action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        #ar-cart-btn {
+            flex: 1;
+            background: #f5f0eb;
+            color: #2c1810;
+            border: none;
+            padding: 13px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #ar-order-btn {
+            flex: 1;
+            background: #2c1810;
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #ar-reset-btn {
+            background: #eee;
+            color: #2c1810;
+            border: none;
+            padding: 13px 14px;
+            border-radius: 14px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: #2c1810;
+            color: white;
+            padding: 20px 28px;
+            border-radius: 18px;
+            font-size: 16px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-width: 220px;
+        }
+
+        #toast .toast-icon {
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        #toast .toast-msg {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #toast .toast-sub {
+            font-size: 12px;
+            color: #d4a574;
+            margin-top: 4px;
+        }
+
+        /* ── ORDER SUCCESS PAGE ── */
+        #order-success {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            background: #f5f0eb;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        #order-success.open {
+            display: flex;
+        }
+
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 16px;
+        }
+
+        #order-success h2 {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c1810;
+            margin-bottom: 8px;
+        }
+
+        #order-success p {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        #order-success .order-id {
+            background: #2c1810;
+            color: #d4a574;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        #order-success button {
+            background: #2c1810;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+</head>
+
+<body>
+
+    <!-- ============================================ -->
+    <!-- AR PAGE — camera always running behind       -->
+    <!-- ============================================ -->
+    <div id="ar-page">
+
+        <div id="ar-topbar">
+            <button id="back-btn" onclick="closeAR()">← Menu</button>
+            <div id="ar-food-name">Pizza</div>
+            <div id="ar-food-price">Rs. 150</div>
+        </div>
+
+        <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" renderer="colorManagement: true"
+            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+            <a-assets>
+                <a-asset-item id="pizzaModel" src="./pizza.glb"></a-asset-item>
+                <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
+                <a-asset-item id="drinkModel" src="./drink.glb"></a-asset-item>
+            </a-assets>
+
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model id="pizza" src="#pizzaModel" position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0"
+                    visible="false">
+                </a-gltf-model>
+                <a-gltf-model id="burger" src="#burgerModel" position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0"
+                    visible="false">
+                </a-gltf-model>
+                <a-gltf-model id="drink" src="#drinkModel" position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0"
+                    visible="false">
+                </a-gltf-model>
+            </a-entity>
+        </a-scene>
+
+        <div id="ar-bottombar">
+            <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to resize</div>
+            <div id="ar-detail-card">
+                <div id="ar-detail-top">
+                    <div id="ar-detail-name">Margherita Pizza</div>
+                    <div id="ar-detail-price">Rs. 150</div>
+                </div>
+                <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
+                <div id="ar-cal-row">
+                    <div class="cal-badge">🔥 320 kcal</div>
+                    <div class="cal-badge">⏱️ 15 min</div>
+                    <div class="cal-badge">⭐ 4.8</div>
+                </div>
+                <!-- QUANTITY SELECTOR -->
+                <div id="ar-qty-row">
+                    <div id="ar-qty-label">Quantity</div>
+                    <button class="ar-qty-btn" onclick="changeQty(-1)">−</button>
+                    <div id="ar-qty-num">1</div>
+                    <button class="ar-qty-btn" onclick="changeQty(1)">+</button>
+                </div>
+                <!-- ACTION BUTTONS -->
+                <div id="ar-action-row">
+                    <button id="ar-cart-btn" onclick="addToCart()">🛒 Add to Cart</button>
+                    <button id="ar-order-btn" onclick="orderNow()">⚡ Order Now</button>
+                    <button id="ar-reset-btn" onclick="resetModel()">⟳</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MENU PAGE                                    -->
+    <!-- ============================================ -->
+    <div id="menu-page">
+        <div id="header">
+            <div class="cafe-label">Est. 2024</div>
+            <h1>The Cozy Cup</h1>
+            <p>Fresh ingredients · Made with love</p>
+            <div class="ar-badge">📱 Tap any dish to view in AR</div>
+        </div>
+
+        <div class="section-title">Our Menu</div>
+
+        <div id="grid">
+
+            <!-- PIZZA -->
+            <div class="food-card">
+                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
+                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80"
+                        onerror="this.style.display='none'" />
+                    <span>🍕</span>
+                    <div class="ar-tag">AR</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-name">Margherita Pizza</div>
+                    <div class="card-desc">Tomato, mozzarella, fresh basil</div>
+                    <div class="card-meta">
+                        <div class="card-cal">🔥 320 kcal</div>
+                        <div class="card-price">Rs. 150</div>
+                    </div>
+                    <div class="card-btns">
+                        <button class="card-ar-btn" onclick="openAR('pizza')">👁 View AR</button>
+                        <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BURGER -->
+            <div class="food-card">
+                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80"
+                        onerror="this.style.display='none'" />
+                    <span>🍔</span>
+                    <div class="ar-tag">AR</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-name">Classic Burger</div>
+                    <div class="card-desc">Beef patty, cheese, lettuce</div>
+                    <div class="card-meta">
+                        <div class="card-cal">🔥 540 kcal</div>
+                        <div class="card-price">Rs. 200</div>
+                    </div>
+                    <div class="card-btns">
+                        <button class="card-ar-btn" onclick="openAR('burger')">👁 View AR</button>
+                        <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DRINK -->
+            <div class="food-card">
+                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
+                    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80"
+                        onerror="this.style.display='none'" />
+                    <span>🥤</span>
+                    <div class="ar-tag">AR</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-name">Fresh Lemonade</div>
+                    <div class="card-desc">Cold pressed, mint, lime</div>
+                    <div class="card-meta">
+                        <div class="card-cal">🔥 85 kcal</div>
+                        <div class="card-price">Rs. 80</div>
+                    </div>
+                    <div class="card-btns">
+                        <button class="card-ar-btn" onclick="openAR('drink')">👁 View AR</button>
+                        <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── CART BAR ── -->
+    <div id="cart-bar">
+        <div id="cart-info">
+            <div id="cart-count">0 items</div>
+            <div id="cart-total">Rs. 0</div>
+        </div>
+        <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+    </div>
+
+    <!-- ── BOTTOM NAV ── -->
+    <div id="bottom-nav">
+        <div class="nav-item active" onclick="showMenu()">
+            <div class="nav-icon">🍽️</div>Menu
+        </div>
+        <div class="nav-item" onclick="openCart()">
+            <div class="nav-icon">🛒</div>Cart
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">📋</div>Orders
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">👤</div>Profile
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- CART PAGE                                    -->
+    <!-- ============================================ -->
+    <div id="cart-page">
+        <div id="cart-header">
+            <button id="cart-back" onclick="closeCart()">← Back</button>
+            <h2>🛒 Your Cart</h2>
+        </div>
+
+        <div id="cart-items"></div>
+
+        <div id="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <div>Your cart is empty</div>
+            <small>Add items from the menu</small>
+        </div>
+
+        <div id="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="summary-subtotal">Rs. 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (5%)</span>
+                <span id="summary-tax">Rs. 0</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span id="summary-total">Rs. 0</span>
+            </div>
+            <button id="place-order-btn" onclick="placeOrder()">
+                Place Order →
+            </button>
+        </div>
+    </div>
+
+    <!-- ── ORDER SUCCESS ── -->
+    <div id="order-success">
+        <div class="success-icon">🎉</div>
+        <h2>Order Placed!</h2>
+        <p>Your order has been received.<br>We'll have it ready soon.</p>
+        <div class="order-id" id="order-id-text">Order #0000</div>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <!-- ── TOAST ── -->
+    <div id="toast">
+        <div class="toast-icon" id="toast-icon">✅</div>
+        <div class="toast-msg" id="toast-msg">Added!</div>
+        <div class="toast-sub" id="toast-sub"></div>
+    </div>
+
+    <script>
+
+        // ============================================
+        // FOOD DATA
+        // ============================================
+        const menuData = {
+            pizza: {
+                icon: '🍕', name: 'Margherita Pizza', price: 150,
+                desc: 'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.',
+                calories: '320 kcal', time: '15 min', rating: '4.8',
+                scale: 0.5, posY: 0.1,
+            },
+            burger: {
+                icon: '🍔', name: 'Classic Burger', price: 200,
+                desc: 'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',
+                calories: '540 kcal', time: '10 min', rating: '4.7',
+                scale: 0.5, posY: 0.1,
+            },
+            drink: {
+                icon: '🥤', name: 'Fresh Lemonade', price: 80,
+                desc: 'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',
+                calories: '85 kcal', time: '5 min', rating: '4.9',
+                scale: 0.5, posY: 0.1,
+            },
+        };
+
+        // ============================================
+        // CART STATE
+        // cart = { pizza: {qty: 2}, burger: {qty:1} }
+        // ============================================
+        let cart = {};
+
+        // AR state
+        let currentModel = null;
+        let arQty = 1;
+        let rotX = 0, rotY = 0, rotZ = 0;
+        let currentScale = 0.5;
+        const minScale = 0.1;
+        const maxScale = 3.0;
+        let lastTouchX = null;
+        let lastTouchY = null;
+        let lastPinchDist = null;
+        const rotateSpeed = 0.4;
+        const pinchSpeed = 0.01;
+
+        // ============================================
+        // CART FUNCTIONS
+        // ============================================
+
+        // add item to cart (from menu page + button)
+        function quickAdd(id) {
+            addItemToCart(id, 1);
+            showToast('✅', menuData[id].name + ' added!', 'Rs. ' + menuData[id].price);
+        }
+
+        // add item from AR with selected quantity
+        function addToCart() {
+            if (!currentModel) return;
+            addItemToCart(currentModel, arQty);
+            showToast('🛒', menuData[currentModel].name + ' × ' + arQty + ' added!',
+                'Rs. ' + (menuData[currentModel].price * arQty));
+        }
+
+        // core add function
+        function addItemToCart(id, qty) {
+            if (cart[id]) {
+                cart[id].qty += qty;
+            } else {
+                cart[id] = { qty: qty };
+            }
+            updateCartBar();
+        }
+
+        // remove 1 qty or delete from cart
+        function removeFromCart(id) {
+            if (!cart[id]) return;
+            cart[id].qty -= 1;
+            if (cart[id].qty <= 0) delete cart[id];
+            renderCartPage();
+            updateCartBar();
+        }
+
+        // add 1 qty from cart page
+        function addFromCart(id) {
+            if (cart[id]) cart[id].qty += 1;
+            renderCartPage();
+            updateCartBar();
+        }
+
+        // get total item count
+        function getCartCount() {
+            return Object.values(cart).reduce((sum, v) => sum + v.qty, 0);
+        }
+
+        // get total price
+        function getCartTotal() {
+            return Object.entries(cart).reduce((sum, [id, v]) => {
+                return sum + (menuData[id].price * v.qty);
+            }, 0);
+        }
+
+        // update the bottom cart bar
+        function updateCartBar() {
+            const count = getCartCount();
+            const total = getCartTotal();
+            const bar = document.getElementById('cart-bar');
+
+            if (count > 0) {
+                bar.classList.add('visible');
+                document.getElementById('cart-count').innerText = count + ' item' + (count > 1 ? 's' : '');
+                document.getElementById('cart-total').innerText = 'Rs. ' + total;
+            } else {
+                bar.classList.remove('visible');
+            }
+        }
+
+        // ============================================
+        // QUANTITY in AR panel
+        // ============================================
+        function changeQty(delta) {
+            arQty = Math.max(1, Math.min(10, arQty + delta));
+            document.getElementById('ar-qty-num').innerText = arQty;
+        }
+
+        // ============================================
+        // ORDER NOW from AR (skip cart)
+        // ============================================
+        function orderNow() {
+            if (!currentModel) return;
+            addItemToCart(currentModel, arQty);
+            closeAR();
+            setTimeout(() => placeOrder(), 300);
+        }
+
+        // ============================================
+        // OPEN / CLOSE CART PAGE
+        // ============================================
+        function openCart() {
+            renderCartPage();
+            document.getElementById('cart-page').classList.add('open');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-page').classList.remove('open');
+        }
+
+        // render cart items list
+        function renderCartPage() {
+            const container = document.getElementById('cart-items');
+            const empty = document.getElementById('empty-cart');
+            const keys = Object.keys(cart);
+
+            if (keys.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'flex';
+            } else {
+                empty.style.display = 'none';
+                container.innerHTML = keys.map(id => {
+                    const item = menuData[id];
+                    const qty = cart[id].qty;
+                    const total = item.price * qty;
+                    return `
+                    <div class="cart-item">
+                        <div class="cart-item-icon">${item.icon}</div>
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">Rs. ${item.price} × ${qty} = Rs. ${total}</div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="removeFromCart('${id}')">−</button>
+                            <div class="qty-num">${qty}</div>
+                            <button class="qty-btn" onclick="addFromCart('${id}')">+</button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            }
+
+            // update summary
+            const subtotal = getCartTotal();
+            const tax = Math.round(subtotal * 0.05);
+            const total = subtotal + tax;
+
+            document.getElementById('summary-subtotal').innerText = 'Rs. ' + subtotal;
+            document.getElementById('summary-tax').innerText = 'Rs. ' + tax;
+            document.getElementById('summary-total').innerText = 'Rs. ' + total;
+        }
+
+        // ============================================
+        // PLACE ORDER
+        // ============================================
+        function placeOrder() {
+            if (getCartCount() === 0) return;
+
+            // generate random order id
+            const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('order-id-text').innerText = 'Order ' + orderId;
+
+            // clear cart
+            cart = {};
+            updateCartBar();
+
+            // close cart page
+            document.getElementById('cart-page').classList.remove('open');
+
+            // show success page
+            document.getElementById('order-success').classList.add('open');
+        }
+
+        // ============================================
+        // BACK TO MENU from success page
+        // ============================================
+        function backToMenu() {
+            document.getElementById('order-success').classList.remove('open');
+            showMenu();
+        }
+
+        // ============================================
+        // SHOW MENU
+        // ============================================
+        function showMenu() {
+            document.getElementById('menu-page').style.display = 'flex';
+            document.getElementById('bottom-nav').style.display = 'flex';
+        }
+
+        // ============================================
+        // OPEN AR
+        // ============================================
+        function openAR(modelId) {
+            const item = menuData[modelId];
+            arQty = 1;
+            document.getElementById('ar-qty-num').innerText = '1';
+
+            document.getElementById('ar-food-name').innerText = item.name;
+            document.getElementById('ar-food-price').innerText = 'Rs. ' + item.price;
+            document.getElementById('ar-detail-name').innerText = item.name;
+            document.getElementById('ar-detail-price').innerText = 'Rs. ' + item.price;
+            document.getElementById('ar-detail-desc').innerText = item.desc;
+            document.getElementById('ar-cal-row').innerHTML = `
+            <div class="cal-badge">🔥 ${item.calories}</div>
+            <div class="cal-badge">⏱️ ${item.time}</div>
+            <div class="cal-badge">⭐ ${item.rating}</div>
+        `;
+
+            document.getElementById('menu-page').style.display = 'none';
+            document.getElementById('bottom-nav').style.display = 'none';
+            document.getElementById('cart-bar').classList.remove('visible');
+            document.getElementById('ar-topbar').style.display = 'flex';
+            document.getElementById('ar-bottombar').style.display = 'flex';
+
+            Object.keys(menuData).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute('visible', 'false');
+            });
+
+            const el = document.getElementById(modelId);
+            if (el) {
+                el.setAttribute('visible', 'true');
+                el.setAttribute('position', `0 ${item.posY} 0`);
+                el.setAttribute('scale', `${item.scale} ${item.scale} ${item.scale}`);
+                el.setAttribute('rotation', '0 0 0');
+            }
+
+            currentModel = modelId;
+            currentScale = item.scale;
+            rotX = 0; rotY = 0; rotZ = 0;
+        }
+
+        // ============================================
+        // CLOSE AR
+        // ============================================
+        function closeAR() {
+            document.getElementById('menu-page').style.display = 'flex';
+            document.getElementById('bottom-nav').style.display = 'flex';
+            document.getElementById('ar-topbar').style.display = 'none';
+            document.getElementById('ar-bottombar').style.display = 'none';
+
+            Object.keys(menuData).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.setAttribute('visible', 'false');
+            });
+
+            currentModel = null;
+            updateCartBar();
+        }
+
+        // ============================================
+        // RESET MODEL
+        // ============================================
+        function resetModel() {
+            if (!currentModel) return;
+            rotX = 0; rotY = 0; rotZ = 0;
+            currentScale = menuData[currentModel].scale;
+            applyTransform();
+        }
+
+        // ============================================
+        // APPLY TRANSFORM
+        // ============================================
+        function applyTransform() {
+            if (!currentModel) return;
+            const el = document.getElementById(currentModel);
+            if (!el) return;
+            el.setAttribute('rotation', `${rotX} ${rotY} ${rotZ}`);
+            el.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
+        }
+
+        // ============================================
+        // SHOW TOAST
+        // ============================================
+        function showToast(icon, msg, sub) {
+            document.getElementById('toast-icon').innerText = icon;
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-sub').innerText = sub;
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 1800);
+        }
+
+        // ============================================
+        // PINCH DISTANCE
+        // ============================================
+        function getPinchDistance(t) {
+            const dx = t[0].clientX - t[1].clientX;
+            const dy = t[0].clientY - t[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // ============================================
+        // TOUCH EVENTS
+        // ============================================
+        document.addEventListener('touchstart', (e) => {
+            if (!currentModel) return;
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+                lastPinchDist = null;
+            } else if (e.touches.length === 2) {
+                lastPinchDist = getPinchDistance(e.touches);
+                lastTouchX = null;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!currentModel) return;
+            e.preventDefault();
+            if (e.touches.length === 1 && lastTouchX !== null) {
+                const dx = e.touches[0].clientX - lastTouchX;
+                const dy = e.touches[0].clientY - lastTouchY;
+                rotY += dx * rotateSpeed;
+                rotX += dy * rotateSpeed;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+            } else if (e.touches.length === 2 && lastPinchDist !== null) {
+                const newDist = getPinchDistance(e.touches);
+                const delta = newDist - lastPinchDist;
+                currentScale += delta * pinchSpeed;
+                if (currentScale < minScale) currentScale = minScale;
+                if (currentScale > maxScale) currentScale = maxScale;
+                lastPinchDist = newDist;
+            }
+            applyTransform();
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            lastTouchX = null;
+            lastTouchY = null;
+            lastPinchDist = null;
+        });
+
+    </script>
+</body>
+
+</html>
