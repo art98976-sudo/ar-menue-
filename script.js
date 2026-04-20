@@ -43,6 +43,21 @@ const rotateSpeed = 0.4;
 const pinchSpeed = 0.01;
 
 // ============================================
+// SAFE ZONE — areas where touch should NOT
+// rotate the model (buttons, bars)
+// ============================================
+function isSafeZone(e) {
+    const target = e.target;
+    return (
+        target.closest('button') ||
+        target.closest('#ar-topbar') ||
+        target.closest('#ar-bottombar') ||
+        target.closest('#ar-detail-card') ||
+        target.closest('#ar-hint-bar')
+    );
+}
+
+// ============================================
 // CART FUNCTIONS
 // ============================================
 function quickAdd(id) {
@@ -112,7 +127,7 @@ function changeQty(delta) {
 }
 
 // ============================================
-// ORDER NOW FROM AR (skip cart)
+// ORDER NOW FROM AR
 // ============================================
 function orderNow() {
     if (!currentModel) return;
@@ -127,6 +142,7 @@ function orderNow() {
 function openCart() {
     renderCartPage();
     document.getElementById('cart-page').classList.add('open');
+    history.pushState({ page: 'cart' }, '');
 }
 
 function closeCart() {
@@ -236,6 +252,8 @@ function openAR(modelId) {
     currentModel = modelId;
     currentScale = item.scale;
     rotX = 0; rotY = 0; rotZ = 0;
+
+    history.pushState({ page: 'ar' }, '');
 }
 
 // ============================================
@@ -257,17 +275,25 @@ function closeAR() {
     updateCartBar();
 }
 
-// Fix for mobile: listen for touchend on back button too
-document.addEventListener('DOMContentLoaded', function () {
-    const backBtn = document.getElementById('back-btn');
-    if (backBtn) {
-        backBtn.addEventListener('touchend', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeAR();
-        });
+// ============================================
+// PHONE BACK BUTTON HANDLER
+// ============================================
+window.addEventListener('popstate', function () {
+    if (document.getElementById('ar-topbar').style.display === 'flex') {
+        closeAR();
+        return;
+    }
+    if (document.getElementById('cart-page').classList.contains('open')) {
+        closeCart();
+        return;
+    }
+    if (document.getElementById('order-success').classList.contains('open')) {
+        backToMenu();
+        return;
     }
 });
+
+history.pushState({ page: 'menu' }, '');
 
 // ============================================
 // RESET MODEL
@@ -300,7 +326,7 @@ function showToast(icon, msg, sub) {
 }
 
 // ============================================
-// TOUCH EVENTS
+// TOUCH EVENTS — only on camera area
 // ============================================
 function getPinchDistance(t) {
     const dx = t[0].clientX - t[1].clientX;
@@ -310,6 +336,7 @@ function getPinchDistance(t) {
 
 document.addEventListener('touchstart', (e) => {
     if (!currentModel) return;
+    if (isSafeZone(e)) return;   // ← let buttons work normally
     e.preventDefault();
     if (e.touches.length === 1) {
         lastTouchX = e.touches[0].clientX;
@@ -323,6 +350,7 @@ document.addEventListener('touchstart', (e) => {
 
 document.addEventListener('touchmove', (e) => {
     if (!currentModel) return;
+    if (isSafeZone(e)) return;   // ← let buttons work normally
     e.preventDefault();
     if (e.touches.length === 1 && lastTouchX !== null) {
         const dx = e.touches[0].clientX - lastTouchX;
@@ -342,8 +370,32 @@ document.addEventListener('touchmove', (e) => {
     applyTransform();
 }, { passive: false });
 
-document.addEventListener('touchend', () => {
+document.addEventListener('touchend', (e) => {
+    if (isSafeZone(e)) return;
     lastTouchX = null;
     lastTouchY = null;
     lastPinchDist = null;
+});
+
+// ============================================
+// ATTACH BACK BUTTON — after page loads
+// uses both onclick AND touchend for mobile
+// ============================================
+window.addEventListener('load', function () {
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        // remove old onclick
+        backBtn.removeAttribute('onclick');
+        // click works on desktop
+        backBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeAR();
+        });
+        // touchend works on mobile (fires even when aframe blocks click)
+        backBtn.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAR();
+        });
+    }
 });
