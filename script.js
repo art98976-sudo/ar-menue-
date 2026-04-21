@@ -440,26 +440,34 @@ function initARDetection() {
     const scene = document.querySelector('a-scene');
     if (!scene) return;
 
-    // Always keep model visible — MindAR parent controls show/hide
-    function keepModelVisible() {
+    // Force model visible - works on both mobile and desktop
+    function forceModelVisible() {
         if (!currentModel || viewerMode !== 'ar') return;
         const arEl = document.getElementById(menuData[currentModel].arId);
-        if (arEl && arEl.getAttribute('visible') === 'false') {
-            arEl.setAttribute('visible', 'true');
+        if (!arEl) return;
+        // Force visible using multiple methods
+        arEl.setAttribute('visible', 'true');
+        if (arEl.object3D) arEl.object3D.visible = true;
+        // Also force all children visible
+        if (arEl.object3D) {
+            arEl.object3D.traverse(child => { child.visible = true; });
         }
     }
 
-    // Poll every 100ms to keep model visible
+    // Run immediately and keep running
+    forceModelVisible();
+
+    // Poll every 50ms - aggressive fix for mobile
     const keepAlive = setInterval(() => {
         if (viewerMode !== 'ar') { clearInterval(keepAlive); return; }
-        keepModelVisible();
-    }, 100);
+        forceModelVisible();
+    }, 50);
 
     // Event listeners
     const target = document.querySelector('[mindar-image-target]');
     if (target) {
         target.addEventListener('targetFound', function() {
-            keepModelVisible();
+            forceModelVisible();
             onARDetected();
         });
         target.addEventListener('targetLost', function() {
@@ -467,13 +475,13 @@ function initARDetection() {
         });
     }
 
-    // Also poll anchor visibility for detection UI
+    // Poll anchor visibility for detection UI
     const detectPoll = setInterval(() => {
         if (viewerMode !== 'ar') { clearInterval(detectPoll); return; }
         const anchor = document.querySelector('[mindar-image-target]');
         if (!anchor) return;
         const visible = anchor.object3D && anchor.object3D.visible;
-        if (visible && !arDetected) onARDetected();
+        if (visible && !arDetected) { forceModelVisible(); onARDetected(); }
         else if (!visible && arDetected) onARLost();
     }, 200);
 }
