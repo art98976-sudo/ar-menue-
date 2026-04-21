@@ -35,14 +35,49 @@ function initThreeJS() {
     threeCamera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
     threeCamera.position.set(0, 0.5, 3);
 
-    // Lighting
-    threeScene.add(new THREE.AmbientLight(0xffffff, 3));
-    const d = new THREE.DirectionalLight(0xffffff, 3);
-    d.position.set(5, 10, 7);
-    threeScene.add(d);
-    const d2 = new THREE.DirectionalLight(0xffe8d0, 2);
-    d2.position.set(-5, 5, -5);
-    threeScene.add(d2);
+    // Premium lighting setup
+    threeScene.add(new THREE.AmbientLight(0xfff5e0, 2.0));
+
+    // Key light with shadows
+    const keyLight = new THREE.DirectionalLight(0xffffff, 3.5);
+    keyLight.position.set(5, 10, 7);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.camera.near = 0.1;
+    keyLight.shadow.camera.far = 50;
+    keyLight.shadow.bias = -0.001;
+    threeScene.add(keyLight);
+
+    // Fill light
+    const fillLight = new THREE.DirectionalLight(0xffe8d0, 2.0);
+    fillLight.position.set(-5, 5, -5);
+    threeScene.add(fillLight);
+
+    // Rim light for depth
+    const rimLight = new THREE.DirectionalLight(0xffd0a0, 1.5);
+    rimLight.position.set(0, 3, -8);
+    threeScene.add(rimLight);
+
+    // Bottom warm light
+    const bottomLight = new THREE.PointLight(0xffaa44, 1.0, 15);
+    bottomLight.position.set(0, -3, 2);
+    threeScene.add(bottomLight);
+
+    // Shadow ground plane
+    const groundGeo = new THREE.PlaneGeometry(20, 20);
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1.5;
+    ground.receiveShadow = true;
+    threeScene.add(ground);
+
+    // Enable shadows on renderer
+    threeRenderer.shadowMap.enabled = true;
+    threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    threeRenderer.toneMappingExposure = 1.2;
 
     // OrbitControls
     const OC = (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.OrbitControls)
@@ -121,7 +156,16 @@ function loadGLBModel(modelPath) {
             const scale  = 2.8 / Math.max(size.x, size.y, size.z);
             loadedModel.scale.setScalar(scale);
             loadedModel.position.sub(center.multiplyScalar(scale));
+            // Enable shadows on all meshes
+            loadedModel.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
             threeScene.add(loadedModel);
+            // Add steam effect for hot food
+            addSteamEffect(loadedModel);
             setTimeout(() => { document.getElementById('ar-loading').style.display = 'none'; }, 200);
             threeCamera.position.set(0, 0.5, 3);
             threeControls && threeControls.reset();
@@ -224,6 +268,7 @@ function openAR(modelId) {
 // ── Close Viewer ──
 function closeViewer() {
     currentModel = null; viewerMode = null;
+    removeSteamEffect(); // ← remove steam particles
     stopRendering(); // ← stop render loop
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('viewer-ar').style.display = 'none';
@@ -457,3 +502,88 @@ closeViewer = function() {
     const overlay = document.getElementById('scan-overlay');
     if (overlay) overlay.classList.remove('hidden');
 };
+
+// ============================================
+// STEAM EFFECT — rising particles for hot food
+// ============================================
+let steamParticles = null;
+let steamAnimId = null;
+
+function addSteamEffect(model) {
+    const THREE = getThree();
+    if (!THREE) return;
+
+    // Only add steam for pizza and burger (hot food)
+    if (currentModel === 'drink') return;
+
+    // Remove old steam
+    removeSteamEffect();
+
+    const particleCount = 30;
+    const positions = new Float32Array(particleCount * 3);
+    const opacities  = new Float32Array(particleCount);
+    const speeds     = new Float32Array(particleCount);
+    const offsets    = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+        positions[i * 3]     = (Math.random() - 0.5) * 1.5; // x spread
+        positions[i * 3 + 1] = Math.random() * 2;            // y start
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 1.5; // z spread
+        opacities[i] = Math.random();
+        speeds[i]    = 0.005 + Math.random() * 0.01;
+        offsets[i]   = Math.random() * Math.PI * 2;
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const mat = new THREE.PointsMaterial({
+        color: 0xcccccc,
+        size: 0.15,
+        transparent: true,
+        opacity: 0.4,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+    });
+
+    steamParticles = new THREE.Points(geo, mat);
+    steamParticles.position.y = 1.0; // above the food
+    threeScene.add(steamParticles);
+
+    // Animate steam
+    let frame = 0;
+    function animateSteam() {
+        steamAnimId = requestAnimationFrame(animateSteam);
+        if (!steamParticles) return;
+        frame++;
+        const pos = steamParticles.geometry.attributes.position;
+        for (let i = 0; i < particleCount; i++) {
+            // Rise upward
+            pos.array[i * 3 + 1] += speeds[i];
+            // Drift sideways like real steam
+            pos.array[i * 3]     += Math.sin(frame * 0.02 + offsets[i]) * 0.003;
+            pos.array[i * 3 + 2] += Math.cos(frame * 0.02 + offsets[i]) * 0.003;
+            // Reset when too high
+            if (pos.array[i * 3 + 1] > 3) {
+                pos.array[i * 3]     = (Math.random() - 0.5) * 1.5;
+                pos.array[i * 3 + 1] = 0;
+                pos.array[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
+            }
+        }
+        pos.needsUpdate = true;
+        // Fade opacity
+        mat.opacity = 0.3 + Math.sin(frame * 0.05) * 0.1;
+    }
+    animateSteam();
+}
+
+function removeSteamEffect() {
+    if (steamParticles) {
+        threeScene.remove(steamParticles);
+        steamParticles = null;
+    }
+    if (steamAnimId) {
+        cancelAnimationFrame(steamAnimId);
+        steamAnimId = null;
+    }
+}
