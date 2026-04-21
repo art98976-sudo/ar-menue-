@@ -511,5 +511,3 @@ document.addEventListener('touchend', function() {
     arLastTouchY = null;
     arLastPinchDist = null;
 });
-    arLastPinchDist = null;
-});
