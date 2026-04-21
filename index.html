@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,18 +15,17 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
     <script>
-        // Patch all loaders into AFRAME.THREE after window loads
-        window.addEventListener('load', function () {
-            if (window.AFRAME && window.AFRAME.THREE) {
-                if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
-                if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
-                if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
-                console.log('All loaders patched into AFRAME.THREE');
-            }
-        });
+    // Patch all loaders into AFRAME.THREE after window loads
+    window.addEventListener('load', function() {
+        if (window.AFRAME && window.AFRAME.THREE) {
+            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
+            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
+            if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
+            console.log('All loaders patched into AFRAME.THREE');
+        }
+    });
     </script>
 </head>
-
 <body>
 
     <button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
@@ -52,13 +50,13 @@
 
     <!-- AR VIEWER -->
     <div id="viewer-ar">
-        <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01" color-space="sRGB"
-            renderer="colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false">
+        <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01"
+            color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true"
+            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
             <a-assets timeout="30000">
-                <a-asset-item id="pizzaModel" src="./pizza.glb"></a-asset-item>
+                <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
                 <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
-                <a-asset-item id="drinkModel" src="./drink.glb"></a-asset-item>
+                <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
             </a-assets>
 
             <!-- Better camera -->
@@ -71,13 +69,22 @@
 
             <a-entity mindar-image-target="targetIndex: 0">
                 <!-- No auto rotation - finger controlled 360 rotation -->
-                <a-gltf-model id="ar-pizza" src="#pizzaModel" position="0 0.05 0" scale="0.8 0.8 0.8" rotation="0 0 0"
+                <a-gltf-model id="ar-pizza"  src="#pizzaModel"
+                    position="0 0.05 0"
+                    scale="0.5 0.5 0.5"
+                    rotation="0 0 0"
                     visible="false">
                 </a-gltf-model>
-                <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0.05 0" scale="0.2 0.2 0.2" rotation="0 0 0"
+                <a-gltf-model id="ar-burger" src="#burgerModel"
+                    position="0 0.05 0"
+                    scale="0.3 0.3 0.3"
+                    rotation="0 0 0"
                     visible="false">
                 </a-gltf-model>
-                <a-gltf-model id="ar-drink" src="#drinkModel" position="0 0.05 0" scale="0.3 0.3 0.3" rotation="0 0 0"
+                <a-gltf-model id="ar-drink"  src="#drinkModel"
+                    position="0 0.05 0"
+                    scale="0.5 0.5 0.5"
+                    rotation="0 0 0"
                     visible="false">
                 </a-gltf-model>
             </a-entity>
@@ -100,19 +107,14 @@
             </div>
             <div id="ar-qty-row">
                 <div id="ar-qty-label">Quantity</div>
-                <button class="ar-qty-btn" onclick="changeQty(-1)"
-                    ontouchend="event.preventDefault();changeQty(-1)">−</button>
+                <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
                 <div id="ar-qty-num">1</div>
-                <button class="ar-qty-btn" onclick="changeQty(1)"
-                    ontouchend="event.preventDefault();changeQty(1)">+</button>
+                <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
             </div>
             <div id="ar-action-row">
-                <button id="ar-cart-btn" onclick="addToCart()" ontouchend="event.preventDefault();addToCart()">🛒 Add to
-                    Cart</button>
-                <button id="ar-order-btn" onclick="orderNow()" ontouchend="event.preventDefault();orderNow()">⚡ Order
-                    Now</button>
-                <button id="ar-reset-btn" onclick="resetModel()"
-                    ontouchend="event.preventDefault();resetModel()">⟳</button>
+                <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
+                <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+                <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
             </div>
         </div>
     </div>
@@ -130,8 +132,7 @@
 
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
-                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80"
-                        onerror="this.style.display='none'" />
+                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🍕</span>
                     <div class="ar-tag">3D•AR</div>
                 </div>
@@ -152,8 +153,7 @@
 
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
-                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80"
-                        onerror="this.style.display='none'" />
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🍔</span>
                     <div class="ar-tag">3D•AR</div>
                 </div>
@@ -174,8 +174,7 @@
 
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
-                    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80"
-                        onerror="this.style.display='none'" />
+                    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🥤</span>
                     <div class="ar-tag">3D•AR</div>
                 </div>
@@ -206,18 +205,10 @@
     </div>
 
     <div id="bottom-nav">
-        <div class="nav-item active" onclick="showMenu()">
-            <div class="nav-icon">🍽️</div>Menu
-        </div>
-        <div class="nav-item" onclick="openCart()">
-            <div class="nav-icon">🛒</div>Cart
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon">📋</div>Orders
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon">👤</div>Profile
-        </div>
+        <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
+        <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
+        <div class="nav-item"><div class="nav-icon">📋</div>Orders</div>
+        <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
     </div>
 
     <div id="cart-page">
@@ -249,60 +240,59 @@
 
     <div id="toast">
         <div class="toast-icon" id="toast-icon">✅</div>
-        <div class="toast-msg" id="toast-msg">Added!</div>
-        <div class="toast-sub" id="toast-sub"></div>
+        <div class="toast-msg"  id="toast-msg">Added!</div>
+        <div class="toast-sub"  id="toast-sub"></div>
     </div>
 
     <script>
-        // Debug: log what's available after all scripts load
-        window.addEventListener('load', function () {
-            console.log('AFRAME.THREE:', typeof (window.AFRAME && window.AFRAME.THREE));
-            console.log('GLTFLoader:', typeof window.GLTFLoader);
-            console.log('OrbitControls:', typeof window.OrbitControls);
-            console.log('AFRAME.THREE.GLTFLoader:', typeof (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.GLTFLoader));
-
-            // Patch GLTFLoader and OrbitControls into AFRAME.THREE
-            if (window.AFRAME && window.AFRAME.THREE) {
-                if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
-                if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
-                console.log('Patched successfully');
-            }
-        });
+    // Debug: log what's available after all scripts load
+    window.addEventListener('load', function() {
+        console.log('AFRAME.THREE:', typeof (window.AFRAME && window.AFRAME.THREE));
+        console.log('GLTFLoader:', typeof window.GLTFLoader);
+        console.log('OrbitControls:', typeof window.OrbitControls);
+        console.log('AFRAME.THREE.GLTFLoader:', typeof (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.GLTFLoader));
+        
+        // Patch GLTFLoader and OrbitControls into AFRAME.THREE
+        if (window.AFRAME && window.AFRAME.THREE) {
+            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
+            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
+            console.log('Patched successfully');
+        }
+    });
     </script>
     <script>
-        // Fix white screen - force video element to show
-        function fixARWhiteScreen() {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(v => {
-                v.style.display = 'block';
-                v.style.position = 'fixed';
-                v.style.top = '0';
-                v.style.left = '0';
-                v.style.width = '100%';
-                v.style.height = '100%';
-                v.style.objectFit = 'cover';
-                v.style.zIndex = '1';
-            });
+    // Fix white screen - force video element to show
+    function fixARWhiteScreen() {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(v => {
+            v.style.display = 'block';
+            v.style.position = 'fixed';
+            v.style.top = '0';
+            v.style.left = '0';
+            v.style.width = '100%';
+            v.style.height = '100%';
+            v.style.objectFit = 'cover';
+            v.style.zIndex = '1';
+        });
 
-            const canvas = document.querySelectorAll('#viewer-ar canvas');
-            canvas.forEach(c => {
-                c.style.position = 'fixed';
-                c.style.top = '0';
-                c.style.left = '0';
-                c.style.width = '100%';
-                c.style.height = '100%';
-                c.style.zIndex = '2';
-            });
+        const canvas = document.querySelectorAll('#viewer-ar canvas');
+        canvas.forEach(c => {
+            c.style.position = 'fixed';
+            c.style.top = '0';
+            c.style.left = '0';
+            c.style.width = '100%';
+            c.style.height = '100%';
+            c.style.zIndex = '2';
+        });
+    }
+
+    // Run fix every second when AR is open
+    setInterval(() => {
+        if (document.getElementById('viewer-ar').style.display === 'block') {
+            fixARWhiteScreen();
         }
-
-        // Run fix every second when AR is open
-        setInterval(() => {
-            if (document.getElementById('viewer-ar').style.display === 'block') {
-                fixARWhiteScreen();
-            }
-        }, 1000);
+    }, 1000);
     </script>
     <script src="script.js"></script>
 </body>
-
 </html>

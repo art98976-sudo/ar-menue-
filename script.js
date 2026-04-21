@@ -157,7 +157,7 @@ function loadGLBModel(modelPath) {
             const box = new THREE.Box3().setFromObject(loadedModel);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
-            const scale = 3.5 / Math.max(size.x, size.y, size.z);
+            const scale = 2.8 / Math.max(size.x, size.y, size.z);
             loadedModel.scale.setScalar(scale);
             loadedModel.position.sub(center.multiplyScalar(scale));
             threeScene.add(loadedModel);
@@ -458,7 +458,7 @@ function arGetPinchDist(t) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-document.addEventListener('touchstart', function (e) {
+document.addEventListener('touchstart', function(e) {
     if (viewerMode !== 'ar') return;
     if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
     if (e.touches.length === 1) {
@@ -470,7 +470,7 @@ document.addEventListener('touchstart', function (e) {
     }
 }, { passive: true });
 
-document.addEventListener('touchmove', function (e) {
+document.addEventListener('touchmove', function(e) {
     if (viewerMode !== 'ar') return;
     if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
     const el = getArModel();
@@ -495,7 +495,7 @@ document.addEventListener('touchmove', function (e) {
     }
 }, { passive: true });
 
-document.addEventListener('touchend', function () {
+document.addEventListener('touchend', function() {
     arLastTouchX = null;
     arLastPinchDist = null;
 });
