@@ -1051,3 +1051,101 @@ html, body {
     color: rgba(255, 255, 255, 0.6);
     font-size: 12px;
 }
+
+/* ============================================ */
+/* AR SCANNING GUIDE                            */
+/* ============================================ */
+#scan-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    pointer-events: none;
+    transition: opacity 0.5s;
+}
+
+#scan-overlay.hidden {
+    opacity: 0;
+}
+
+#scan-top-text {
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+#scan-bottom-text {
+    color: rgba(255,255,255,0.8);
+    font-size: 12px;
+    background: rgba(0,0,0,0.4);
+    padding: 6px 16px;
+    border-radius: 12px;
+}
+
+#scan-box {
+    width: 260px;
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+
+.scan-corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: #d4a574;
+    border-style: solid;
+}
+
+.scan-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.scan-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.scan-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.scan-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+/* Scanning line animation */
+#scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4a574, transparent);
+    animation: scanMove 2s linear infinite;
+    box-shadow: 0 0 8px #d4a574;
+}
+
+@keyframes scanMove {
+    0%   { top: 0; }
+    50%  { top: calc(100% - 2px); }
+    100% { top: 0; }
+}
+
+/* Detected notification */
+#ar-detected {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: #2c1810;
+    color: #d4a574;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: bold;
+    display: none;
+    animation: popIn 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+@keyframes popIn {
+    0%   { transform: translateX(-50%) scale(0.8); opacity: 0; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}

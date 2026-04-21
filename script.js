@@ -2,9 +2,9 @@
 // FOOD DATA
 // ============================================
 const menuData = {
-    pizza: { icon: '🍕', name: 'Margherita Pizza', price: 150, desc: 'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories: '320 kcal', time: '15 min', rating: '4.8', model: './pizza.glb', arId: 'ar-pizza', arScale: 0.5 },
-    burger: { icon: '🍔', name: 'Classic Burger', price: 200, desc: 'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.', calories: '540 kcal', time: '10 min', rating: '4.7', model: './burger.glb', arId: 'ar-burger', arScale: 0.15 },
-    drink: { icon: '🥤', name: 'Fresh Lemonade', price: 80, desc: 'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.', calories: '85 kcal', time: '5 min', rating: '4.9', model: './drink.glb', arId: 'ar-drink', arScale: 0.2 },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.5  },
+    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15 },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',      calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.2  },
 };
 
 let cart = {}, currentModel = null, arQty = 1, viewerMode = null;
@@ -59,7 +59,7 @@ function initThreeJS() {
     threeControls.autoRotateSpeed = 1.5;
 
     canvas.addEventListener('touchstart', () => { threeControls.autoRotate = false; });
-    canvas.addEventListener('mousedown', () => { threeControls.autoRotate = false; });
+    canvas.addEventListener('mousedown',  () => { threeControls.autoRotate = false; });
 
     startRendering();
 }
@@ -111,14 +111,14 @@ function loadGLBModel(modelPath) {
     }
 
     loader.load(modelPath,
-        function (gltf) {
+        function(gltf) {
             if (pb) pb.style.width = '100%';
             if (pp) pp.innerText = '100%';
             loadedModel = gltf.scene;
             const box = new THREE.Box3().setFromObject(loadedModel);
             const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            const scale = 2.8 / Math.max(size.x, size.y, size.z);
+            const size   = box.getSize(new THREE.Vector3());
+            const scale  = 2.8 / Math.max(size.x, size.y, size.z);
             loadedModel.scale.setScalar(scale);
             loadedModel.position.sub(center.multiplyScalar(scale));
             threeScene.add(loadedModel);
@@ -127,7 +127,7 @@ function loadGLBModel(modelPath) {
             threeControls && threeControls.reset();
             threeControls && (threeControls.autoRotate = true);
         },
-        function (xhr) {
+        function(xhr) {
             if (xhr.lengthComputable) {
                 const pct = Math.round((xhr.loaded / xhr.total) * 100);
                 if (pb) pb.style.width = pct + '%';
@@ -137,7 +137,7 @@ function loadGLBModel(modelPath) {
                 if (cur < 90 && pb) pb.style.width = (cur + 1) + '%';
             }
         },
-        function (err) {
+        function(err) {
             console.error('Model error:', err);
             document.getElementById('ar-loading').style.display = 'none';
             // Fallback sphere
@@ -208,15 +208,15 @@ function openAR(modelId) {
     arRotY = 0; arRotX = 0;
     arScale = menuData[modelId].arScale || 0.5;
 
-    ['ar-pizza', 'ar-burger', 'ar-drink'].forEach(id => {
+    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.setAttribute('visible', 'false');
+        if (el) el.setAttribute('visible','false');
     });
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
-        arEl.setAttribute('visible', 'true');
+        arEl.setAttribute('visible','true');
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        arEl.setAttribute('rotation', '0 0 0');
+        arEl.setAttribute('rotation','0 0 0');
     }
     history.pushState({ page: 'ar' }, '');
 }
@@ -232,9 +232,9 @@ function closeViewer() {
     document.getElementById('back-btn').classList.remove('visible');
     document.getElementById('menu-page').style.display = 'flex';
     document.getElementById('bottom-nav').style.display = 'flex';
-    ['ar-pizza', 'ar-burger', 'ar-drink'].forEach(id => {
+    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.setAttribute('visible', 'false');
+        if (el) el.setAttribute('visible','false');
     });
     updateCartBar();
 }
@@ -247,18 +247,18 @@ function resetModel() {
     if (viewerMode === 'ar') {
         arRotY = 0; arRotX = 0;
         const arEl = currentModel && document.getElementById(menuData[currentModel].arId);
-        if (arEl) arEl.setAttribute('rotation', '0 0 0');
+        if (arEl) arEl.setAttribute('rotation','0 0 0');
     }
 }
 
 // ── Cart ──
-function quickAdd(id) { addItemToCart(id, 1); showToast('✅', menuData[id].name + ' added!', 'Rs.' + menuData[id].price); }
-function addToCart() {
+function quickAdd(id) { addItemToCart(id,1); showToast('✅', menuData[id].name+' added!', 'Rs.'+menuData[id].price); }
+function addToCart()   {
     if (!currentModel) return;
     addItemToCart(currentModel, arQty);
-    showToast('🛒', menuData[currentModel].name + ' ×' + arQty + ' added!', 'Rs.' + (menuData[currentModel].price * arQty));
+    showToast('🛒', menuData[currentModel].name+' ×'+arQty+' added!', 'Rs.'+(menuData[currentModel].price*arQty));
 }
-function addItemToCart(id, qty) {
+function addItemToCart(id,qty) {
     cart[id] ? cart[id].qty += qty : cart[id] = { qty };
     updateCartBar();
 }
@@ -269,28 +269,28 @@ function removeFromCart(id) {
     renderCartPage(); updateCartBar();
 }
 function addFromCart(id) { if (cart[id]) cart[id].qty++; renderCartPage(); updateCartBar(); }
-function getCartCount() { return Object.values(cart).reduce((s, v) => s + v.qty, 0); }
-function getCartTotal() { return Object.entries(cart).reduce((s, [id, v]) => s + menuData[id].price * v.qty, 0); }
+function getCartCount() { return Object.values(cart).reduce((s,v)=>s+v.qty,0); }
+function getCartTotal() { return Object.entries(cart).reduce((s,[id,v])=>s+menuData[id].price*v.qty,0); }
 function updateCartBar() {
-    const count = getCartCount(), total = getCartTotal(), bar = document.getElementById('cart-bar');
-    if (count > 0) {
+    const count=getCartCount(), total=getCartTotal(), bar=document.getElementById('cart-bar');
+    if (count>0) {
         bar.classList.add('visible');
-        document.getElementById('cart-count').innerText = count + ' item' + (count > 1 ? 's' : '');
-        document.getElementById('cart-total').innerText = 'Rs. ' + total;
+        document.getElementById('cart-count').innerText = count+' item'+(count>1?'s':'');
+        document.getElementById('cart-total').innerText = 'Rs. '+total;
     } else bar.classList.remove('visible');
 }
-function changeQty(d) { arQty = Math.max(1, Math.min(10, arQty + d)); document.getElementById('ar-qty-num').innerText = arQty; }
-function orderNow() { if (!currentModel) return; addItemToCart(currentModel, arQty); closeViewer(); setTimeout(placeOrder, 300); }
-function openCart() { renderCartPage(); document.getElementById('cart-page').classList.add('open'); history.pushState({ page: 'cart' }, ''); }
-function closeCart() { document.getElementById('cart-page').classList.remove('open'); }
+function changeQty(d) { arQty=Math.max(1,Math.min(10,arQty+d)); document.getElementById('ar-qty-num').innerText=arQty; }
+function orderNow()    { if (!currentModel) return; addItemToCart(currentModel,arQty); closeViewer(); setTimeout(placeOrder,300); }
+function openCart()    { renderCartPage(); document.getElementById('cart-page').classList.add('open'); history.pushState({page:'cart'},''); }
+function closeCart()   { document.getElementById('cart-page').classList.remove('open'); }
 
 function renderCartPage() {
-    const container = document.getElementById('cart-items'), empty = document.getElementById('empty-cart'), keys = Object.keys(cart);
-    if (!keys.length) { container.innerHTML = ''; empty.style.display = 'flex'; }
+    const container=document.getElementById('cart-items'), empty=document.getElementById('empty-cart'), keys=Object.keys(cart);
+    if (!keys.length) { container.innerHTML=''; empty.style.display='flex'; }
     else {
-        empty.style.display = 'none';
-        container.innerHTML = keys.map(id => {
-            const item = menuData[id], qty = cart[id].qty, total = item.price * qty;
+        empty.style.display='none';
+        container.innerHTML = keys.map(id=>{
+            const item=menuData[id], qty=cart[id].qty, total=item.price*qty;
             return `<div class="cart-item">
                 <div class="cart-item-icon">${item.icon}</div>
                 <div class="cart-item-info">
@@ -305,69 +305,155 @@ function renderCartPage() {
             </div>`;
         }).join('');
     }
-    const sub = getCartTotal(), tax = Math.round(sub * 0.05);
-    document.getElementById('summary-subtotal').innerText = 'Rs.' + sub;
-    document.getElementById('summary-tax').innerText = 'Rs.' + tax;
-    document.getElementById('summary-total').innerText = 'Rs.' + (sub + tax);
+    const sub=getCartTotal(), tax=Math.round(sub*0.05);
+    document.getElementById('summary-subtotal').innerText='Rs.'+sub;
+    document.getElementById('summary-tax').innerText='Rs.'+tax;
+    document.getElementById('summary-total').innerText='Rs.'+(sub+tax);
 }
 
 function placeOrder() {
     if (!getCartCount()) return;
-    document.getElementById('order-id-text').innerText = 'Order #' + Math.floor(1000 + Math.random() * 9000);
-    cart = {}; updateCartBar();
+    document.getElementById('order-id-text').innerText='Order #'+Math.floor(1000+Math.random()*9000);
+    cart={}; updateCartBar();
     document.getElementById('cart-page').classList.remove('open');
     document.getElementById('order-success').classList.add('open');
 }
 function backToMenu() { document.getElementById('order-success').classList.remove('open'); showMenu(); }
-function showMenu() { document.getElementById('menu-page').style.display = 'flex'; document.getElementById('bottom-nav').style.display = 'flex'; }
+function showMenu()   { document.getElementById('menu-page').style.display='flex'; document.getElementById('bottom-nav').style.display='flex'; }
 
-window.addEventListener('popstate', function () {
-    if (document.getElementById('viewer-3d').style.display === 'block' || document.getElementById('viewer-ar').style.display === 'block') { closeViewer(); return; }
+window.addEventListener('popstate', function() {
+    if (document.getElementById('viewer-3d').style.display==='block' || document.getElementById('viewer-ar').style.display==='block') { closeViewer(); return; }
     if (document.getElementById('cart-page').classList.contains('open')) { closeCart(); return; }
     if (document.getElementById('order-success').classList.contains('open')) { backToMenu(); return; }
 });
-history.pushState({ page: 'menu' }, '');
+history.pushState({page:'menu'},'');
 
-function showToast(icon, msg, sub) {
-    document.getElementById('toast-icon').innerText = icon;
-    document.getElementById('toast-msg').innerText = msg;
-    document.getElementById('toast-sub').innerText = sub;
-    const t = document.getElementById('toast');
-    t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 1800);
+function showToast(icon,msg,sub) {
+    document.getElementById('toast-icon').innerText=icon;
+    document.getElementById('toast-msg').innerText=msg;
+    document.getElementById('toast-sub').innerText=sub;
+    const t=document.getElementById('toast');
+    t.style.display='block';
+    setTimeout(()=>{ t.style.display='none'; },1800);
 }
 window.addEventListener('resize', resizeRenderer);
 
 // ── AR Touch Controls ──
-let arRotY = 0, arRotX = 0, arScale = 0.5;
-const arMinScale = 0.05, arMaxScale = 4.0;
-let arLastX = null, arLastY = null, arLastPinch = null;
+let arRotY=0, arRotX=0, arScale=0.5;
+const arMinScale=0.05, arMaxScale=4.0;
+let arLastX=null, arLastY=null, arLastPinch=null;
 
 function getArModel() { return currentModel ? document.getElementById(menuData[currentModel].arId) : null; }
-function pinchDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+function pinchDist(t) { return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
 
-document.addEventListener('touchstart', e => {
-    if (viewerMode !== 'ar') return;
-    if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
-    if (e.touches.length === 1) { arLastX = e.touches[0].clientX; arLastY = e.touches[0].clientY; arLastPinch = null; }
-    else if (e.touches.length === 2) { arLastPinch = pinchDist(e.touches); arLastX = null; arLastY = null; }
-}, { passive: true });
+document.addEventListener('touchstart', e=>{
+    if (viewerMode!=='ar') return;
+    if (e.target.closest('#ar-bottombar')||e.target.closest('#back-btn')) return;
+    if (e.touches.length===1) { arLastX=e.touches[0].clientX; arLastY=e.touches[0].clientY; arLastPinch=null; }
+    else if (e.touches.length===2) { arLastPinch=pinchDist(e.touches); arLastX=null; arLastY=null; }
+},{ passive:true });
 
-document.addEventListener('touchmove', e => {
-    if (viewerMode !== 'ar') return;
-    if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
-    const el = getArModel(); if (!el) return;
-    if (e.touches.length === 1 && arLastX !== null) {
-        const dx = e.touches[0].clientX - arLastX, dy = e.touches[0].clientY - arLastY;
-        arRotY += dx; arRotX += dy;
-        el.setAttribute('rotation', `${arRotX} ${arRotY} 0`);
-        arLastX = e.touches[0].clientX; arLastY = e.touches[0].clientY;
-    } else if (e.touches.length === 2 && arLastPinch !== null) {
-        const nd = pinchDist(e.touches), delta = nd - arLastPinch;
-        arScale = Math.max(arMinScale, Math.min(arMaxScale, arScale + delta * 0.008));
-        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        arLastPinch = nd;
+document.addEventListener('touchmove', e=>{
+    if (viewerMode!=='ar') return;
+    if (e.target.closest('#ar-bottombar')||e.target.closest('#back-btn')) return;
+    const el=getArModel(); if (!el) return;
+    if (e.touches.length===1 && arLastX!==null) {
+        const dx=e.touches[0].clientX-arLastX, dy=e.touches[0].clientY-arLastY;
+        arRotY+=dx; arRotX+=dy;
+        el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
+        arLastX=e.touches[0].clientX; arLastY=e.touches[0].clientY;
+    } else if (e.touches.length===2 && arLastPinch!==null) {
+        const nd=pinchDist(e.touches), delta=nd-arLastPinch;
+        arScale=Math.max(arMinScale, Math.min(arMaxScale, arScale+delta*0.008));
+        el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);
+        arLastPinch=nd;
     }
-}, { passive: true });
+},{ passive:true });
 
-document.addEventListener('touchend', () => { arLastX = null; arLastY = null; arLastPinch = null; });
+document.addEventListener('touchend', ()=>{ arLastX=null; arLastY=null; arLastPinch=null; });
+
+// ============================================
+// AR SCANNING GUIDE + VIBRATION
+// ============================================
+let arDetected = false;
+
+function initARDetection() {
+    const scene = document.querySelector('a-scene');
+    if (!scene) return;
+
+    scene.addEventListener('arReady', function() {
+        console.log('AR Ready');
+    });
+
+    // MindAR target found event
+    const target = document.querySelector('[mindar-image-target]');
+    if (target) {
+        target.addEventListener('targetFound', function() {
+            onARDetected();
+        });
+        target.addEventListener('targetLost', function() {
+            onARLost();
+        });
+    }
+}
+
+function onARDetected() {
+    if (arDetected) return;
+    arDetected = true;
+
+    // Hide scanning guide
+    const overlay = document.getElementById('scan-overlay');
+    if (overlay) overlay.classList.add('hidden');
+
+    // Show detected message
+    const detected = document.getElementById('ar-detected');
+    if (detected) {
+        detected.style.display = 'block';
+        setTimeout(() => { detected.style.display = 'none'; }, 2000);
+    }
+
+    // Vibrate phone — feels like magic!
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]); // buzz buzz
+    }
+
+    // Play a subtle sound
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 800;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+function onARLost() {
+    arDetected = false;
+    // Show scanning guide again
+    const overlay = document.getElementById('scan-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+// Show/hide scan overlay when opening/closing AR
+const _openAR = openAR;
+openAR = function(modelId) {
+    _openAR(modelId);
+    arDetected = false;
+    const overlay = document.getElementById('scan-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+    // Init detection after scene loads
+    setTimeout(initARDetection, 2000);
+};
+
+const _closeViewer = closeViewer;
+closeViewer = function() {
+    _closeViewer();
+    arDetected = false;
+    const overlay = document.getElementById('scan-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+};
