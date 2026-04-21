@@ -450,46 +450,73 @@ function initARDetection() {
     }
 }
 
+// Animate progress dots while scanning
+let dotInterval = null;
+let dotIndex = 0;
+
+function startDotAnimation() {
+    const dots = document.querySelectorAll('.scan-dot');
+    dotInterval = setInterval(() => {
+        dots.forEach(d => d.classList.remove('active'));
+        dots[dotIndex % dots.length].classList.add('active');
+        dotIndex++;
+    }, 600);
+}
+
+function stopDotAnimation() {
+    if (dotInterval) { clearInterval(dotInterval); dotInterval = null; }
+}
+
 function onARDetected() {
     if (arDetected) return;
     arDetected = true;
+    stopDotAnimation();
 
-    // Hide scanning guide
+    // Hide scanning guide smoothly
     const overlay = document.getElementById('scan-overlay');
     if (overlay) overlay.classList.add('hidden');
 
     // Show detected message
     const detected = document.getElementById('ar-detected');
     if (detected) {
-        detected.style.display = 'block';
-        setTimeout(() => { detected.style.display = 'none'; }, 2000);
+        detected.style.display = 'flex';
+        setTimeout(() => { detected.style.display = 'none'; }, 2500);
     }
 
-    // Vibrate phone — feels like magic!
-    if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]); // buzz buzz
+    // Show controls hint
+    const hint = document.getElementById('ar-controls-hint');
+    if (hint) {
+        hint.classList.add('visible');
+        setTimeout(() => { hint.classList.remove('visible'); }, 4000);
     }
 
-    // Play a subtle sound
+    // Vibrate phone
+    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+
+    // Play success sound
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 800;
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
+        [600, 800, 1000].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.2);
+            osc.start(ctx.currentTime + i * 0.1);
+            osc.stop(ctx.currentTime + i * 0.1 + 0.2);
+        });
     } catch(e) {}
 }
 
 function onARLost() {
     arDetected = false;
-    // Show scanning guide again
     const overlay = document.getElementById('scan-overlay');
     if (overlay) overlay.classList.remove('hidden');
+    const hint = document.getElementById('ar-controls-hint');
+    if (hint) hint.classList.remove('visible');
+    startDotAnimation();
 }
 
 // Show/hide scan overlay when opening/closing AR
@@ -501,14 +528,19 @@ openAR = function(modelId) {
     if (overlay) overlay.classList.remove('hidden');
     // Init detection after scene loads
     setTimeout(initARDetection, 2000);
+    // Start dot animation
+    startDotAnimation();
 };
 
 const _closeViewer = closeViewer;
 closeViewer = function() {
     _closeViewer();
     arDetected = false;
+    stopDotAnimation();
     const overlay = document.getElementById('scan-overlay');
     if (overlay) overlay.classList.remove('hidden');
+    const hint = document.getElementById('ar-controls-hint');
+    if (hint) hint.classList.remove('visible');
 };
 
 // ============================================

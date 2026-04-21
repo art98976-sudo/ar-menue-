@@ -42,20 +42,45 @@
     <div id="viewer-ar">
         <!-- Scanning Guide Overlay -->
         <div id="scan-overlay">
+            <!-- Top instruction -->
             <div id="scan-top-text">📷 Point camera at your menu image</div>
+
+            <!-- Animated scan box -->
             <div id="scan-box">
                 <div class="scan-corner tl"></div>
                 <div class="scan-corner tr"></div>
                 <div class="scan-corner bl"></div>
                 <div class="scan-corner br"></div>
                 <div id="scan-line"></div>
+                <div id="scan-center-dot"></div>
             </div>
-            <div id="scan-bottom-text">Hold steady · Good lighting helps</div>
+
+            <!-- Tips row -->
+            <div id="scan-tips">
+                <div class="scan-tip">💡 Good lighting</div>
+                <div class="scan-tip">📐 Hold steady</div>
+                <div class="scan-tip">📏 20-30cm away</div>
+            </div>
+
+            <!-- Progress dots -->
+            <div id="scan-progress">
+                <div class="scan-dot active"></div>
+                <div class="scan-dot"></div>
+                <div class="scan-dot"></div>
+            </div>
         </div>
 
-        <!-- Detected Toast -->
+        <!-- Detected notification -->
         <div id="ar-detected">
-            <span>✅ Image Detected!</span>
+            <div id="ar-detected-icon">✅</div>
+            <div id="ar-detected-text">Image Detected!</div>
+        </div>
+
+        <!-- AR Controls hint -->
+        <div id="ar-controls-hint">
+            <span>☝️ Drag to rotate</span>
+            <span>·</span>
+            <span>🤏 Pinch to zoom</span>
         </div>
         <a-scene mindar-image="imageTargetSrc: ./targets.mind"
             color-space="sRGB" renderer="colorManagement: true"
