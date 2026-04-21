@@ -62,8 +62,8 @@ function initThreeJS() {
     threeRenderer.toneMappingExposure = 1.5;
 
     threeScene = new THREE.Scene();
-    // Light warm background like a restaurant
-    threeScene.background = new THREE.Color(0xf5ede0);
+    // Premium dark background - food looks best on dark
+    threeScene.background = new THREE.Color(0x0f0f0f);
 
     threeCamera = new THREE.PerspectiveCamera(38, container.clientWidth / container.clientHeight, 0.1, 100);
     threeCamera.position.set(0, 0.8, 2.5);
