@@ -14,6 +14,17 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script>
+    // Patch all loaders into AFRAME.THREE after window loads
+    window.addEventListener('load', function() {
+        if (window.AFRAME && window.AFRAME.THREE) {
+            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
+            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
+            if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
+            console.log('All loaders patched into AFRAME.THREE');
+        }
+    });
+    </script>
 </head>
 <body>
 
