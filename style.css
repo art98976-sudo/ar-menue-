@@ -1149,3 +1149,31 @@ html, body {
     0%   { transform: translateX(-50%) scale(0.8); opacity: 0; }
     100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
+
+/* ============================================ */
+/* SIZE COMPARISON ROW                          */
+/* ============================================ */
+#ar-size-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.size-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #2c1810, #4a2c1a);
+    color: #d4a574;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.card-size {
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 6px;
+}

@@ -2,9 +2,9 @@
 // FOOD DATA
 // ============================================
 const menuData = {
-    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.5  },
-    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15 },
-    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',      calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.2  },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.5,  size:'12 inch', serves:'2-3 people', weight:'400g' },
+    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15, size:'5 inch',  serves:'1 person',   weight:'250g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',      calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.2,  size:'350 ml',  serves:'1 person',   weight:'350g' },
 };
 
 let cart = {}, currentModel = null, arQty = 1, viewerMode = null;
@@ -216,6 +216,14 @@ function updateViewerUI(modelId) {
         `<div class="cal-badge">🔥 ${item.calories}</div>
          <div class="cal-badge">⏱️ ${item.time}</div>
          <div class="cal-badge">⭐ ${item.rating}</div>`;
+    // Size comparison
+    const sizeRow = document.getElementById('ar-size-row');
+    if (sizeRow) {
+        sizeRow.innerHTML =
+            `<div class="size-badge">📏 ${item.size}</div>
+             <div class="size-badge">👥 ${item.serves}</div>
+             <div class="size-badge">⚖️ ${item.weight}</div>`;
+    }
     document.getElementById('menu-page').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('cart-bar').classList.remove('visible');
