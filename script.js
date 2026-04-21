@@ -54,7 +54,9 @@ function initThreeJS() {
     const pt = new THREE.PointLight(0xd4a574, 0.6, 20);
     pt.position.set(-3, 3, -3);
     threeScene.add(pt);
-    threeControls = new THREE.OrbitControls(threeCamera, canvas);
+    // OrbitControls may be in THREE namespace or global
+    const OC = THREE.OrbitControls || window.OrbitControls;
+    threeControls = new OC(threeCamera, canvas);
     threeControls.enableDamping = true;
     threeControls.dampingFactor = 0.05;
     threeControls.minDistance = 1;
