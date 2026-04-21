@@ -186,18 +186,32 @@ html, body {
 
 .card-btns {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 
-.card-ar-btn {
+.card-3d-btn {
     flex: 1;
     background: #f5f0eb;
     color: #2c1810;
     border: none;
-    padding: 9px 8px;
+    padding: 8px 4px;
     border-radius: 10px;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.card-ar-btn {
+    flex: 1;
+    background: #2c1810;
+    color: #d4a574;
+    border: none;
+    padding: 8px 4px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: bold;
     cursor: pointer;
     text-align: center;
@@ -205,15 +219,15 @@ html, body {
 }
 
 .card-add-btn {
-    background: #2c1810;
-    color: white;
+    background: #d4a574;
+    color: #2c1810;
     border: none;
-    padding: 9px 16px;
+    padding: 8px 12px;
     border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    min-width: 40px;
+    min-width: 36px;
 }
 
 /* ============================================ */
@@ -941,5 +955,35 @@ html, body {
 }
 
 #ar-page {
+    background: #1a1a2e;
+}
+
+/* ── AR VIEWER ── */
+#viewer-ar {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+}
+
+#ar-scan-hint {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    z-index: 999;
+    white-space: nowrap;
+}
+
+#viewer-3d {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
     background: #1a1a2e;
 }
