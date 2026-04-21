@@ -268,12 +268,13 @@ function openAR(modelId) {
             el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         }
     });
-    // Pre-set scale but keep hidden until target found
+    // Set scale and make visible immediately
+    // MindAR will handle showing/hiding based on target detection
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         arEl.setAttribute('rotation','0 0 0');
-        arEl.setAttribute('visible','false'); // hidden until detected
+        arEl.setAttribute('visible','true'); // visible - MindAR controls via parent entity
     }
     history.pushState({ page: 'ar' }, '');
 }
@@ -439,26 +440,35 @@ function initARDetection() {
     const scene = document.querySelector('a-scene');
     if (!scene) return;
 
-    // MindAR target found/lost events
+    // Method 1: Standard event listeners
     const target = document.querySelector('[mindar-image-target]');
     if (target) {
         target.addEventListener('targetFound', function() {
-            console.log('Target found!');
             onARDetected();
-            // Make sure correct model is visible
-            if (currentModel) {
-                const arEl = document.getElementById(menuData[currentModel].arId);
-                if (arEl) {
-                    arEl.setAttribute('visible', 'true');
-                    arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-                }
-            }
         });
         target.addEventListener('targetLost', function() {
-            console.log('Target lost!');
             onARLost();
         });
     }
+
+    // Method 2: Fallback - watch MindAR anchor visibility
+    // This works even when events don't fire
+    let pollInterval = setInterval(() => {
+        if (viewerMode !== 'ar') {
+            clearInterval(pollInterval);
+            return;
+        }
+        // Check if any anchor is visible in MindAR
+        const anchors = document.querySelectorAll('[mindar-image-target]');
+        anchors.forEach(anchor => {
+            const obj = anchor.object3D;
+            if (obj && obj.visible && !arDetected) {
+                onARDetected();
+            } else if (obj && !obj.visible && arDetected) {
+                onARLost();
+            }
+        });
+    }, 200);
 }
 
 // Animate progress dots while scanning
