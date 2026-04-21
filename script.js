@@ -260,15 +260,20 @@ function openAR(modelId) {
     arRotY = 0; arRotX = 0;
     arScale = menuData[modelId].arScale || 0.5;
 
+    // Hide all models first — show only when target detected
     ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.setAttribute('visible','false');
+        if (el) {
+            el.setAttribute('visible','false');
+            el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        }
     });
+    // Pre-set scale but keep hidden until target found
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
-        arEl.setAttribute('visible','true');
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         arEl.setAttribute('rotation','0 0 0');
+        arEl.setAttribute('visible','false'); // hidden until detected
     }
     history.pushState({ page: 'ar' }, '');
 }
@@ -434,17 +439,23 @@ function initARDetection() {
     const scene = document.querySelector('a-scene');
     if (!scene) return;
 
-    scene.addEventListener('arReady', function() {
-        console.log('AR Ready');
-    });
-
-    // MindAR target found event
+    // MindAR target found/lost events
     const target = document.querySelector('[mindar-image-target]');
     if (target) {
         target.addEventListener('targetFound', function() {
+            console.log('Target found!');
             onARDetected();
+            // Make sure correct model is visible
+            if (currentModel) {
+                const arEl = document.getElementById(menuData[currentModel].arId);
+                if (arEl) {
+                    arEl.setAttribute('visible', 'true');
+                    arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+                }
+            }
         });
         target.addEventListener('targetLost', function() {
+            console.log('Target lost!');
             onARLost();
         });
     }
@@ -471,6 +482,16 @@ function onARDetected() {
     if (arDetected) return;
     arDetected = true;
     stopDotAnimation();
+
+    // ✅ SHOW the 3D model when target is found
+    if (currentModel) {
+        const arEl = document.getElementById(menuData[currentModel].arId);
+        if (arEl) {
+            arEl.setAttribute('visible', 'true');
+            arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+            arEl.setAttribute('rotation', '0 0 0');
+        }
+    }
 
     // Hide scanning guide smoothly
     const overlay = document.getElementById('scan-overlay');
@@ -512,6 +533,13 @@ function onARDetected() {
 
 function onARLost() {
     arDetected = false;
+
+    // Hide model when target lost
+    if (currentModel) {
+        const arEl = document.getElementById(menuData[currentModel].arId);
+        if (arEl) arEl.setAttribute('visible', 'false');
+    }
+
     const overlay = document.getElementById('scan-overlay');
     if (overlay) overlay.classList.remove('hidden');
     const hint = document.getElementById('ar-controls-hint');
