@@ -268,13 +268,13 @@ function openAR(modelId) {
     });
     // Reset AR rotation and scale
     arRotY = 0;
-    arScale = 0.5;
+    arScale = 0.8;
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
         arEl.setAttribute('visible', 'true');
-        arEl.setAttribute('position', '0 0 0');
-        arEl.setAttribute('scale', '0.5 0.5 0.5');
-        arEl.setAttribute('rotation', '-90 0 0');
+        arEl.setAttribute('position', '0 0.05 0');
+        arEl.setAttribute('scale', '0.8 0.8 0.8');
+        arEl.setAttribute('rotation', '0 0 0');
     }
     history.pushState({ page: 'ar' }, '');
 }

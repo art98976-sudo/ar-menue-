@@ -39,26 +39,59 @@
     <div id="viewer-3d">
         <canvas id="three-canvas"></canvas>
         <div id="ar-loading">
-            <div class="spinner"></div>
+            <div class="loading-icon">🍕</div>
             <div class="loading-text">Loading 3D Model...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="progress-percent" id="progress-percent">0%</div>
         </div>
     </div>
 
     <!-- AR VIEWER -->
     <div id="viewer-ar">
-        <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" renderer="colorManagement: true"
+        <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF: 0.001; filterBeta: 0.01"
+            color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true"
             vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-            <a-assets>
+            <a-assets timeout="30000">
                 <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
                 <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
                 <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
             </a-assets>
+
+            <!-- Better camera -->
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+            <!-- Lighting for AR -->
+            <a-light type="ambient" color="#ffffff" intensity="1.5"></a-light>
+            <a-light type="directional" color="#ffffff" intensity="2" position="1 2 1"></a-light>
+            <a-light type="directional" color="#ffe0c0" intensity="1" position="-1 1 -1"></a-light>
+
             <a-entity mindar-image-target="targetIndex: 0">
-                <!-- position y=0 means on the surface, rotation -90 on X makes it flat on table -->
-                <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0.5 0.5 0.5" rotation="-90 0 0" visible="false"></a-gltf-model>
-                <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0.5 0.5 0.5" rotation="-90 0 0" visible="false"></a-gltf-model>
-                <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0.5 0.5 0.5" rotation="-90 0 0" visible="false"></a-gltf-model>
+                <!-- Food sits ON the image like on a table -->
+                <!-- position y=0.1 lifts slightly above surface -->
+                <!-- scale 0.8 makes it bigger and more visible -->
+                <a-gltf-model id="ar-pizza"  src="#pizzaModel"
+                    position="0 0.05 0"
+                    scale="0.8 0.8 0.8"
+                    rotation="0 0 0"
+                    visible="false"
+                    animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+                </a-gltf-model>
+                <a-gltf-model id="ar-burger" src="#burgerModel"
+                    position="0 0.05 0"
+                    scale="0.8 0.8 0.8"
+                    rotation="0 0 0"
+                    visible="false"
+                    animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+                </a-gltf-model>
+                <a-gltf-model id="ar-drink"  src="#drinkModel"
+                    position="0 0.05 0"
+                    scale="0.8 0.8 0.8"
+                    rotation="0 0 0"
+                    visible="false"
+                    animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+                </a-gltf-model>
             </a-entity>
         </a-scene>
     </div>
