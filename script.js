@@ -438,9 +438,9 @@ window.addEventListener('resize', resizeRenderer);
 // AR TOUCH CONTROLS — rotate and zoom in AR
 // ============================================
 let arRotY = 0;
-let arScale = 0.5;
+let arScale = 0.8;
 const arMinScale = 0.1;
-const arMaxScale = 2.0;
+const arMaxScale = 4.0;
 let arLastTouchX = null;
 let arLastPinchDist = null;
 
@@ -457,7 +457,6 @@ function arGetPinchDist(t) {
 
 document.addEventListener('touchstart', function(e) {
     if (viewerMode !== 'ar') return;
-    // ignore touches on bottom bar buttons
     if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
     if (e.touches.length === 1) {
         arLastTouchX = e.touches[0].clientX;
@@ -475,16 +474,17 @@ document.addEventListener('touchmove', function(e) {
     if (!el) return;
 
     if (e.touches.length === 1 && arLastTouchX !== null) {
-        // Rotate model
+        // Full 360 rotation - faster and unlimited
         const dx = e.touches[0].clientX - arLastTouchX;
-        arRotY += dx * 0.5;
-        el.setAttribute('rotation', `-90 ${arRotY} 0`);
+        arRotY += dx * 1.0;
+        // 360 rotation - no limit on arRotY
+        el.setAttribute('rotation', `0 ${arRotY} 0`);
         arLastTouchX = e.touches[0].clientX;
     } else if (e.touches.length === 2 && arLastPinchDist !== null) {
-        // Zoom model
+        // More zoom range
         const newDist = arGetPinchDist(e.touches);
         const delta = newDist - arLastPinchDist;
-        arScale += delta * 0.005;
+        arScale += delta * 0.008;
         if (arScale < arMinScale) arScale = arMinScale;
         if (arScale > arMaxScale) arScale = arMaxScale;
         el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
