@@ -178,11 +178,22 @@ function openAR(modelId) {
     arRotY = 0; arRotX = 0;
     arScale = menuData[modelId].arScale || 0.3;
 
+    // Hide ALL models first, then show only selected one
+    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.setAttribute('visible', 'false');
+            if (el.object3D) el.object3D.visible = false;
+        }
+    });
+
     // Set scale for the correct model only
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         arEl.setAttribute('rotation', '0 0 0');
+        arEl.setAttribute('visible', 'true');
+        if (arEl.object3D) arEl.object3D.visible = true;
     }
 
     // Attach detection events
@@ -234,6 +245,11 @@ function closeViewer() {
     removeSteamEffect(); stopRendering();
     const target = document.querySelector('[mindar-image-target]');
     if (target) { target.removeEventListener('targetFound', onARDetected); target.removeEventListener('targetLost', onARLost); }
+    // Hide all AR models
+    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.setAttribute('visible','false'); if(el.object3D) el.object3D.visible=false; }
+    });
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('viewer-ar').style.display = 'none';
     document.getElementById('ar-topbar').style.display = 'none';
