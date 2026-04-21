@@ -22,31 +22,47 @@ const menuData = {
     },
 };
 
-// ============================================
-// STATE
-// ============================================
 let cart = {};
 let currentModel = null;
 let arQty = 1;
-let viewerMode = null; // '3d' or 'ar'
-
-// Three.js
+let viewerMode = null;
 let threeRenderer, threeScene, threeCamera, threeControls;
 let loadedModel = null;
+let T = null; // Three.js reference
+
+// ============================================
+// GET THREE.JS — use AFRAME's version
+// ============================================
+function getThree() {
+    if (T) return T;
+    // Use AFRAME's bundled Three.js to avoid conflicts
+    if (window.AFRAME && window.AFRAME.THREE) {
+        T = window.AFRAME.THREE;
+    } else if (window.THREE) {
+        T = window.THREE;
+    }
+    return T;
+}
 
 // ============================================
 // THREE.JS INIT
 // ============================================
 function initThreeJS() {
+    const THREE = getThree();
+    if (!THREE) { console.error('Three.js not found'); return; }
+
     const canvas = document.getElementById('three-canvas');
     const container = document.getElementById('viewer-3d');
+
     threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     threeRenderer.setPixelRatio(window.devicePixelRatio);
     threeRenderer.setSize(container.clientWidth, container.clientHeight);
     threeRenderer.setClearColor(0x1a1a2e, 1);
+
     threeScene = new THREE.Scene();
     threeCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     threeCamera.position.set(0, 1, 3);
+
     threeScene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const dir = new THREE.DirectionalLight(0xffffff, 1.2);
     dir.position.set(5, 10, 7);
@@ -54,11 +70,12 @@ function initThreeJS() {
     const pt = new THREE.PointLight(0xd4a574, 0.6, 20);
     pt.position.set(-3, 3, -3);
     threeScene.add(pt);
-    // OrbitControls - patch into THREE if needed
-    if (!THREE.OrbitControls && window.OrbitControls) {
-        THREE.OrbitControls = window.OrbitControls;
-    }
-    threeControls = new THREE.OrbitControls(threeCamera, canvas);
+
+    // Get OrbitControls
+    const OC = THREE.OrbitControls || window.OrbitControls;
+    if (!OC) { console.error('OrbitControls not found'); return; }
+
+    threeControls = new OC(threeCamera, canvas);
     threeControls.enableDamping = true;
     threeControls.dampingFactor = 0.05;
     threeControls.minDistance = 1;
@@ -66,53 +83,73 @@ function initThreeJS() {
     threeControls.enablePan = false;
     threeControls.autoRotate = true;
     threeControls.autoRotateSpeed = 1.5;
+
     canvas.addEventListener('touchstart', () => { threeControls.autoRotate = false; });
     canvas.addEventListener('mousedown', () => { threeControls.autoRotate = false; });
+
     animate();
 }
 
 function animate() {
     requestAnimationFrame(animate);
     if (threeControls) threeControls.update();
-    if (threeRenderer && threeScene && threeCamera) threeRenderer.render(threeScene, threeCamera);
+    if (threeRenderer && threeScene && threeCamera) {
+        threeRenderer.render(threeScene, threeCamera);
+    }
 }
 
 function loadGLBModel(modelPath) {
+    const THREE = getThree();
+    if (!THREE) return;
+
     if (loadedModel) { threeScene.remove(loadedModel); loadedModel = null; }
     document.getElementById('ar-loading').style.display = 'flex';
-    const loader = new THREE.GLTFLoader();
-    loader.load(modelPath, function (gltf) {
-        loadedModel = gltf.scene;
-        const box = new THREE.Box3().setFromObject(loadedModel);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        const scale = 2.0 / Math.max(size.x, size.y, size.z);
-        loadedModel.scale.setScalar(scale);
-        loadedModel.position.sub(center.multiplyScalar(scale));
-        threeScene.add(loadedModel);
-        document.getElementById('ar-loading').style.display = 'none';
-        threeCamera.position.set(0, 1, 3);
-        threeControls.reset();
-        threeControls.autoRotate = true;
-    }, null, function () {
-        document.getElementById('ar-loading').style.display = 'none';
-        const geo = new THREE.SphereGeometry(1, 32, 32);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xd4a574, roughness: 0.3, metalness: 0.2 });
-        loadedModel = new THREE.Mesh(geo, mat);
-        threeScene.add(loadedModel);
-    });
+
+    const LoaderClass = THREE.GLTFLoader || window.GLTFLoader;
+    if (!LoaderClass) { console.error('GLTFLoader not found'); return; }
+
+    const loader = new LoaderClass();
+    loader.load(modelPath,
+        function (gltf) {
+            loadedModel = gltf.scene;
+            const box = new THREE.Box3().setFromObject(loadedModel);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const scale = 2.0 / Math.max(size.x, size.y, size.z);
+            loadedModel.scale.setScalar(scale);
+            loadedModel.position.sub(center.multiplyScalar(scale));
+            threeScene.add(loadedModel);
+            document.getElementById('ar-loading').style.display = 'none';
+            threeCamera.position.set(0, 1, 3);
+            threeControls.reset();
+            threeControls.autoRotate = true;
+        },
+        null,
+        function (error) {
+            console.error('Model load error:', error);
+            document.getElementById('ar-loading').style.display = 'none';
+            // Show fallback sphere
+            const geo = new THREE.SphereGeometry(1, 32, 32);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xd4a574 });
+            loadedModel = new THREE.Mesh(geo, mat);
+            threeScene.add(loadedModel);
+        }
+    );
 }
 
 function resizeRenderer() {
-    if (!threeRenderer) return;
+    if (!threeRenderer || !threeCamera) return;
     const container = document.getElementById('viewer-3d');
-    threeRenderer.setSize(container.clientWidth, container.clientHeight);
-    threeCamera.aspect = container.clientWidth / container.clientHeight;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (w === 0 || h === 0) return;
+    threeRenderer.setSize(w, h);
+    threeCamera.aspect = w / h;
     threeCamera.updateProjectionMatrix();
 }
 
 // ============================================
-// SHARED UI UPDATE
+// UPDATE SHARED UI
 // ============================================
 function updateViewerUI(modelId) {
     const item = menuData[modelId];
@@ -136,17 +173,15 @@ function updateViewerUI(modelId) {
 }
 
 // ============================================
-// OPEN 3D VIEWER
+// OPEN 3D
 // ============================================
 function open3D(modelId) {
     currentModel = modelId;
     viewerMode = '3d';
     updateViewerUI(modelId);
-
     document.getElementById('viewer-3d').style.display = 'block';
     document.getElementById('viewer-ar').style.display = 'none';
     document.getElementById('ar-hint-bar').innerText = '☝️ Drag to rotate · 🤏 Pinch to zoom';
-
     if (!threeRenderer) initThreeJS();
     resizeRenderer();
     loadGLBModel(menuData[modelId].model);
@@ -154,18 +189,15 @@ function open3D(modelId) {
 }
 
 // ============================================
-// OPEN AR VIEWER
+// OPEN AR
 // ============================================
 function openAR(modelId) {
     currentModel = modelId;
     viewerMode = 'ar';
     updateViewerUI(modelId);
-
     document.getElementById('viewer-ar').style.display = 'block';
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('ar-hint-bar').innerText = '📷 Point camera at your target image';
-
-    // Show correct AR model
     ['ar-pizza', 'ar-burger', 'ar-drink'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.setAttribute('visible', 'false');
@@ -181,12 +213,11 @@ function openAR(modelId) {
 }
 
 // ============================================
-// CLOSE VIEWER (both 3D and AR)
+// CLOSE VIEWER
 // ============================================
 function closeViewer() {
     currentModel = null;
     viewerMode = null;
-
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('viewer-ar').style.display = 'none';
     document.getElementById('ar-topbar').style.display = 'none';
@@ -194,19 +225,14 @@ function closeViewer() {
     document.getElementById('back-btn').classList.remove('visible');
     document.getElementById('menu-page').style.display = 'flex';
     document.getElementById('bottom-nav').style.display = 'flex';
-
     ['ar-pizza', 'ar-burger', 'ar-drink'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.setAttribute('visible', 'false');
     });
-
     if (threeControls) threeControls.autoRotate = false;
     updateCartBar();
 }
 
-// ============================================
-// RESET MODEL
-// ============================================
 function resetModel() {
     if (viewerMode === '3d' && threeControls) {
         threeControls.reset();
@@ -215,7 +241,7 @@ function resetModel() {
 }
 
 // ============================================
-// CART FUNCTIONS
+// CART
 // ============================================
 function quickAdd(id) {
     addItemToCart(id, 1);
@@ -237,22 +263,19 @@ function removeFromCart(id) {
     if (!cart[id]) return;
     cart[id].qty -= 1;
     if (cart[id].qty <= 0) delete cart[id];
-    renderCartPage();
-    updateCartBar();
+    renderCartPage(); updateCartBar();
 }
 
 function addFromCart(id) {
     if (cart[id]) cart[id].qty += 1;
-    renderCartPage();
-    updateCartBar();
+    renderCartPage(); updateCartBar();
 }
 
-function getCartCount() { return Object.values(cart).reduce((sum, v) => sum + v.qty, 0); }
-function getCartTotal() { return Object.entries(cart).reduce((sum, [id, v]) => sum + (menuData[id].price * v.qty), 0); }
+function getCartCount() { return Object.values(cart).reduce((s, v) => s + v.qty, 0); }
+function getCartTotal() { return Object.entries(cart).reduce((s, [id, v]) => s + menuData[id].price * v.qty, 0); }
 
 function updateCartBar() {
-    const count = getCartCount();
-    const total = getCartTotal();
+    const count = getCartCount(), total = getCartTotal();
     const bar = document.getElementById('cart-bar');
     if (count > 0) {
         bar.classList.add('visible');
@@ -289,9 +312,7 @@ function renderCartPage() {
     else {
         empty.style.display = 'none';
         container.innerHTML = keys.map(id => {
-            const item = menuData[id];
-            const qty = cart[id].qty;
-            const total = item.price * qty;
+            const item = menuData[id], qty = cart[id].qty, total = item.price * qty;
             return `<div class="cart-item">
                 <div class="cart-item-icon">${item.icon}</div>
                 <div class="cart-item-info">
@@ -306,8 +327,7 @@ function renderCartPage() {
             </div>`;
         }).join('');
     }
-    const subtotal = getCartTotal();
-    const tax = Math.round(subtotal * 0.05);
+    const subtotal = getCartTotal(), tax = Math.round(subtotal * 0.05);
     document.getElementById('summary-subtotal').innerText = 'Rs. ' + subtotal;
     document.getElementById('summary-tax').innerText = 'Rs. ' + tax;
     document.getElementById('summary-total').innerText = 'Rs. ' + (subtotal + tax);
@@ -315,16 +335,13 @@ function renderCartPage() {
 
 function placeOrder() {
     if (getCartCount() === 0) return;
-    const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('order-id-text').innerText = 'Order ' + orderId;
-    cart = {};
-    updateCartBar();
+    document.getElementById('order-id-text').innerText = 'Order #' + Math.floor(1000 + Math.random() * 9000);
+    cart = {}; updateCartBar();
     document.getElementById('cart-page').classList.remove('open');
     document.getElementById('order-success').classList.add('open');
 }
 
 function backToMenu() { document.getElementById('order-success').classList.remove('open'); showMenu(); }
-
 function showMenu() {
     document.getElementById('menu-page').style.display = 'flex';
     document.getElementById('bottom-nav').style.display = 'flex';
