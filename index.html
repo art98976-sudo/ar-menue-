@@ -5,19 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
+    
+    <!-- Use a single reliable Three.js build that includes everything -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    
+    <!-- GLTFLoader -->
     <script>
-        // Make sure OrbitControls is in THREE namespace after scripts load
-        window.addEventListener('load', function() {
-            if (window.THREE && window.OrbitControls && !THREE.OrbitControls) {
-                THREE.OrbitControls = window.OrbitControls;
+    // GLTFLoader inline - ensures it loads into THREE namespace correctly
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Patch OrbitControls into THREE namespace if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof OrbitControls !== 'undefined' && typeof THREE !== 'undefined') {
+                THREE.OrbitControls = OrbitControls;
+            }
+            if (typeof GLTFLoader !== 'undefined' && typeof THREE !== 'undefined') {
+                THREE.GLTFLoader = GLTFLoader;
             }
         });
     </script>
+
+    <!-- MindAR for AR -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
 
