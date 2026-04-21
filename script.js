@@ -245,6 +245,12 @@ function open3D(modelId) {
     updateViewerUI(modelId);
     document.getElementById('viewer-3d').style.display = 'block';
     document.getElementById('viewer-ar').style.display = 'none';
+
+    // Stop MindAR scanning to free camera
+    const sceneEl = document.querySelector('a-scene');
+    if (sceneEl && sceneEl.systems && sceneEl.systems['mindar-image-system']) {
+        sceneEl.systems['mindar-image-system'].stop();
+    }
     document.getElementById('ar-hint-bar').innerText = '☝️ Drag to rotate · 🤏 Pinch to zoom';
     if (!threeRenderer) initThreeJS();
     resizeRenderer();
@@ -262,6 +268,12 @@ function openAR(modelId) {
     document.getElementById('viewer-ar').style.display = 'block';
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('ar-hint-bar').innerText = '📷 Scan image · ☝️ Drag to rotate · 🤏 Pinch to zoom';
+
+    // Start MindAR scanning
+    const sceneEl = document.querySelector('a-scene');
+    if (sceneEl && sceneEl.systems && sceneEl.systems['mindar-image-system']) {
+        sceneEl.systems['mindar-image-system'].start();
+    }
     ['ar-pizza', 'ar-burger', 'ar-drink'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.setAttribute('visible', 'false');
