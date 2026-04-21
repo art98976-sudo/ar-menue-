@@ -6,21 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
+
+    <!-- Three.js for 3D viewing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- MindAR for AR scanning -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 </head>
 
 <body>
 
-    <button id="back-btn" onclick="closeAR()" ontouchend="event.preventDefault();closeAR();">← Menu</button>
+    <!-- BACK BUTTON -->
+    <button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
 
+    <!-- TOPBAR -->
     <div id="ar-topbar">
         <div id="ar-food-name">Pizza</div>
         <div id="ar-food-price">Rs. 150</div>
     </div>
 
-    <div id="ar-page">
+    <!-- ============================================ -->
+    <!-- 3D VIEWER PAGE                               -->
+    <!-- ============================================ -->
+    <div id="viewer-3d">
         <canvas id="three-canvas"></canvas>
         <div id="ar-loading">
             <div class="spinner"></div>
@@ -28,8 +39,30 @@
         </div>
     </div>
 
+    <!-- ============================================ -->
+    <!-- AR VIEWER PAGE                               -->
+    <!-- ============================================ -->
+    <div id="viewer-ar">
+        <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" renderer="colorManagement: true"
+            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+            <a-assets>
+                <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
+                <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
+                <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
+            </a-assets>
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0" visible="false"></a-gltf-model>
+                <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0" visible="false"></a-gltf-model>
+                <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0.1 0" scale="0.5 0.5 0.5" rotation="0 0 0" visible="false"></a-gltf-model>
+            </a-entity>
+        </a-scene>
+        <div id="ar-scan-hint">📷 Point camera at your target image</div>
+    </div>
+
+    <!-- BOTTOM BAR (shared for both 3D and AR) -->
     <div id="ar-bottombar">
-        <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+        <div id="ar-hint-bar" class="hint-3d">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
         <div id="ar-detail-card">
             <div id="ar-detail-top">
                 <div id="ar-detail-name">Margherita Pizza</div>
@@ -48,28 +81,30 @@
                 <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
             </div>
             <div id="ar-action-row">
-                <button id="ar-cart-btn" onclick="addToCart()" ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
-                <button id="ar-order-btn" onclick="orderNow()" ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+                <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
+                <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
                 <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
             </div>
         </div>
     </div>
 
+    <!-- MENU PAGE -->
     <div id="menu-page">
         <div id="header">
             <div class="cafe-label">Est. 2024</div>
             <h1>The Cozy Cup</h1>
             <p>Fresh ingredients · Made with love</p>
-            <div class="ar-badge">📱 Tap any dish to view in 3D</div>
+            <div class="ar-badge">📱 View in 3D or AR</div>
         </div>
         <div class="section-title">Our Menu</div>
         <div id="grid">
 
+            <!-- PIZZA -->
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
                     <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🍕</span>
-                    <div class="ar-tag">3D</div>
+                    <div class="ar-tag">3D•AR</div>
                 </div>
                 <div class="card-body">
                     <div class="card-name">Margherita Pizza</div>
@@ -79,17 +114,19 @@
                         <div class="card-price">Rs. 150</div>
                     </div>
                     <div class="card-btns">
-                        <button class="card-ar-btn" onclick="openAR('pizza')">👁 View 3D</button>
+                        <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
+                        <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
                         <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                     </div>
                 </div>
             </div>
 
+            <!-- BURGER -->
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
                     <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🍔</span>
-                    <div class="ar-tag">3D</div>
+                    <div class="ar-tag">3D•AR</div>
                 </div>
                 <div class="card-body">
                     <div class="card-name">Classic Burger</div>
@@ -99,17 +136,19 @@
                         <div class="card-price">Rs. 200</div>
                     </div>
                     <div class="card-btns">
-                        <button class="card-ar-btn" onclick="openAR('burger')">👁 View 3D</button>
+                        <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
+                        <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
                         <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                     </div>
                 </div>
             </div>
 
+            <!-- DRINK -->
             <div class="food-card">
                 <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
                     <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" />
                     <span>🥤</span>
-                    <div class="ar-tag">3D</div>
+                    <div class="ar-tag">3D•AR</div>
                 </div>
                 <div class="card-body">
                     <div class="card-name">Fresh Lemonade</div>
@@ -119,7 +158,8 @@
                         <div class="card-price">Rs. 80</div>
                     </div>
                     <div class="card-btns">
-                        <button class="card-ar-btn" onclick="openAR('drink')">👁 View 3D</button>
+                        <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
+                        <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
                         <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                     </div>
                 </div>
@@ -128,6 +168,7 @@
         </div>
     </div>
 
+    <!-- CART BAR -->
     <div id="cart-bar">
         <div id="cart-info">
             <div id="cart-count">0 items</div>
@@ -136,6 +177,7 @@
         <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
     </div>
 
+    <!-- BOTTOM NAV -->
     <div id="bottom-nav">
         <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
         <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
@@ -143,6 +185,7 @@
         <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
     </div>
 
+    <!-- CART PAGE -->
     <div id="cart-page">
         <div id="cart-header">
             <button id="cart-back" onclick="closeCart()">← Back</button>
@@ -162,6 +205,7 @@
         </div>
     </div>
 
+    <!-- ORDER SUCCESS -->
     <div id="order-success">
         <div class="success-icon">🎉</div>
         <h2>Order Placed!</h2>
@@ -170,10 +214,11 @@
         <button onclick="backToMenu()">Back to Menu</button>
     </div>
 
+    <!-- TOAST -->
     <div id="toast">
         <div class="toast-icon" id="toast-icon">✅</div>
-        <div class="toast-msg" id="toast-msg">Added!</div>
-        <div class="toast-sub" id="toast-sub"></div>
+        <div class="toast-msg"  id="toast-msg">Added!</div>
+        <div class="toast-sub"  id="toast-sub"></div>
     </div>
 
     <script src="script.js"></script>
