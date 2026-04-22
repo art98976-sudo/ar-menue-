@@ -110,22 +110,7 @@
             color:rgba(255,255,255,0.8); font-size:12px; text-align:center;
         }
 
-        #size-row {
-            display:flex; gap:12px; align-items:center;
-        }
 
-        .size-btn {
-            background:rgba(255,255,255,0.2); color:white;
-            border:2px solid rgba(255,255,255,0.4);
-            width:48px; height:48px; border-radius:50%;
-            font-size:22px; cursor:pointer;
-            display:flex; align-items:center; justify-content:center;
-        }
-
-        #size-label {
-            color:white; font-size:13px; background:rgba(0,0,0,0.4);
-            padding:6px 14px; border-radius:12px; min-width:80px; text-align:center;
-        }
 
         #scan-again-btn {
             background:rgba(212,165,116,0.9); color:white; border:none;
@@ -293,22 +278,7 @@ function scanAgain() {
     document.getElementById('free-controls').style.display = 'none';
 }
 
-// Size buttons
-function sizeUp() {
-    arScale = Math.min(arScale * 1.2, 20);
-    sizePercent = Math.min(sizePercent + 20, 500);
-    document.getElementById('size-label').innerText = sizePercent + '%';
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-}
 
-function sizeDown() {
-    arScale = Math.max(arScale * 0.8, 0.01);
-    sizePercent = Math.max(sizePercent - 20, 20);
-    document.getElementById('size-label').innerText = sizePercent + '%';
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-}
 
 // Touch controls - rotate and zoom
 let lastX = null, lastY = null, lastPinch = null;
@@ -331,19 +301,19 @@ document.addEventListener('touchmove', e => {
     if (!el) return;
 
     if (e.touches.length === 1 && lastX !== null) {
+        // Full 360 rotation in all directions
         const dx = e.touches[0].clientX - lastX;
         const dy = e.touches[0].clientY - lastY;
-        rotY += dx * 0.8;
-        rotX += dy * 0.8;
+        rotY += dx * 1.0; // left/right rotation - no limit = 360
+        rotX += dy * 1.0; // up/down rotation - no limit = 360
         el.setAttribute('rotation', `${rotX - 90} ${rotY} 0`);
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && lastPinch !== null) {
+        // Pinch to zoom
         const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         const delta = (nd - lastPinch) / lastPinch;
-        arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.5)));
-        sizePercent = Math.round(arScale / modelScales[modelId] * 100);
-        document.getElementById('size-label').innerText = sizePercent + '%';
+        arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
         el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         lastPinch = nd;
     }
