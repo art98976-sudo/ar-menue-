@@ -178,22 +178,18 @@ function openAR(modelId) {
     arRotY = 0; arRotX = 0;
     arScale = menuData[modelId].arScale || 0.3;
 
-    // Hide ALL models first, then show only selected one
+    // Use scale=0 to hide models - works on ALL phones
+    // visible=false conflicts with MindAR on mobile
     ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-            el.setAttribute('visible', 'false');
-            if (el.object3D) el.object3D.visible = false;
-        }
+        if (el) el.setAttribute('scale', '0 0 0');
     });
 
-    // Set scale for the correct model only
+    // Show only selected model with correct scale
     const arEl = document.getElementById(menuData[modelId].arId);
     if (arEl) {
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         arEl.setAttribute('rotation', '0 0 0');
-        arEl.setAttribute('visible', 'true');
-        if (arEl.object3D) arEl.object3D.visible = true;
     }
 
     // Attach detection events
@@ -245,10 +241,10 @@ function closeViewer() {
     removeSteamEffect(); stopRendering();
     const target = document.querySelector('[mindar-image-target]');
     if (target) { target.removeEventListener('targetFound', onARDetected); target.removeEventListener('targetLost', onARLost); }
-    // Hide all AR models
+    // Hide all AR models using scale 0
     ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) { el.setAttribute('visible','false'); if(el.object3D) el.object3D.visible=false; }
+        if (el) el.setAttribute('scale', '0 0 0');
     });
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('viewer-ar').style.display = 'none';
