@@ -133,7 +133,8 @@
 <!-- MindAR Scene -->
 <div id="viewer-ar">
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
-        color-space="sRGB" renderer="colorManagement: true"
+        color-space="sRGB"
+        renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.0"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
@@ -143,12 +144,12 @@
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <!-- Premium lighting like 3D viewer -->
-        <a-light type="ambient" color="#fff8f0" intensity="2.5"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="3.5" position="3 8 5" cast-shadow="true"></a-light>
-        <a-light type="directional" color="#ffe8d0" intensity="2.0" position="-4 4 -3"></a-light>
-        <a-light type="directional" color="#ffd0a0" intensity="1.5" position="0 3 -5"></a-light>
-        <a-light type="point" color="#ffcc88" intensity="1.5" position="0 2 2" distance="10"></a-light>
+        <!-- Natural restaurant lighting -->
+        <a-light type="ambient" color="#fff8f0" intensity="1.2"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="1.8" position="3 8 5" cast-shadow="true"></a-light>
+        <a-light type="directional" color="#ffe8d0" intensity="0.8" position="-4 4 -3"></a-light>
+        <a-light type="directional" color="#ffd0a0" intensity="0.6" position="0 3 -5"></a-light>
+        <a-light type="point" color="#ffcc88" intensity="0.8" position="0 2 2" distance="8"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
