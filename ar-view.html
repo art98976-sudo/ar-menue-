@@ -4,301 +4,365 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR View</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #000; overflow: hidden; font-family: -apple-system, sans-serif; }
 
-        #ar-scene { width: 100vw; height: 100vh; }
-
-        /* Top bar */
-        #top-bar {
+        /* Camera feed behind everything */
+        #camera-feed {
             position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 9999;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* Three.js canvas on top of camera */
+        #three-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 2;
+            background: transparent;
+        }
+
+        /* UI on top of everything */
+        #ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+
+        #top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 14px 16px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            pointer-events: all;
         }
 
         #back-btn {
             background: rgba(0,0,0,0.6);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
+            color: white; border: none;
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 14px; cursor: pointer;
         }
 
-        #food-title {
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-        }
+        #food-title { color: white; font-size: 16px; font-weight: bold; }
 
-        /* Place button */
-        #place-btn {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            background: #d4a574;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            display: none;
-        }
-
-        /* Instructions */
         #instructions {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-size: 13px;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        /* Controls */
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            left: 0; right: 0;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 0 16px;
-        }
-
-        .ctrl-btn {
-            background: rgba(0,0,0,0.6);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        /* Reticle crosshair */
-        #reticle {
-            position: fixed;
-            top: 50%;
-            left: 50%;
+            position: absolute;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 9998;
-            width: 60px;
-            height: 60px;
+            color: white; font-size: 14px; text-align: center;
+            background: rgba(0,0,0,0.6);
+            padding: 12px 20px; border-radius: 16px;
             pointer-events: none;
         }
 
-        #reticle svg { width: 100%; height: 100%; }
-
-        /* Model placed indicator */
-        #placed-msg {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            background: rgba(44,24,16,0.9);
-            color: #d4a574;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            display: none;
+        /* Bottom controls */
+        #bottom-controls {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            pointer-events: all;
         }
+
+        #hint-text {
+            color: rgba(255,255,255,0.8);
+            font-size: 12px;
+        }
+
+        #size-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .size-btn {
+            background: rgba(255,255,255,0.2);
+            color: white; border: 2px solid rgba(255,255,255,0.4);
+            width: 44px; height: 44px;
+            border-radius: 50%; font-size: 20px;
+            cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        #size-label {
+            color: white; font-size: 13px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 14px; border-radius: 12px;
+        }
+
+        #reset-btn {
+            background: rgba(212,165,116,0.9);
+            color: white; border: none;
+            padding: 10px 24px; border-radius: 20px;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 999;
+            background: rgba(0,0,0,0.8);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: white; gap: 12px; font-size: 16px;
+        }
+
+        #loading-spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #d4a574;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="top-bar">
-    <button id="back-btn" onclick="goBack()">← Back</button>
-    <div id="food-title">Pizza</div>
-    <div style="width:70px"></div>
+<video id="camera-feed" autoplay playsinline muted></video>
+<canvas id="three-canvas"></canvas>
+
+<div id="loading">
+    <div id="loading-spinner"></div>
+    <div>Loading AR...</div>
 </div>
 
-<div id="reticle">
-    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="30" cy="30" r="28" stroke="white" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.8"/>
-        <circle cx="30" cy="30" r="4" fill="#d4a574"/>
-        <line x1="30" y1="8" x2="30" y2="18" stroke="white" stroke-width="2"/>
-        <line x1="30" y1="42" x2="30" y2="52" stroke="white" stroke-width="2"/>
-        <line x1="8" y1="30" x2="18" y2="30" stroke="white" stroke-width="2"/>
-        <line x1="42" y1="30" x2="52" y2="30" stroke="white" stroke-width="2"/>
-    </svg>
+<div id="ui">
+    <div id="top-bar">
+        <button id="back-btn" onclick="goBack()">← Back</button>
+        <div id="food-title">Pizza</div>
+        <div style="width:70px"></div>
+    </div>
+
+    <div id="instructions">📱 Drag to move · Pinch to zoom · Rotate with finger</div>
+
+    <div id="bottom-controls">
+        <div id="hint-text">☝️ Drag model · 🤏 Pinch zoom · 🔄 Rotate</div>
+        <div id="size-controls">
+            <button class="size-btn" onclick="scaleDown()">−</button>
+            <div id="size-label">Size: 100%</div>
+            <button class="size-btn" onclick="scaleUp()">+</button>
+        </div>
+        <button id="reset-btn" onclick="resetModel()">🔄 Reset Position</button>
+    </div>
 </div>
-
-<div id="instructions">📱 Move phone to find surface · Tap to place</div>
-<button id="place-btn" onclick="placeModel()">📍 Place Here</button>
-<div id="placed-msg">✅ Placed! Drag to rotate · Pinch to zoom</div>
-
-<div id="controls" style="display:none">
-    <button class="ctrl-btn" onclick="resetPlacement()">🔄 Replace</button>
-    <button class="ctrl-btn" onclick="scaleUp()">➕ Bigger</button>
-    <button class="ctrl-btn" onclick="scaleDown()">➖ Smaller</button>
-</div>
-
-<a-scene id="ar-scene"
-    webxr="requiredFeatures: hit-test; optionalFeatures: dom-overlay; overlayElement: #top-bar"
-    renderer="colorManagement: true"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-    loading-screen="enabled: false">
-
-    <a-assets timeout="120000">
-        <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
-        <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
-        <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
-    </a-assets>
-
-    <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
-    <a-light type="directional" color="#ffffff" intensity="2" position="1 3 1"></a-light>
-
-    <!-- Model placed on surface -->
-    <a-entity id="placed-model" visible="false">
-        <a-gltf-model id="ar-model" src="#pizzaModel" scale="0.5 0.5 0.5" rotation="0 0 0"></a-gltf-model>
-    </a-entity>
-
-    <!-- Hit test reticle -->
-    <a-entity id="hit-reticle" visible="false">
-        <a-ring color="#d4a574" radius-inner="0.05" radius-outer="0.1" rotation="-90 0 0" material="opacity: 0.8"></a-ring>
-    </a-entity>
-
-    <a-camera position="0 1.6 0"></a-camera>
-</a-scene>
 
 <script>
-    // Get model from URL
-    const params = new URLSearchParams(window.location.search);
-    const modelId = params.get('model') || 'pizza';
-    const modelSrc = { pizza: '#pizzaModel', burger: '#burgerModel', drink: '#drinkModel' };
-    const modelScale = { pizza: '0.5 0.5 0.5', burger: '0.15 0.15 0.5', drink: '0.4 0.4 0.4' };
-    const modelNames = { pizza: 'Margherita Pizza', burger: 'Classic Burger', drink: 'Fresh Lemonade' };
+const params = new URLSearchParams(window.location.search);
+const modelId = params.get('model') || 'pizza';
+const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb' };
+const modelScale = { pizza: 1.5, burger: 0.8, drink: 1.2 };
+const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤' };
 
-    document.getElementById('food-title').innerText = modelNames[modelId];
-    const arModel = document.getElementById('ar-model');
-    arModel.setAttribute('src', modelSrc[modelId]);
-    arModel.setAttribute('scale', modelScale[modelId]);
+document.getElementById('food-title').innerText = modelNames[modelId];
 
-    let placed = false;
-    let currentScale = 0.5;
-    let hitTestSource = null;
-    let hitTestSourceRequested = false;
-    let xrSession = null;
-    let reticleEl = document.getElementById('hit-reticle');
-    let placedEl = document.getElementById('placed-model');
-
-    const scene = document.getElementById('ar-scene');
-
-    // WebXR Hit Test
-    scene.addEventListener('enter-vr', function() {
-        const renderer = scene.renderer;
-        const xr = renderer.xr;
-        xrSession = xr.getSession();
-
-        if (xrSession) {
-            xrSession.addEventListener('end', () => { hitTestSource = null; hitTestSourceRequested = false; });
-            xrSession.requestReferenceSpace('viewer').then(refSpace => {
-                xrSession.requestHitTestSource({ space: refSpace }).then(src => {
-                    hitTestSource = src;
-                    document.getElementById('place-btn').style.display = 'block';
-                    document.getElementById('instructions').style.display = 'none';
-                });
-            });
-        }
-    });
-
-    scene.addEventListener('renderstart', function() {
-        const renderer = scene.renderer;
-        renderer.xr.addEventListener('sessionstart', function() {
-            const session = renderer.xr.getSession();
-            session.requestReferenceSpace('viewer').then(viewerSpace => {
-                session.requestHitTestSource({ space: viewerSpace }).then(source => {
-                    hitTestSource = source;
-                    document.getElementById('place-btn').style.display = 'block';
-                    document.getElementById('instructions').style.display = 'none';
-                });
-            });
+// ── Start camera ──
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
         });
-    });
-
-    function placeModel() {
-        placed = true;
-        placedEl.setAttribute('visible', 'true');
-        reticleEl.setAttribute('visible', 'false');
-        document.getElementById('place-btn').style.display = 'none';
-        document.getElementById('controls').style.display = 'flex';
-        document.getElementById('placed-msg').style.display = 'block';
-        document.getElementById('reticle').style.display = 'none';
-        setTimeout(() => { document.getElementById('placed-msg').style.display = 'none'; }, 3000);
-        // Copy reticle position to model
-        const reticlePos = reticleEl.getAttribute('position');
-        if (reticlePos) placedEl.setAttribute('position', reticlePos);
-    }
-
-    function resetPlacement() {
-        placed = false;
-        placedEl.setAttribute('visible', 'false');
-        reticleEl.setAttribute('visible', 'true');
-        document.getElementById('place-btn').style.display = 'block';
-        document.getElementById('controls').style.display = 'none';
-        document.getElementById('reticle').style.display = 'block';
-    }
-
-    function scaleUp() {
-        currentScale = Math.min(currentScale + 0.1, 3.0);
-        arModel.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-    }
-
-    function scaleDown() {
-        currentScale = Math.max(currentScale - 0.1, 0.05);
-        arModel.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-    }
-
-    function goBack() { window.history.back(); }
-
-    // Touch rotation
-    let lastX = null, lastPinch = null, rotY = 0;
-    document.addEventListener('touchstart', e => {
-        if (e.touches.length === 1) lastX = e.touches[0].clientX;
-        else if (e.touches.length === 2) lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    }, { passive: true });
-
-    document.addEventListener('touchmove', e => {
-        if (!placed) return;
-        if (e.touches.length === 1 && lastX !== null) {
-            rotY += (e.touches[0].clientX - lastX) * 0.5;
-            placedEl.setAttribute('rotation', `0 ${rotY} 0`);
-            lastX = e.touches[0].clientX;
-        } else if (e.touches.length === 2 && lastPinch !== null) {
-            const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            currentScale = Math.max(0.05, Math.min(3, currentScale + (nd - lastPinch) * 0.005));
-            arModel.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            lastPinch = nd;
+        document.getElementById('camera-feed').srcObject = stream;
+    } catch(e) {
+        // Fallback to front camera
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            document.getElementById('camera-feed').srcObject = stream;
+        } catch(e2) {
+            alert('Camera not available: ' + e2.message);
         }
-    }, { passive: true });
+    }
+}
+startCamera();
 
-    document.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
+// ── Three.js setup ──
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0); // transparent background
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1, 3);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 3));
+const dl = new THREE.DirectionalLight(0xffffff, 3);
+dl.position.set(5, 10, 5);
+dl.castShadow = true;
+scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0xffe8d0, 2);
+dl2.position.set(-5, 5, -5);
+scene.add(dl2);
+
+// Load model
+let model = null;
+let currentScale = modelScale[modelId];
+let sizePercent = 100;
+let modelX = 0, modelY = 0;
+
+const loader = new THREE.GLTFLoader();
+const draco = new THREE.DRACOLoader();
+draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+draco.setDecoderConfig({ type: 'js' });
+loader.setDRACOLoader(draco);
+
+loader.load(modelSrc[modelId], function(gltf) {
+    model = gltf.scene;
+    model.traverse(c => { if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
+
+    // Normalize size
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const normalize = 2.0 / Math.max(size.x, size.y, size.z);
+    model.scale.setScalar(normalize * currentScale);
+
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center.multiplyScalar(normalize * currentScale));
+    model.position.y = 0;
+
+    scene.add(model);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('instructions').style.display = 'block';
+    setTimeout(() => { document.getElementById('instructions').style.display = 'none'; }, 4000);
+}, null, function(err) {
+    console.error(err);
+    document.getElementById('loading').style.display = 'none';
+});
+
+// Animate
+let rotY = 0;
+function animate() {
+    requestAnimationFrame(animate);
+    if (model) model.rotation.y += 0.005; // gentle auto-rotate
+    renderer.render(scene, camera);
+}
+animate();
+
+// ── Touch Controls ──
+let lastX = null, lastY = null, lastPinch = null;
+let isDragging = false;
+let autoRotate = true;
+
+canvas.addEventListener('touchstart', e => {
+    autoRotate = false;
+    if (model) model.rotation.y = rotY;
+    if (e.touches.length === 1) {
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+        lastPinch = null;
+        isDragging = true;
+    } else if (e.touches.length === 2) {
+        lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        isDragging = false;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+    if (!model) return;
+    if (e.touches.length === 1 && isDragging && lastX !== null) {
+        const dx = e.touches[0].clientX - lastX;
+        const dy = e.touches[0].clientY - lastY;
+        // Horizontal drag = rotate
+        rotY += dx * 0.01;
+        model.rotation.y = rotY;
+        // Vertical drag = move up/down
+        model.position.y += dy * 0.005;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2 && lastPinch !== null) {
+        const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const delta = (nd - lastPinch) * 0.01;
+        currentScale = Math.max(0.1, Math.min(5, currentScale + delta));
+        sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
+        document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const normalize = 2.0 / Math.max(size.x, size.y, size.z);
+        model.scale.setScalar(normalize * currentScale);
+        lastPinch = nd;
+    }
+}, { passive: true });
+
+canvas.addEventListener('touchend', () => { lastX = null; lastY = null; lastPinch = null; isDragging = false; });
+
+// Mouse controls for laptop testing
+let mouseDown = false, lastMX = null;
+canvas.addEventListener('mousedown', e => { mouseDown = true; lastMX = e.clientX; autoRotate = false; });
+canvas.addEventListener('mousemove', e => {
+    if (!mouseDown || !model) return;
+    const dx = e.clientX - lastMX;
+    rotY += dx * 0.01;
+    model.rotation.y = rotY;
+    lastMX = e.clientX;
+});
+canvas.addEventListener('mouseup', () => { mouseDown = false; });
+canvas.addEventListener('wheel', e => {
+    if (!model) return;
+    currentScale = Math.max(0.1, Math.min(5, currentScale - e.deltaY * 0.001));
+    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
+    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const normalize = 2.0 / Math.max(size.x, size.y, size.z);
+    model.scale.setScalar(normalize * currentScale);
+});
+
+function scaleUp() {
+    if (!model) return;
+    currentScale = Math.min(currentScale + 0.2, 5);
+    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
+    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
+}
+
+function scaleDown() {
+    if (!model) return;
+    currentScale = Math.max(currentScale - 0.2, 0.1);
+    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
+    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
+}
+
+function resetModel() {
+    if (!model) return;
+    rotY = 0;
+    model.rotation.y = 0;
+    model.position.y = 0;
+    currentScale = modelScale[modelId];
+    sizePercent = 100;
+    document.getElementById('size-label').innerText = 'Size: 100%';
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
+    autoRotate = true;
+}
+
+function goBack() { window.history.back(); }
+
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
 </script>
 </body>
 </html>
