@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
@@ -23,237 +22,205 @@
 </head>
 <body>
 
-    <button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
+<button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
 
-    <div id="ar-topbar">
-        <div id="ar-food-name">Pizza</div>
-        <div id="ar-food-price">Rs. 150</div>
-    </div>
+<div id="ar-topbar">
+    <div id="ar-food-name">Pizza</div>
+    <div id="ar-food-price">Rs. 150</div>
+</div>
 
-    <!-- 3D VIEWER -->
-    <div id="viewer-3d">
-        <canvas id="three-canvas"></canvas>
-        <div id="ar-loading">
-            <div class="loading-icon">🍕</div>
-            <div class="loading-text">Loading 3D Model...</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress-bar"></div>
-            </div>
-            <div class="progress-percent" id="progress-percent">0%</div>
+<!-- 3D VIEWER -->
+<div id="viewer-3d">
+    <canvas id="three-canvas"></canvas>
+    <div id="ar-loading">
+        <div class="loading-icon">🍕</div>
+        <div class="loading-text">Loading 3D Model...</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
+        <div class="progress-percent" id="progress-percent">0%</div>
     </div>
+</div>
 
-    <!-- AR VIEWER — simple and clean -->
-    <div id="viewer-ar">
-        <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
-            color-space="sRGB"
-            renderer="colorManagement: true"
-            vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false"
-            loading-screen="enabled: false">
-            <a-assets timeout="120000">
-                <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
-                <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
-                <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
-            </a-assets>
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-            <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
-            <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
-            <a-entity mindar-image-target="targetIndex: 0">
-                <!-- Single model — src changes based on selected item -->
-                <a-gltf-model id="ar-model" src="#pizzaModel" position="0 0 0" scale="0.3 0.3 0.3" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-        </a-scene>
+<!-- AR VIEWER -->
+<div id="viewer-ar">
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
+        color-space="sRGB" renderer="colorManagement: true"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        loading-screen="enabled: false">
+        <a-assets timeout="120000">
+            <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
+            <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
+            <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
+        </a-assets>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0.3 0.3 0.3"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0.1 0.1 0.1"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0.15 0.15 0.15" rotation="0 0 0" visible="true"></a-gltf-model>
+        </a-entity>
+    </a-scene>
 
-        <!-- Scanning Guide -->
-        <div id="scan-overlay">
-            <div id="scan-top-text">📷 Point camera at your menu image</div>
-            <div id="scan-box">
-                <div class="scan-corner tl"></div>
-                <div class="scan-corner tr"></div>
-                <div class="scan-corner bl"></div>
-                <div class="scan-corner br"></div>
-                <div id="scan-line"></div>
-                <div id="scan-center-dot"></div>
-            </div>
-            <div id="scan-tips">
-                <div class="scan-tip">💡 Good lighting</div>
-                <div class="scan-tip">📐 Hold steady</div>
-                <div class="scan-tip">📏 20-30cm away</div>
-            </div>
+    <!-- Scanning Guide -->
+    <div id="scan-overlay">
+        <div id="scan-top-text">📷 Point camera at your menu image</div>
+        <div id="scan-box">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div id="scan-line"></div>
         </div>
-
-        <!-- Detected -->
-        <div id="ar-detected">
-            <div id="ar-detected-icon">✅</div>
-            <div id="ar-detected-text">Image Detected!</div>
-        </div>
-
-        <!-- Refresh Button -->
-        <button id="ar-refresh-btn" onclick="refreshAR()" ontouchend="event.preventDefault();refreshAR();">🔄 Refresh AR</button>
-    </div>
-
-    <!-- BOTTOM BAR -->
-    <div id="ar-bottombar">
-        <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
-        <div id="ar-detail-card">
-            <div id="ar-detail-top">
-                <div id="ar-detail-name">Margherita Pizza</div>
-                <div id="ar-detail-price">Rs. 150</div>
-            </div>
-            <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
-            <div id="ar-cal-row">
-                <div class="cal-badge">🔥 320 kcal</div>
-                <div class="cal-badge">⏱️ 15 min</div>
-                <div class="cal-badge">⭐ 4.8</div>
-            </div>
-            <div id="ar-size-row">
-                <div class="size-badge">📏 12 inch</div>
-                <div class="size-badge">👥 2-3 people</div>
-                <div class="size-badge">⚖️ 400g</div>
-            </div>
-            <div id="ar-qty-row">
-                <div id="ar-qty-label">Quantity</div>
-                <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
-                <div id="ar-qty-num">1</div>
-                <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
-            </div>
-            <div id="ar-action-row">
-                <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
-                <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
-                <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
-            </div>
+        <div id="scan-tips">
+            <div class="scan-tip">💡 Good lighting</div>
+            <div class="scan-tip">📐 Hold steady</div>
+            <div class="scan-tip">📏 20-30cm away</div>
         </div>
     </div>
+    <div id="ar-detected">
+        <div id="ar-detected-icon">✅</div>
+        <div id="ar-detected-text">Image Detected!</div>
+    </div>
+</div>
 
-    <!-- MENU PAGE -->
-    <div id="menu-page">
-        <div id="header">
-            <div class="cafe-label">Est. 2024</div>
-            <h1>The Cozy Cup</h1>
-            <p>Fresh ingredients · Made with love</p>
-            <div class="ar-badge">📱 View in 3D or AR</div>
+<!-- BOTTOM BAR -->
+<div id="ar-bottombar">
+    <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+    <div id="ar-detail-card">
+        <div id="ar-detail-top">
+            <div id="ar-detail-name">Margherita Pizza</div>
+            <div id="ar-detail-price">Rs. 150</div>
         </div>
-        <div class="section-title">Our Menu</div>
-        <div id="grid">
+        <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
+        <div id="ar-cal-row">
+            <div class="cal-badge">🔥 320 kcal</div>
+            <div class="cal-badge">⏱️ 15 min</div>
+            <div class="cal-badge">⭐ 4.8</div>
+        </div>
+        <div id="ar-size-row">
+            <div class="size-badge">📏 12 inch</div>
+            <div class="size-badge">👥 2-3 people</div>
+            <div class="size-badge">⚖️ 400g</div>
+        </div>
+        <div id="ar-qty-row">
+            <div id="ar-qty-label">Quantity</div>
+            <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
+            <div id="ar-qty-num">1</div>
+            <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
+        </div>
+        <div id="ar-action-row">
+            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
+            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+            <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
+        </div>
+    </div>
+</div>
 
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
-                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" />
-                    <span>🍕</span>
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Margherita Pizza</div>
-                    <div class="card-desc">Tomato, mozzarella, fresh basil</div>
-                    <div class="card-size">📏 12 inch · 👥 2-3 people</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 320 kcal</div>
-                        <div class="card-price">Rs. 150</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
-                    </div>
+<!-- MENU PAGE -->
+<div id="menu-page">
+    <div id="header">
+        <div class="cafe-label">Est. 2024</div>
+        <h1>The Cozy Cup</h1>
+        <p>Fresh ingredients · Made with love</p>
+        <div class="ar-badge">📱 View in 3D or AR</div>
+    </div>
+    <div class="section-title">Our Menu</div>
+    <div id="grid">
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
+                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" />
+                <span>🍕</span><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Margherita Pizza</div>
+                <div class="card-desc">Tomato, mozzarella, fresh basil</div>
+                <div class="card-size">📏 12 inch · 👥 2-3 people</div>
+                <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">Rs. 150</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
-
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
-                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" />
-                    <span>🍔</span>
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Classic Burger</div>
-                    <div class="card-desc">Beef patty, cheese, lettuce</div>
-                    <div class="card-size">📏 5 inch · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 540 kcal</div>
-                        <div class="card-price">Rs. 200</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" />
+                <span>🍔</span><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Classic Burger</div>
+                <div class="card-desc">Beef patty, cheese, lettuce</div>
+                <div class="card-size">📏 5 inch · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">Rs. 200</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
-
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
-                    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" />
-                    <span>🥤</span>
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Fresh Lemonade</div>
-                    <div class="card-desc">Cold pressed, mint, lime</div>
-                    <div class="card-size">📏 350 ml · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 85 kcal</div>
-                        <div class="card-price">Rs. 80</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
+                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" />
+                <span>🥤</span><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Fresh Lemonade</div>
+                <div class="card-desc">Cold pressed, mint, lime</div>
+                <div class="card-size">📏 350 ml · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">Rs. 80</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>
-
         </div>
     </div>
+</div>
 
-    <div id="cart-bar">
-        <div id="cart-info">
-            <div id="cart-count">0 items</div>
-            <div id="cart-total">Rs. 0</div>
-        </div>
-        <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+<div id="cart-bar">
+    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">Rs. 0</div></div>
+    <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+</div>
+
+<div id="bottom-nav">
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
+    <div class="nav-item"><div class="nav-icon">📋</div>Orders</div>
+    <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+
+<div id="cart-page">
+    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>🛒 Your Cart</h2></div>
+    <div id="cart-items"></div>
+    <div id="empty-cart"><div class="empty-icon">🛒</div><div>Your cart is empty</div><small>Add items from the menu</small></div>
+    <div id="cart-summary">
+        <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">Rs. 0</span></div>
+        <div class="summary-row"><span>Tax (5%)</span><span id="summary-tax">Rs. 0</span></div>
+        <div class="summary-row total"><span>Total</span><span id="summary-total">Rs. 0</span></div>
+        <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
     </div>
+</div>
 
-    <div id="bottom-nav">
-        <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
-        <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
-        <div class="nav-item"><div class="nav-icon">📋</div>Orders</div>
-        <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
-    </div>
+<div id="order-success">
+    <div class="success-icon">🎉</div>
+    <h2>Order Placed!</h2>
+    <p>Your order has been received.<br>We'll have it ready soon.</p>
+    <div class="order-id" id="order-id-text">Order #0000</div>
+    <button onclick="backToMenu()">Back to Menu</button>
+</div>
 
-    <div id="cart-page">
-        <div id="cart-header">
-            <button id="cart-back" onclick="closeCart()">← Back</button>
-            <h2>🛒 Your Cart</h2>
-        </div>
-        <div id="cart-items"></div>
-        <div id="empty-cart">
-            <div class="empty-icon">🛒</div>
-            <div>Your cart is empty</div>
-            <small>Add items from the menu</small>
-        </div>
-        <div id="cart-summary">
-            <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">Rs. 0</span></div>
-            <div class="summary-row"><span>Tax (5%)</span><span id="summary-tax">Rs. 0</span></div>
-            <div class="summary-row total"><span>Total</span><span id="summary-total">Rs. 0</span></div>
-            <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
-        </div>
-    </div>
+<div id="toast">
+    <div class="toast-icon" id="toast-icon">✅</div>
+    <div class="toast-msg" id="toast-msg">Added!</div>
+    <div class="toast-sub" id="toast-sub"></div>
+</div>
 
-    <div id="order-success">
-        <div class="success-icon">🎉</div>
-        <h2>Order Placed!</h2>
-        <p>Your order has been received.<br>We'll have it ready soon.</p>
-        <div class="order-id" id="order-id-text">Order #0000</div>
-        <button onclick="backToMenu()">Back to Menu</button>
-    </div>
-
-    <div id="toast">
-        <div class="toast-icon" id="toast-icon">✅</div>
-        <div class="toast-msg"  id="toast-msg">Added!</div>
-        <div class="toast-sub"  id="toast-sub"></div>
-    </div>
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
