@@ -207,6 +207,7 @@ let arRotY=0,arRotX=0,arScale=0.3;
 let arLastX=null,arLastY=null,arLastPinch=null;
 function getArEl(){return currentModel?document.getElementById(menuData[currentModel].arId):null;}
 function pd(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+const arMaxScale=6.0; // bigger zoom limit
 document.addEventListener('touchstart',e=>{
     if(viewerMode!=='ar')return;
     if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
@@ -223,6 +224,7 @@ document.addEventListener('touchmove',e=>{
         arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
     }else if(e.touches.length===2&&arLastPinch!==null){
         const nd=pd(e.touches);arScale=Math.max(0.05,Math.min(4,arScale+(nd-arLastPinch)*0.008));
+        arScale=Math.max(0.05,Math.min(arMaxScale,arScale+(nd-arLastPinch)*0.015)); // faster zoom
         el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);arLastPinch=nd;
     }
 },{passive:true});
