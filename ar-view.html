@@ -140,8 +140,12 @@
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
+        <!-- Premium lighting like 3D viewer -->
+        <a-light type="ambient" color="#fff8f0" intensity="2.5"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="3.5" position="3 8 5" cast-shadow="true"></a-light>
+        <a-light type="directional" color="#ffe8d0" intensity="2.0" position="-4 4 -3"></a-light>
+        <a-light type="directional" color="#ffd0a0" intensity="1.5" position="0 3 -5"></a-light>
+        <a-light type="point" color="#ffcc88" intensity="1.5" position="0 2 2" distance="10"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
@@ -242,22 +246,9 @@ function onDetected() {
     // Show free controls
     document.getElementById('free-controls').style.display = 'flex';
 
-    // Vibrate
-    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+    // No vibration
 
-    // Sound
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [600, 800, 1000].forEach((f, i) => {
-            const o = ctx.createOscillator(), g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
-            o.frequency.value = f;
-            g.gain.setValueAtTime(0.2, ctx.currentTime + i*0.1);
-            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.1 + 0.2);
-            o.start(ctx.currentTime + i*0.1);
-            o.stop(ctx.currentTime + i*0.1 + 0.2);
-        });
-    } catch(e) {}
+
 }
 
 function onLost() {
