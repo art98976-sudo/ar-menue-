@@ -60,9 +60,8 @@
             <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
             <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
             <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
-                <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
-                <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
+                <!-- Single model — src changes based on selected item -->
+                <a-gltf-model id="ar-model" src="#pizzaModel" position="0 0 0" scale="0.3 0.3 0.3" rotation="0 0 0"></a-gltf-model>
             </a-entity>
         </a-scene>
 
@@ -89,6 +88,9 @@
             <div id="ar-detected-icon">✅</div>
             <div id="ar-detected-text">Image Detected!</div>
         </div>
+
+        <!-- Refresh Button -->
+        <button id="ar-refresh-btn" onclick="refreshAR()" ontouchend="event.preventDefault();refreshAR();">🔄 Refresh AR</button>
     </div>
 
     <!-- BOTTOM BAR -->

@@ -2,9 +2,9 @@
 // FOOD DATA
 // ============================================
 const menuData = {
-    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.3,  size:'12 inch', serves:'2-3 people', weight:'400g' },
-    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.1,  size:'5 inch',  serves:'1 person',   weight:'250g' },
-    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',      calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.15, size:'350 ml',  serves:'1 person',   weight:'350g' },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil on a perfectly crispy thin crust.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arSrc:'#pizzaModel',  arScale:0.3,  size:'12 inch', serves:'2-3 people', weight:'400g' },
+    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese, crisp lettuce and tomato in a toasted sesame bun.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arSrc:'#burgerModel', arScale:0.1,  size:'5 inch',  serves:'1 person',   weight:'250g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint leaves, a squeeze of lime and a hint of honey.',      calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arSrc:'#drinkModel',  arScale:0.15, size:'350 ml',  serves:'1 person',   weight:'350g' },
 };
 
 let cart = {}, currentModel = null, arQty = 1, viewerMode = null;
@@ -178,16 +178,10 @@ function openAR(modelId) {
     arRotY = 0; arRotX = 0;
     arScale = menuData[modelId].arScale || 0.3;
 
-    // Use scale=0 to hide models - works on ALL phones
-    // visible=false conflicts with MindAR on mobile
-    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.setAttribute('scale', '0 0 0');
-    });
-
-    // Show only selected model with correct scale
-    const arEl = document.getElementById(menuData[modelId].arId);
+    // Single model approach - just change src
+    const arEl = document.getElementById('ar-model');
     if (arEl) {
+        arEl.setAttribute('src', menuData[modelId].arSrc);
         arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         arEl.setAttribute('rotation', '0 0 0');
     }
@@ -241,11 +235,9 @@ function closeViewer() {
     removeSteamEffect(); stopRendering();
     const target = document.querySelector('[mindar-image-target]');
     if (target) { target.removeEventListener('targetFound', onARDetected); target.removeEventListener('targetLost', onARLost); }
-    // Hide all AR models using scale 0
-    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.setAttribute('scale', '0 0 0');
-    });
+    // Reset AR model
+    const arEl = document.getElementById('ar-model');
+    if (arEl) arEl.setAttribute('scale', '0 0 0');
     document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('viewer-ar').style.display = 'none';
     document.getElementById('ar-topbar').style.display = 'none';
@@ -258,7 +250,7 @@ function closeViewer() {
 
 function resetModel() {
     if (viewerMode==='3d'&&threeControls){threeControls.reset();threeControls.autoRotate=true;}
-    if (viewerMode==='ar'){arRotY=0;arRotX=0;const arEl=currentModel&&document.getElementById(menuData[currentModel].arId);if(arEl)arEl.setAttribute('rotation','0 0 0');}
+    if (viewerMode==='ar'){arRotY=0;arRotX=0;const arEl=document.getElementById('ar-model');if(arEl)arEl.setAttribute('rotation','0 0 0');}
 }
 
 function quickAdd(id){addItemToCart(id,1);showToast('✅',menuData[id].name+' added!','Rs.'+menuData[id].price);}
@@ -304,7 +296,7 @@ window.addEventListener('resize',resizeRenderer);
 let arRotY=0,arRotX=0,arScale=0.3;
 const arMinScale=0.05,arMaxScale=4.0;
 let arLastX=null,arLastY=null,arLastPinch=null;
-function getArModel(){return currentModel?document.getElementById(menuData[currentModel].arId):null;}
+function getArModel(){return document.getElementById('ar-model');}
 function pinchDist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
 document.addEventListener('touchstart',e=>{
     if(viewerMode!=='ar')return;
@@ -343,3 +335,59 @@ function addSteamEffect(model){
     animateSteam();
 }
 function removeSteamEffect(){if(steamParticles){threeScene&&threeScene.remove(steamParticles);steamParticles=null;}if(steamAnimId){cancelAnimationFrame(steamAnimId);steamAnimId=null;}}
+
+// ── AR Refresh ──
+function refreshAR() {
+    if (!currentModel) return;
+    const modelId = currentModel;
+
+    // Hide refresh button
+    const btn = document.getElementById('ar-refresh-btn');
+    if (btn) btn.style.display = 'none';
+
+    // Show scan overlay again
+    const overlay = document.getElementById('scan-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+
+    // Reset scales
+    ['ar-pizza','ar-burger','ar-drink'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('scale', '0 0 0');
+    });
+
+    // Re-set correct model scale
+    arRotY = 0; arRotX = 0;
+    arScale = menuData[modelId].arScale || 0.3;
+    const arEl = document.getElementById(menuData[modelId].arId);
+    if (arEl) {
+        arEl.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        arEl.setAttribute('rotation', '0 0 0');
+    }
+
+    // Re-attach events
+    const target = document.querySelector('[mindar-image-target]');
+    if (target) {
+        target.removeEventListener('targetFound', onARDetected);
+        target.removeEventListener('targetLost', onARLost);
+        target.addEventListener('targetFound', onARDetected);
+        target.addEventListener('targetLost', onARLost);
+    }
+}
+
+// Show refresh button when AR opens
+const _origOpenAR = openAR;
+openAR = function(modelId) {
+    _origOpenAR(modelId);
+    setTimeout(() => {
+        const btn = document.getElementById('ar-refresh-btn');
+        if (btn) btn.style.display = 'block';
+    }, 3000);
+};
+
+// Hide refresh button when AR closes
+const _origCloseViewer = closeViewer;
+closeViewer = function() {
+    _origCloseViewer();
+    const btn = document.getElementById('ar-refresh-btn');
+    if (btn) btn.style.display = 'none';
+};
