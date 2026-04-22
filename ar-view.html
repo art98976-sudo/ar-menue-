@@ -1,369 +1,355 @@
-<!-- AR View v2.0 - Camera Overlay -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AR View</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; overflow: hidden; font-family: -apple-system, sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { overflow:hidden; background:#000; font-family:-apple-system,sans-serif; }
 
-        /* Camera feed behind everything */
-        #camera-feed {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            object-fit: cover;
-            z-index: 1;
+        #viewer-ar {
+            position:fixed; inset:0; z-index:1;
+            display:block;
         }
 
-        /* Three.js canvas on top of camera */
-        #three-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: 2;
-            background: transparent;
+        #viewer-ar video {
+            position:fixed!important; top:0!important; left:0!important;
+            width:100vw!important; height:100vh!important;
+            object-fit:cover!important; z-index:1!important; display:block!important;
         }
 
-        /* UI on top of everything */
-        #ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        #viewer-ar canvas {
+            position:fixed!important; top:0!important; left:0!important;
+            width:100vw!important; height:100vh!important;
+            z-index:2!important; background:transparent!important;
+        }
 
+        /* UI */
         #top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-            pointer-events: all;
+            position:fixed; top:0; left:0; right:0; z-index:9999;
+            display:flex; justify-content:space-between; align-items:center;
+            padding:14px 16px;
+            background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);
         }
 
         #back-btn {
-            background: rgba(0,0,0,0.6);
-            color: white; border: none;
-            padding: 8px 16px; border-radius: 20px;
-            font-size: 14px; cursor: pointer;
+            background:rgba(0,0,0,0.6); color:white; border:none;
+            padding:8px 16px; border-radius:20px; font-size:14px; cursor:pointer;
         }
 
-        #food-title { color: white; font-size: 16px; font-weight: bold; }
+        #food-title { color:white; font-size:16px; font-weight:bold; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
 
-        #instructions {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: white; font-size: 14px; text-align: center;
-            background: rgba(0,0,0,0.6);
-            padding: 12px 20px; border-radius: 16px;
-            pointer-events: none;
+        /* Scan overlay */
+        #scan-overlay {
+            position:fixed; inset:0; z-index:9998;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:20px;
+            pointer-events:none;
+            transition:opacity 0.5s;
         }
 
-        /* Bottom controls */
-        #bottom-controls {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 16px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            pointer-events: all;
+        #scan-overlay.hidden { opacity:0; pointer-events:none; }
+
+        #scan-top-text {
+            color:white; font-size:15px; font-weight:bold;
+            background:rgba(0,0,0,0.6); padding:10px 20px; border-radius:20px;
         }
 
-        #hint-text {
-            color: rgba(255,255,255,0.8);
-            font-size: 12px;
+        #scan-box {
+            width:260px; height:180px; position:relative; overflow:hidden;
         }
 
-        #size-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        .scan-corner {
+            position:absolute; width:30px; height:30px;
+            border-color:#d4a574; border-style:solid;
+        }
+        .scan-corner.tl { top:0; left:0; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+        .scan-corner.tr { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+        .scan-corner.bl { bottom:0; left:0; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+        .scan-corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+
+        #scan-line {
+            position:absolute; left:0; right:0; height:2px;
+            background:linear-gradient(90deg,transparent,#d4a574,transparent);
+            animation:scanMove 2s linear infinite;
+            box-shadow:0 0 8px #d4a574;
+        }
+        @keyframes scanMove { 0%{top:0} 50%{top:calc(100% - 2px)} 100%{top:0} }
+
+        #scan-tips {
+            display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+        }
+        .scan-tip {
+            background:rgba(0,0,0,0.5); color:white;
+            font-size:11px; padding:5px 12px; border-radius:12px;
+        }
+
+        /* Detected popup */
+        #ar-detected {
+            position:fixed; top:80px; left:50%; transform:translateX(-50%);
+            z-index:9999; background:linear-gradient(135deg,#2c1810,#4a2c1a);
+            color:#d4a574; padding:14px 28px; border-radius:24px;
+            font-size:16px; font-weight:bold; display:none;
+            flex-direction:column; align-items:center; gap:4px;
+            box-shadow:0 4px 24px rgba(0,0,0,0.4);
+        }
+
+        /* Free mode controls */
+        #free-controls {
+            position:fixed; bottom:0; left:0; right:0; z-index:9999;
+            background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);
+            padding:16px; display:none;
+            flex-direction:column; align-items:center; gap:10px;
+        }
+
+        #hint-bar {
+            color:rgba(255,255,255,0.8); font-size:12px; text-align:center;
+        }
+
+        #size-row {
+            display:flex; gap:12px; align-items:center;
         }
 
         .size-btn {
-            background: rgba(255,255,255,0.2);
-            color: white; border: 2px solid rgba(255,255,255,0.4);
-            width: 44px; height: 44px;
-            border-radius: 50%; font-size: 20px;
-            cursor: pointer; display: flex;
-            align-items: center; justify-content: center;
+            background:rgba(255,255,255,0.2); color:white;
+            border:2px solid rgba(255,255,255,0.4);
+            width:48px; height:48px; border-radius:50%;
+            font-size:22px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
         }
 
         #size-label {
-            color: white; font-size: 13px;
-            background: rgba(0,0,0,0.4);
-            padding: 6px 14px; border-radius: 12px;
+            color:white; font-size:13px; background:rgba(0,0,0,0.4);
+            padding:6px 14px; border-radius:12px; min-width:80px; text-align:center;
         }
 
-        #reset-btn {
-            background: rgba(212,165,116,0.9);
-            color: white; border: none;
-            padding: 10px 24px; border-radius: 20px;
-            font-size: 14px; font-weight: bold; cursor: pointer;
+        #scan-again-btn {
+            background:rgba(212,165,116,0.9); color:white; border:none;
+            padding:10px 24px; border-radius:20px;
+            font-size:14px; font-weight:bold; cursor:pointer;
         }
-
-        #loading {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 999;
-            background: rgba(0,0,0,0.8);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: white; gap: 12px; font-size: 16px;
-        }
-
-        #loading-spinner {
-            width: 40px; height: 40px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: #d4a574;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<video id="camera-feed" autoplay playsinline muted></video>
-<canvas id="three-canvas"></canvas>
-
-<div id="loading">
-    <div id="loading-spinner"></div>
-    <div>Loading AR...</div>
+<div id="top-bar">
+    <button id="back-btn" onclick="window.history.back()">← Back</button>
+    <div id="food-title">Loading...</div>
+    <div style="width:70px"></div>
 </div>
 
-<div id="ui">
-    <div id="top-bar">
-        <button id="back-btn" onclick="goBack()">← Back</button>
-        <div id="food-title">Pizza</div>
-        <div style="width:70px"></div>
-    </div>
+<!-- MindAR Scene -->
+<div id="viewer-ar">
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
+        color-space="sRGB" renderer="colorManagement: true"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        loading-screen="enabled: false">
+        <a-assets timeout="120000">
+            <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
+            <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
+            <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
+        </a-assets>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0" visible="true"></a-gltf-model>
+        </a-entity>
+    </a-scene>
+</div>
 
-    <div id="instructions">📱 Drag to move · Pinch to zoom · Rotate with finger</div>
-
-    <div id="bottom-controls">
-        <div id="hint-text">☝️ Drag model · 🤏 Pinch zoom · 🔄 Rotate</div>
-        <div id="size-controls">
-            <button class="size-btn" onclick="scaleDown()">−</button>
-            <div id="size-label">Size: 100%</div>
-            <button class="size-btn" onclick="scaleUp()">+</button>
-        </div>
-        <button id="reset-btn" onclick="resetModel()">🔄 Reset Position</button>
+<!-- Scan overlay -->
+<div id="scan-overlay">
+    <div id="scan-top-text">📷 Point camera at your menu image</div>
+    <div id="scan-box">
+        <div class="scan-corner tl"></div>
+        <div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div>
+        <div class="scan-corner br"></div>
+        <div id="scan-line"></div>
     </div>
+    <div id="scan-tips">
+        <div class="scan-tip">💡 Good lighting</div>
+        <div class="scan-tip">📐 Hold steady</div>
+        <div class="scan-tip">📏 20-30cm away</div>
+    </div>
+</div>
+
+<!-- Detected popup -->
+<div id="ar-detected">
+    <div style="font-size:28px">✅</div>
+    <div>Image Detected!</div>
+</div>
+
+<!-- Free placement controls -->
+<div id="free-controls">
+    <div id="hint-bar">☝️ Drag to rotate · 🤏 Pinch to zoom · ↕️ Two fingers to move</div>
+    <div id="size-row">
+        <button class="size-btn" onclick="sizeDown()">−</button>
+        <div id="size-label">100%</div>
+        <button class="size-btn" onclick="sizeUp()">+</button>
+    </div>
+    <button id="scan-again-btn" onclick="scanAgain()">🔄 Scan Again</button>
 </div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
-const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb' };
-const modelScale = { pizza: 1.5, burger: 0.8, drink: 1.2 };
 const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤' };
+const modelScales = { pizza:2.5, burger:0.4, drink:1.2 };
+const modelIds = { pizza:'ar-pizza', burger:'ar-burger', drink:'ar-drink' };
 
 document.getElementById('food-title').innerText = modelNames[modelId];
 
-// ── Start camera ──
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-        });
-        document.getElementById('camera-feed').srcObject = stream;
-    } catch(e) {
-        // Fallback to front camera
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            document.getElementById('camera-feed').srcObject = stream;
-        } catch(e2) {
-            alert('Camera not available: ' + e2.message);
-        }
-    }
-}
-startCamera();
-
-// ── Three.js setup ──
-const canvas = document.getElementById('three-canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000, 0); // transparent background
-renderer.shadowMap.enabled = true;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1, 3);
-
-// Lighting
-scene.add(new THREE.AmbientLight(0xffffff, 3));
-const dl = new THREE.DirectionalLight(0xffffff, 3);
-dl.position.set(5, 10, 5);
-dl.castShadow = true;
-scene.add(dl);
-const dl2 = new THREE.DirectionalLight(0xffe8d0, 2);
-dl2.position.set(-5, 5, -5);
-scene.add(dl2);
-
-// Load model
-let model = null;
-let currentScale = modelScale[modelId];
+let arScale = modelScales[modelId];
 let sizePercent = 100;
-let modelX = 0, modelY = 0;
+let rotY = 0, rotX = 0;
+let detected = false;
 
-const loader = new THREE.GLTFLoader();
-const draco = new THREE.DRACOLoader();
-draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-draco.setDecoderConfig({ type: 'js' });
-loader.setDRACOLoader(draco);
+// Fix video white screen
+function fixVideo() {
+    document.querySelectorAll('video').forEach(v => {
+        v.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;';
+    });
+    document.querySelectorAll('#viewer-ar canvas').forEach(c => {
+        c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';
+    });
+}
+setInterval(() => { if(document.getElementById('viewer-ar').style.display !== 'none') fixVideo(); }, 500);
 
-loader.load(modelSrc[modelId], function(gltf) {
-    model = gltf.scene;
-    model.traverse(c => { if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
-
-    // Normalize size
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    const normalize = 2.0 / Math.max(size.x, size.y, size.z);
-    model.scale.setScalar(normalize * currentScale);
-
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center.multiplyScalar(normalize * currentScale));
-    model.position.y = 0;
-
-    scene.add(model);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('instructions').style.display = 'block';
-    setTimeout(() => { document.getElementById('instructions').style.display = 'none'; }, 4000);
-}, null, function(err) {
-    console.error(err);
-    document.getElementById('loading').style.display = 'none';
+// Hide other models show only selected
+Object.keys(modelIds).forEach(key => {
+    const el = document.getElementById(modelIds[key]);
+    if (el) el.setAttribute('scale', '0 0 0');
 });
 
-// Animate
-let rotY = 0;
-function animate() {
-    requestAnimationFrame(animate);
-    if (model) model.rotation.y += 0.005; // gentle auto-rotate
-    renderer.render(scene, camera);
+// Set correct model scale
+setTimeout(() => {
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) {
+        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        el.setAttribute('rotation', '-90 0 0');
+    }
+}, 500);
+
+// MindAR detection
+setTimeout(() => {
+    const target = document.querySelector('[mindar-image-target]');
+    if (target) {
+        target.addEventListener('targetFound', onDetected);
+        target.addEventListener('targetLost', onLost);
+    }
+}, 1000);
+
+function onDetected() {
+    if (detected) return;
+    detected = true;
+
+    // Hide scan overlay
+    document.getElementById('scan-overlay').classList.add('hidden');
+
+    // Show detected popup
+    const det = document.getElementById('ar-detected');
+    det.style.display = 'flex';
+    setTimeout(() => { det.style.display = 'none'; }, 2000);
+
+    // Show free controls
+    document.getElementById('free-controls').style.display = 'flex';
+
+    // Vibrate
+    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+
+    // Sound
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [600, 800, 1000].forEach((f, i) => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = f;
+            g.gain.setValueAtTime(0.2, ctx.currentTime + i*0.1);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.1 + 0.2);
+            o.start(ctx.currentTime + i*0.1);
+            o.stop(ctx.currentTime + i*0.1 + 0.2);
+        });
+    } catch(e) {}
 }
-animate();
 
-// ── Touch Controls ──
+function onLost() {
+    if (!detected) {
+        document.getElementById('scan-overlay').classList.remove('hidden');
+    }
+}
+
+function scanAgain() {
+    detected = false;
+    document.getElementById('scan-overlay').classList.remove('hidden');
+    document.getElementById('free-controls').style.display = 'none';
+}
+
+// Size buttons
+function sizeUp() {
+    arScale = Math.min(arScale * 1.2, 20);
+    sizePercent = Math.min(sizePercent + 20, 500);
+    document.getElementById('size-label').innerText = sizePercent + '%';
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+}
+
+function sizeDown() {
+    arScale = Math.max(arScale * 0.8, 0.01);
+    sizePercent = Math.max(sizePercent - 20, 20);
+    document.getElementById('size-label').innerText = sizePercent + '%';
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+}
+
+// Touch controls - rotate and zoom
 let lastX = null, lastY = null, lastPinch = null;
-let isDragging = false;
-let autoRotate = true;
 
-canvas.addEventListener('touchstart', e => {
-    autoRotate = false;
-    if (model) model.rotation.y = rotY;
+document.addEventListener('touchstart', e => {
+    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
     if (e.touches.length === 1) {
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
         lastPinch = null;
-        isDragging = true;
     } else if (e.touches.length === 2) {
         lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        isDragging = false;
+        lastX = null; lastY = null;
     }
 }, { passive: true });
 
-canvas.addEventListener('touchmove', e => {
-    if (!model) return;
-    if (e.touches.length === 1 && isDragging && lastX !== null) {
+document.addEventListener('touchmove', e => {
+    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+    const el = document.getElementById(modelIds[modelId]);
+    if (!el) return;
+
+    if (e.touches.length === 1 && lastX !== null) {
         const dx = e.touches[0].clientX - lastX;
         const dy = e.touches[0].clientY - lastY;
-        // Horizontal drag = rotate
-        rotY += dx * 0.01;
-        model.rotation.y = rotY;
-        // Vertical drag = move up/down
-        model.position.y += dy * 0.005;
+        rotY += dx * 0.8;
+        rotX += dy * 0.8;
+        el.setAttribute('rotation', `${rotX - 90} ${rotY} 0`);
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && lastPinch !== null) {
         const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        const delta = (nd - lastPinch) * 0.01;
-        currentScale = Math.max(0.1, Math.min(5, currentScale + delta));
-        sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
-        document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const normalize = 2.0 / Math.max(size.x, size.y, size.z);
-        model.scale.setScalar(normalize * currentScale);
+        const delta = (nd - lastPinch) / lastPinch;
+        arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.5)));
+        sizePercent = Math.round(arScale / modelScales[modelId] * 100);
+        document.getElementById('size-label').innerText = sizePercent + '%';
+        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
         lastPinch = nd;
     }
 }, { passive: true });
 
-canvas.addEventListener('touchend', () => { lastX = null; lastY = null; lastPinch = null; isDragging = false; });
-
-// Mouse controls for laptop testing
-let mouseDown = false, lastMX = null;
-canvas.addEventListener('mousedown', e => { mouseDown = true; lastMX = e.clientX; autoRotate = false; });
-canvas.addEventListener('mousemove', e => {
-    if (!mouseDown || !model) return;
-    const dx = e.clientX - lastMX;
-    rotY += dx * 0.01;
-    model.rotation.y = rotY;
-    lastMX = e.clientX;
-});
-canvas.addEventListener('mouseup', () => { mouseDown = false; });
-canvas.addEventListener('wheel', e => {
-    if (!model) return;
-    currentScale = Math.max(0.1, Math.min(5, currentScale - e.deltaY * 0.001));
-    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
-    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    const normalize = 2.0 / Math.max(size.x, size.y, size.z);
-    model.scale.setScalar(normalize * currentScale);
-});
-
-function scaleUp() {
-    if (!model) return;
-    currentScale = Math.min(currentScale + 0.2, 5);
-    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
-    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
-}
-
-function scaleDown() {
-    if (!model) return;
-    currentScale = Math.max(currentScale - 0.2, 0.1);
-    sizePercent = Math.round((currentScale / modelScale[modelId]) * 100);
-    document.getElementById('size-label').innerText = `Size: ${sizePercent}%`;
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
-}
-
-function resetModel() {
-    if (!model) return;
-    rotY = 0;
-    model.rotation.y = 0;
-    model.position.y = 0;
-    currentScale = modelScale[modelId];
-    sizePercent = 100;
-    document.getElementById('size-label').innerText = 'Size: 100%';
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z) * currentScale);
-    autoRotate = true;
-}
-
-function goBack() { window.history.back(); }
-
-window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-});
+document.addEventListener('touchend', () => { lastX = null; lastY = null; lastPinch = null; });
 </script>
 </body>
 </html>
