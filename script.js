@@ -109,8 +109,26 @@ function openAR(id){
     document.getElementById('ar-hint-bar').innerText='📷 Scan image · ☝️ Rotate · 🤏 Zoom';
     document.getElementById('scan-overlay').classList.remove('hidden');
     arRotY=0;arRotX=0;arScale=menuData[id].arScale;
-    // Fix video white screen
-    setTimeout(fixVideo,500);setTimeout(fixVideo,1500);setTimeout(fixVideo,3000);
+
+    // Fix 1: Hide wrong models — show only selected one
+    Object.keys(menuData).forEach(key => {
+        const el = document.getElementById(menuData[key].arId);
+        if (!el) return;
+        if (key === id) {
+            el.setAttribute('scale', `${menuData[key].arScale} ${menuData[key].arScale} ${menuData[key].arScale}`);
+        } else {
+            el.setAttribute('scale', '0 0 0');
+        }
+    });
+
+    // Fix 2: Trigger resize so model appears without opening inspect
+    setTimeout(function(){
+        window.dispatchEvent(new Event('resize'));
+        fixVideo();
+    }, 500);
+    setTimeout(fixVideo, 1500);
+    setTimeout(fixVideo, 3000);
+
     // Attach MindAR events
     setTimeout(function(){
         const t=document.querySelector('[mindar-image-target]');
