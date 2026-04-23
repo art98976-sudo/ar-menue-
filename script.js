@@ -1,9 +1,9 @@
 const menuData = {
-    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.3, size:'12 inch', serves:'2-3 people', weight:'400g' },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.6, size:'12 inch', serves:'2-3 people', weight:'400g' },
     burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15, size:'5 inch',  serves:'1 person',   weight:'250g' },
-    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.3, size:'350 ml',   serves:'1 person',  weight:'350g' },
-    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:180, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:0.3, size:'300g',     serves:'1 person',  weight:'300g' },
-    sushi:  { icon:'🍣', name:'Sushi Platter',    price:250, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:0.3, size:'5 pieces',  serves:'1 person',  weight:'200g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.6, size:'350 ml',   serves:'1 person',  weight:'350g' },
+    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:180, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:0.6, size:'300g',     serves:'1 person',  weight:'300g' },
+    sushi:  { icon:'🍣', name:'Sushi Platter',    price:250, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:0.6, size:'5 pieces',  serves:'1 person',  weight:'200g' },
 };
 
 let cart={}, currentModel=null, arQty=1, viewerMode=null;
@@ -234,7 +234,7 @@ function onFound(){
             const s = menuData[currentModel].arScale;
             el.setAttribute('position', '0 0 0.1'); // Step 2+3: forward, below eye
             el.setAttribute('scale', `${s} ${s} ${s}`);
-            el.setAttribute('rotation', '-90 0 0'); // Step 5: flat on surface
+            el.setAttribute('rotation', '-90 0 180'); // flat + facing front
         }
     }
 }
