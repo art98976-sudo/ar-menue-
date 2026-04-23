@@ -58,9 +58,10 @@
         <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
         <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="2.5 2.5 2.5"  rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0.4 0.4 0.4"  rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1.2 1.2 1.2"  rotation="-90 0 0" visible="true"></a-gltf-model>
+            <!-- scale 1 1 1 = exact real size from Blender -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
         </a-entity>
     </a-scene>
 
