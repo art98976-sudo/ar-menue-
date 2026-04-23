@@ -83,6 +83,81 @@
         }
         @keyframes scanMove { 0%{top:0} 50%{top:calc(100% - 2px)} 100%{top:0} }
 
+        /* Tap to place reticle */
+        #reticle {
+            position: fixed;
+            bottom: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9997;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        #reticle-ring {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #d4a574;
+            border-radius: 50%;
+            position: relative;
+            animation: reticlePulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(212,165,116,0.5);
+        }
+
+        #reticle-ring::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px; height: 10px;
+            background: #d4a574;
+            border-radius: 50%;
+        }
+
+        #reticle-ring::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px; height: 40px;
+            border: 1px dashed rgba(212,165,116,0.5);
+            border-radius: 50%;
+        }
+
+        #tap-label {
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 16px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+        }
+
+        @keyframes reticlePulse {
+            0%   { transform: scale(1);   opacity: 1; }
+            50%  { transform: scale(1.15); opacity: 0.7; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
+        /* Placed confirmation */
+        #place-confirm {
+            position: fixed;
+            top: 80px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: rgba(44,24,16,0.9);
+            color: #d4a574;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: none;
+        }
+
         #scan-tips {
             display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
         }
@@ -173,6 +248,15 @@
     </div>
 </div>
 
+<!-- Tap to place reticle -->
+<div id="reticle">
+    <div id="reticle-ring"></div>
+    <div id="tap-label">👆 TAP TO PLACE</div>
+</div>
+
+<!-- Place confirmation -->
+<div id="place-confirm">📍 Food Placed!</div>
+
 <!-- Detected popup -->
 <div id="ar-detected">
     <div style="font-size:28px">✅</div>
@@ -231,24 +315,26 @@ setTimeout(() => {
     }
 }, 1000);
 
+let placed = false;
+
 function onDetected() {
     if (detected) return;
     detected = true;
 
-    // Keep model on ground level - y stays at 0
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) el.setAttribute('position', '0 0 0');
-
     // Hide scan overlay
     document.getElementById('scan-overlay').classList.add('hidden');
 
-    // Show detected popup
+    // Hide detected popup
     const det = document.getElementById('ar-detected');
     det.style.display = 'flex';
-    setTimeout(() => { det.style.display = 'none'; }, 2000);
+    setTimeout(() => { det.style.display = 'none'; }, 1500);
 
-    // Show free controls
-    document.getElementById('free-controls').style.display = 'flex';
+    // Show reticle - tap to place
+    document.getElementById('reticle').style.display = 'flex';
+
+    // Hide model until tapped
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) el.setAttribute('scale', '0 0 0');
 
     // No vibration
 
@@ -256,15 +342,52 @@ function onDetected() {
 }
 
 function onLost() {
-    if (!detected) {
+    if (!placed) {
+        detected = false;
         document.getElementById('scan-overlay').classList.remove('hidden');
+        document.getElementById('reticle').style.display = 'none';
     }
 }
 
+function tapToPlace() {
+    if (!detected || placed) return;
+    placed = true;
+
+    // Hide reticle
+    document.getElementById('reticle').style.display = 'none';
+
+    // Show model at correct scale
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) {
+        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        el.setAttribute('position', '0 0 0');
+        el.setAttribute('rotation', '-90 0 0');
+    }
+
+    // Show free controls
+    document.getElementById('free-controls').style.display = 'flex';
+
+    // Show confirmation
+    const confirm = document.getElementById('place-confirm');
+    confirm.style.display = 'block';
+    setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+}
+
+// Listen for tap on screen to place
+document.addEventListener('click', function(e) {
+    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+    if (detected && !placed) tapToPlace();
+});
+
 function scanAgain() {
     detected = false;
+    placed = false;
     document.getElementById('scan-overlay').classList.remove('hidden');
     document.getElementById('free-controls').style.display = 'none';
+    document.getElementById('reticle').style.display = 'none';
+    // Reset model
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) el.setAttribute('scale', '0 0 0');
 }
 
 
@@ -274,6 +397,7 @@ let lastX = null, lastY = null, lastPinch = null;
 
 document.addEventListener('touchstart', e => {
     if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+    if (!placed) { tapToPlace(); return; } // tap to place
     if (e.touches.length === 1) {
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
