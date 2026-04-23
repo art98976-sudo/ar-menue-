@@ -1378,3 +1378,10 @@ html, body {
     height: 100vh !important;
     display: block !important;
 }
+
+/* ── Hide all scan text ── */
+#scan-top-text { display: none !important; }
+#scan-tips { display: none !important; }
+#scan-bottom-text { display: none !important; }
+#scan-progress { display: none !important; }
+#ar-controls-hint { display: none !important; }
