@@ -24,7 +24,32 @@ function initThreeJS(){
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure = 0.9; // avoid overexposure
     threeScene=new THREE.Scene();
-    threeScene.background=new THREE.Color(0x0f0f0f);
+
+    // ── PREMIUM RESTAURANT BACKGROUND ──
+    // Warm dark gradient - food pops, background supports not distracts
+    const bgCanvas=document.createElement('canvas');
+    bgCanvas.width=512;bgCanvas.height=512;
+    const bgCtx=bgCanvas.getContext('2d');
+
+    // Radial gradient: warm center lighter, dark edges = vignette
+    const grad=bgCtx.createRadialGradient(256,300,30,256,256,380);
+    grad.addColorStop(0,   '#2a1f14'); // warm dark center - wooden table feel
+    grad.addColorStop(0.5, '#1a1208'); // mid dark warm
+    grad.addColorStop(1,   '#050302'); // very dark edges - vignette
+    bgCtx.fillStyle=grad;
+    bgCtx.fillRect(0,0,512,512);
+
+    // Soft ceiling light glow from top
+    const topGlow=bgCtx.createRadialGradient(256,0,0,256,0,280);
+    topGlow.addColorStop(0,   'rgba(255,200,120,0.15)');
+    topGlow.addColorStop(1,   'rgba(0,0,0,0)');
+    bgCtx.fillStyle=topGlow;
+    bgCtx.fillRect(0,0,512,512);
+
+    threeScene.background=new THREE.CanvasTexture(bgCanvas);
+
+    // Depth fog - natural falloff behind food (real space feeling)
+    threeScene.fog=new THREE.FogExp2(0x0f0a05, 0.06);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.1,100);
     threeCamera.position.set(0,0.5,3);
 
