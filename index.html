@@ -56,8 +56,7 @@
                 <a-asset-item id="pastaModel"  src="./pasta.glb"></a-asset-item>
                 <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
         </a-assets>
-        <!-- STEP 4: Slight top-down view 15 degrees - restaurant table perspective -->
-        <a-camera position="0 0.15 0" rotation="-15 0 0" look-controls="enabled: false"></a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <!-- STEP 1: HDRI simulated with hemisphere light -->
         <a-light type="hemisphere" color="#fff5e0" ground-color="#443322" intensity="1.0"></a-light>
@@ -87,50 +86,14 @@
                 material="color:#000000; opacity:0.35; transparent:true; shader:flat">
             </a-ellipse>
 
-            <!-- STEP 1,2: Y=0 anchored exactly to surface, no gap, no floating -->
-            <!-- STEP 3: Real world scales - pizza 0.3m, burger 0.15m, drink 0.09m -->
-            <!-- STEP 5: Slightly lower than center - position z=0.05 pushes toward user -->
-            <!-- STEP 7: All scales match real restaurant plate sizes -->
-
-            <!-- Pizza: 0.30m real size -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"
-                position="0 0 0.05"
-                scale="0.30 0.30 0.30"
-                rotation="0 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <!-- Burger: 0.15m real size -->
-            <a-gltf-model id="ar-burger" src="#burgerModel"
-                position="0 0 0.05"
-                scale="0.15 0.15 0.15"
-                rotation="0 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <!-- Drink: 0.09m real size -->
-            <a-gltf-model id="ar-drink"  src="#drinkModel"
-                position="0 0 0.05"
-                scale="0.09 0.09 0.09"
-                rotation="0 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <!-- Pasta: 0.30m real size -->
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"
-                position="0 0 0.05"
-                scale="0.30 0.30 0.30"
-                rotation="0 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <!-- Sushi: 0.25m real size -->
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"
-                position="0 0 0.05"
-                scale="0.25 0.25 0.25"
-                rotation="0 0 0"
-                visible="true">
-            </a-gltf-model>
+            <!-- Step 1+2: Y=0 exactly on surface, no gap no floating -->
+            <!-- Step 3: Real world scales -->
+            <!-- Step 5: Z=0.1 slightly toward user, not dead center -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0.1" scale="0.30 0.30 0.30" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0.1" scale="0.15 0.15 0.15" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0.1" scale="0.09 0.09 0.09" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0.1" scale="0.30 0.30 0.30" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0.1" scale="0.25 0.25 0.25" rotation="0 0 0" visible="true"></a-gltf-model>
 
         </a-entity>
     </a-scene>

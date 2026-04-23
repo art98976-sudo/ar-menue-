@@ -201,7 +201,17 @@ function openAR(id){
 function onFound(){
     document.getElementById('scan-overlay').classList.add('hidden');
     const det=document.getElementById('ar-detected');if(det){det.style.display='flex';setTimeout(()=>{det.style.display='none';},2000);}
-    if(navigator.vibrate)navigator.vibrate([100,50,200]);
+
+    // Snap model to Y=0 - no floating, anchored to surface
+    if(currentModel && menuData[currentModel]){
+        const el = document.getElementById(menuData[currentModel].arId);
+        if(el){
+            const s = menuData[currentModel].arScale;
+            el.setAttribute('position', '0 0 0.1'); // Z=0.1 slightly toward user
+            el.setAttribute('scale', `${s} ${s} ${s}`);
+            el.setAttribute('rotation', '0 0 0');
+        }
+    }
 }
 function onLost(){document.getElementById('scan-overlay').classList.remove('hidden');}
 
