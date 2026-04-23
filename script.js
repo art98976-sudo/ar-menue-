@@ -227,14 +227,14 @@ function onFound(){
     document.getElementById('scan-overlay').classList.add('hidden');
     const det=document.getElementById('ar-detected');if(det){det.style.display='flex';setTimeout(()=>{det.style.display='none';},2000);}
 
-    // Snap model flat on surface - no floating
+    // Snap model to correct position on detection
     if(currentModel && menuData[currentModel]){
         const el = document.getElementById(menuData[currentModel].arId);
         if(el){
             const s = menuData[currentModel].arScale;
-            el.setAttribute('position', '0 0 0');
+            el.setAttribute('position', '0 0 0.1'); // Step 2+3: forward, below eye
             el.setAttribute('scale', `${s} ${s} ${s}`);
-            el.setAttribute('rotation', '-90 0 0'); // flat on table
+            el.setAttribute('rotation', '-90 0 0'); // Step 5: flat on surface
         }
     }
 }
@@ -315,8 +315,9 @@ document.addEventListener('touchmove',e=>{
     if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
     const el=getArEl();if(!el)return;
     if(e.touches.length===1&&arLastX!==null){
-        arRotY+=e.touches[0].clientX-arLastX;arRotX+=e.touches[0].clientY-arLastY;
-        el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
+        arRotY+=e.touches[0].clientX-arLastX;
+        // Step 5: Keep flat -90, only spin Y axis
+        el.setAttribute('rotation',`-90 ${arRotY} 0`);
         arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
     }else if(e.touches.length===2&&arLastPinch!==null){
         const nd=pd(e.touches);arScale=Math.max(0.05,Math.min(4,arScale+(nd-arLastPinch)*0.008));
