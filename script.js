@@ -227,14 +227,14 @@ function onFound(){
     document.getElementById('scan-overlay').classList.add('hidden');
     const det=document.getElementById('ar-detected');if(det){det.style.display='flex';setTimeout(()=>{det.style.display='none';},2000);}
 
-    // Snap model to correct position on detection
+    // Place model exactly on menu - no gap no space
     if(currentModel && menuData[currentModel]){
         const el = document.getElementById(menuData[currentModel].arId);
         if(el){
             const s = menuData[currentModel].arScale;
-            el.setAttribute('position', '0 0 0.1'); // Step 2+3: forward, below eye
+            el.setAttribute('position', '0 0 0');
             el.setAttribute('scale', `${s} ${s} ${s}`);
-            el.setAttribute('rotation', '-90 0 180'); // flat + facing front
+            el.setAttribute('rotation', '0 0 0');
         }
     }
 }
