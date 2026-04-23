@@ -53,6 +53,8 @@
             <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
             <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
+                <a-asset-item id="pastaModel"  src="./pasta.glb"></a-asset-item>
+                <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
         <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
@@ -62,6 +64,8 @@
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
         </a-entity>
     </a-scene>
 
@@ -142,7 +146,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">Rs. 150</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-view.html?model=pizza'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=pizza'">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
@@ -159,7 +163,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">Rs. 200</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-view.html?model=burger'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=burger'">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
@@ -176,7 +180,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">Rs. 80</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-view.html?model=drink'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=drink'">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>

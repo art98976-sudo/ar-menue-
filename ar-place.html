@@ -167,9 +167,9 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
-const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb' };
-const modelScale = { pizza:1, burger:1, drink:1 };
-const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤' };
+const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb' };
+const modelScale = { pizza:1, burger:1, drink:1, pasta:1, sushi:1 };
+const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤', pasta:'Creamy Pasta 🍝', sushi:'Sushi Platter 🍣' };
 
 document.getElementById('food-title').innerText = modelNames[modelId];
 
