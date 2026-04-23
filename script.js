@@ -112,10 +112,9 @@ function openAR(id){
     document.getElementById('scan-overlay').classList.remove('hidden');
     arRotY=0;arRotX=0;arScale=menuData[id].arScale;
 
-    // Fix 1: Hide wrong models — show only selected one
-    // Hide all models first
-    ['ar-pizza','ar-burger','ar-drink','ar-pasta','ar-sushi'].forEach(id => {
-        const el = document.getElementById(id);
+    // Hide all models first — use different variable name to avoid conflict
+    ['ar-pizza','ar-burger','ar-drink','ar-pasta','ar-sushi'].forEach(function(arId) {
+        const el = document.getElementById(arId);
         if (el) el.setAttribute('scale', '0 0 0');
     });
     // Show selected model
