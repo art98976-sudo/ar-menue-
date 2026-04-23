@@ -45,7 +45,7 @@
 <!-- AR VIEWER -->
 <div id="viewer-ar">
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
-        color-space="sRGB" renderer="colorManagement: true"
+        color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 0.9"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
@@ -57,8 +57,12 @@
                 <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <a-light type="ambient" color="#ffffff" intensity="3"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="3" position="1 2 1"></a-light>
+        <!-- Premium AR lighting -->
+        <a-light type="ambient" color="#fff5e8" intensity="0.8"></a-light>
+        <a-light type="directional" color="#fff8f0" intensity="1.8" position="4 8 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048"></a-light>
+        <a-light type="directional" color="#e8f4ff" intensity="0.5" position="-4 4 -2"></a-light>
+        <a-light type="directional" color="#ffe0a0" intensity="0.4" position="0 2 -6"></a-light>
+        <a-light type="point" color="#fff0e0" intensity="0.3" position="0 -1 0" distance="8"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
             <!-- scale 1 1 1 = exact real size from Blender -->
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>

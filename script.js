@@ -21,16 +21,38 @@ function initThreeJS(){
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
     threeRenderer.setClearColor(0x0f0f0f,1);
     threeRenderer.shadowMap.enabled=true;
-    threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure=1.2;
+    threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    threeRenderer.toneMappingExposure = 0.9; // avoid overexposure
     threeScene=new THREE.Scene();
     threeScene.background=new THREE.Color(0x0f0f0f);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.1,100);
     threeCamera.position.set(0,0.5,3);
-    threeScene.add(new THREE.AmbientLight(0xffffff,2));
-    const kl=new THREE.DirectionalLight(0xffffff,3);kl.position.set(5,10,7);kl.castShadow=true;threeScene.add(kl);
-    const fl=new THREE.DirectionalLight(0xffe8d0,2);fl.position.set(-5,5,-5);threeScene.add(fl);
-    const ground=new THREE.Mesh(new THREE.PlaneGeometry(20,20),new THREE.ShadowMaterial({opacity:0.3}));
+
+    // ── PREMIUM LIGHTING ──
+    // Soft ambient — removes dark areas, warm restaurant feel
+    threeScene.add(new THREE.AmbientLight(0xfff5e8, 0.8));
+
+    // Main sun light — top right like photography studio
+    const kl=new THREE.DirectionalLight(0xfff8f0, 1.8);
+    kl.position.set(4,8,4); kl.castShadow=true;
+    kl.shadow.mapSize.width=2048; kl.shadow.mapSize.height=2048;
+    kl.shadow.radius=8; kl.shadow.bias=-0.001;
+    threeScene.add(kl);
+
+    // Soft fill from opposite — no harsh dark areas
+    const fl=new THREE.DirectionalLight(0xe8f4ff, 0.5);
+    fl.position.set(-4,4,-2); threeScene.add(fl);
+
+    // Warm rim light from behind — adds depth and glow
+    const rl=new THREE.DirectionalLight(0xffe0a0, 0.4);
+    rl.position.set(0,2,-6); threeScene.add(rl);
+
+    // Soft bounce light from below — like light off table
+    const bl=new THREE.PointLight(0xfff0e0, 0.3, 8);
+    bl.position.set(0,-1,0); threeScene.add(bl);
+
+    // Soft shadow ground
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(20,20),new THREE.ShadowMaterial({opacity:0.15}));
     ground.rotation.x=-Math.PI/2;ground.position.y=-1.5;ground.receiveShadow=true;threeScene.add(ground);
     const OC=(window.AFRAME&&window.AFRAME.THREE&&window.AFRAME.THREE.OrbitControls)||window.OrbitControls;
     if(!OC)return;
@@ -63,7 +85,18 @@ function loadGLBModel(path){
     loader.load(path,function(gltf){
         if(pb)pb.style.width='100%';if(pp)pp.innerText='100%';
         loadedModel=gltf.scene;
-        loadedModel.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+        loadedModel.traverse(c=>{
+            if(c.isMesh){
+                c.castShadow=true;
+                c.receiveShadow=true;
+                // Improve material quality
+                if(c.material){
+                    c.material.roughness = c.material.roughness !== undefined ? c.material.roughness : 0.7;
+                    c.material.metalness = c.material.metalness !== undefined ? c.material.metalness : 0.1;
+                    c.material.needsUpdate = true;
+                }
+            }
+        });
         const box=new THREE.Box3().setFromObject(loadedModel);
         const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
         const scale=2.8/Math.max(size.x,size.y,size.z);
