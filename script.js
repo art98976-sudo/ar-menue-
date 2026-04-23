@@ -113,15 +113,17 @@ function openAR(id){
     arRotY=0;arRotX=0;arScale=menuData[id].arScale;
 
     // Fix 1: Hide wrong models — show only selected one
-    Object.keys(menuData).forEach(key => {
-        const el = document.getElementById(menuData[key].arId);
-        if (!el) return;
-        if (key === id) {
-            el.setAttribute('scale', `${menuData[key].arScale} ${menuData[key].arScale} ${menuData[key].arScale}`);
-        } else {
-            el.setAttribute('scale', '0 0 0');
-        }
+    // Hide all models first
+    ['ar-pizza','ar-burger','ar-drink','ar-pasta','ar-sushi'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('scale', '0 0 0');
     });
+    // Show selected model
+    const arEl2 = document.getElementById(menuData[id].arId);
+    if (arEl2) {
+        arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
+        arEl2.setAttribute('rotation', '-90 0 0');
+    }
 
     // Fix 2: Trigger resize so model appears without opening inspect
     setTimeout(function(){
