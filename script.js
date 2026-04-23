@@ -154,7 +154,8 @@ function openAR(id){
     const arEl2 = document.getElementById(menuData[id].arId);
     if (arEl2) {
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
-        arEl2.setAttribute('rotation', '-90 0 0');
+        arEl2.setAttribute('rotation', '0 0 0');
+        arEl2.setAttribute('position', '0 0.05 0');
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect

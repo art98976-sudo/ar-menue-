@@ -65,11 +65,12 @@
         <a-light type="point" color="#fff0e0" intensity="0.3" position="0 -1 0" distance="8"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
             <!-- scale 1 1 1 = exact real size from Blender -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <!-- rotation 0 0 0 = upright on table, position y=0.05 lifts above surface -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0.05 0" scale="1 1 1"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0.05 0" scale="1 1 1"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0.05 0" scale="1 1 1"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0.05 0" scale="1 1 1"   rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0.05 0" scale="1 1 1"   rotation="0 0 0" visible="true"></a-gltf-model>
         </a-entity>
     </a-scene>
 
