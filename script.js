@@ -1,9 +1,9 @@
 const menuData = {
-    pizza:  { icon:'🍕', name:'Margherita Pizza', price:150, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:1.0, size:'12 inch', serves:'2-3 people', weight:'400g' },
-    burger: { icon:'🍔', name:'Classic Burger',   price:200, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15, size:'5 inch',  serves:'1 person',   weight:'250g' },
-    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:80,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:1.0, size:'350 ml',   serves:'1 person',  weight:'350g' },
-    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:180, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:1.0, size:'300g',     serves:'1 person',  weight:'300g' },
-    sushi:  { icon:'🍣', name:'Sushi Platter',    price:250, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:1.0, size:'5 pieces',  serves:'1 person',  weight:'200g' },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:8.99, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:1.0, size:'12 inch', serves:'2-3 people', weight:'400g' },
+    burger: { icon:'🍔', name:'Classic Burger',   price:11.99, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15, size:'5 inch',  serves:'1 person',   weight:'250g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:4.99,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:1.0, size:'350 ml',   serves:'1 person',  weight:'350g' },
+    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:9.99, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:1.0, size:'300g',     serves:'1 person',  weight:'300g' },
+    sushi:  { icon:'🍣', name:'Sushi Platter',    price:13.99, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:1.0, size:'5 pieces',  serves:'1 person',  weight:'200g' },
 };
 
 let cart={}, currentModel=null, arQty=1, viewerMode=null;
@@ -168,9 +168,9 @@ function updateViewerUI(id){
     const item=menuData[id];arQty=1;
     document.getElementById('ar-qty-num').innerText='1';
     document.getElementById('ar-food-name').innerText=item.name;
-    document.getElementById('ar-food-price').innerText='Rs.'+item.price;
+    document.getElementById('ar-food-price').innerText='£'+item.price;
     document.getElementById('ar-detail-name').innerText=item.name;
-    document.getElementById('ar-detail-price').innerText='Rs.'+item.price;
+    document.getElementById('ar-detail-price').innerText='£'+item.price;
     document.getElementById('ar-detail-desc').innerText=item.desc;
     document.getElementById('ar-cal-row').innerHTML=`<div class="cal-badge">🔥 ${item.calories}</div><div class="cal-badge">⏱️ ${item.time}</div><div class="cal-badge">⭐ ${item.rating}</div>`;
     const sr=document.getElementById('ar-size-row');if(sr)sr.innerHTML=`<div class="size-badge">📏 ${item.size}</div><div class="size-badge">👥 ${item.serves}</div><div class="size-badge">⚖️ ${item.weight}</div>`;
@@ -262,8 +262,8 @@ function resetModel(){
     if(viewerMode==='ar'){arRotY=0;arRotX=0;const el=document.getElementById(menuData[currentModel].arId);if(el)el.setAttribute('rotation','0 0 0');}
 }
 
-function quickAdd(id){addItemToCart(id,1);showToast('✅',menuData[id].name+' added!','Rs.'+menuData[id].price);}
-function addToCart(){if(!currentModel)return;addItemToCart(currentModel,arQty);showToast('🛒',menuData[currentModel].name+' ×'+arQty,'Rs.'+(menuData[currentModel].price*arQty));}
+function quickAdd(id){addItemToCart(id,1);showToast('✅',menuData[id].name+' added!','£'+menuData[id].price);}
+function addToCart(){if(!currentModel)return;addItemToCart(currentModel,arQty);showToast('🛒',menuData[currentModel].name+' ×'+arQty,'£'+(menuData[currentModel].price*arQty));}
 function addItemToCart(id,qty){cart[id]?cart[id].qty+=qty:cart[id]={qty};updateCartBar();}
 function removeFromCart(id){if(!cart[id])return;cart[id].qty--;if(cart[id].qty<=0)delete cart[id];renderCartPage();updateCartBar();}
 function addFromCart(id){if(cart[id])cart[id].qty++;renderCartPage();updateCartBar();}
@@ -271,7 +271,7 @@ function getCartCount(){return Object.values(cart).reduce((s,v)=>s+v.qty,0);}
 function getCartTotal(){return Object.entries(cart).reduce((s,[id,v])=>s+menuData[id].price*v.qty,0);}
 function updateCartBar(){
     const n=getCartCount(),t=getCartTotal(),b=document.getElementById('cart-bar');
-    if(n>0){b.classList.add('visible');document.getElementById('cart-count').innerText=n+' item'+(n>1?'s':'');document.getElementById('cart-total').innerText='Rs.'+t;}
+    if(n>0){b.classList.add('visible');document.getElementById('cart-count').innerText=n+' item'+(n>1?'s':'');document.getElementById('cart-total').innerText='£'+t;}
     else b.classList.remove('visible');
 }
 function changeQty(d){arQty=Math.max(1,Math.min(10,arQty+d));document.getElementById('ar-qty-num').innerText=arQty;}
@@ -281,9 +281,9 @@ function closeCart(){document.getElementById('cart-page').classList.remove('open
 function renderCartPage(){
     const c=document.getElementById('cart-items'),e=document.getElementById('empty-cart'),k=Object.keys(cart);
     if(!k.length){c.innerHTML='';e.style.display='flex';}
-    else{e.style.display='none';c.innerHTML=k.map(id=>{const m=menuData[id],q=cart[id].qty;return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">Rs.${m.price} × ${q} = Rs.${m.price*q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`;}).join('');}
+    else{e.style.display='none';c.innerHTML=k.map(id=>{const m=menuData[id],q=cart[id].qty;return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">£${m.price} × ${q} = Rs.${m.price*q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`;}).join('');}
     const s=getCartTotal(),tax=Math.round(s*0.05);
-    document.getElementById('summary-subtotal').innerText='Rs.'+s;document.getElementById('summary-tax').innerText='Rs.'+tax;document.getElementById('summary-total').innerText='Rs.'+(s+tax);
+    document.getElementById('summary-subtotal').innerText='£'+s;document.getElementById('summary-tax').innerText='£'+tax;document.getElementById('summary-total').innerText='£'+(s+tax);
 }
 function placeOrder(){if(!getCartCount())return;document.getElementById('order-id-text').innerText='Order #'+Math.floor(1000+Math.random()*9000);cart={};updateCartBar();document.getElementById('cart-page').classList.remove('open');document.getElementById('order-success').classList.add('open');}
 function backToMenu(){document.getElementById('order-success').classList.remove('open');showMenu();}

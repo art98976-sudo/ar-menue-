@@ -26,7 +26,7 @@
 
 <div id="ar-topbar">
     <div id="ar-food-name">Pizza</div>
-    <div id="ar-food-price">Rs. 150</div>
+    <div id="ar-food-price">£8.99</div>
 </div>
 
 <!-- 3D VIEWER -->
@@ -44,7 +44,7 @@
 
 <!-- AR VIEWER -->
 <div id="viewer-ar">
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no"
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 5; warmupTolerance: 5"
         color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 0.9"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
@@ -68,10 +68,16 @@
 
         <a-entity mindar-image-target="targetIndex: 0">
 
-            <!-- STEP 5: Strong soft shadow directly under food — grounds it to table -->
-            <a-ellipse radiusX="0.25" radiusY="0.20"
+            <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
+            <!-- Outer soft shadow -->
+            <a-ellipse radiusX="0.30" radiusY="0.24"
                 rotation="-90 0 0" position="0 0.001 0.15"
-                material="color:#000000; opacity:0.4; transparent:true; shader:flat">
+                material="color:#000000; opacity:0.15; transparent:true; shader:flat">
+            </a-ellipse>
+            <!-- Inner stronger shadow -->
+            <a-ellipse radiusX="0.20" radiusY="0.16"
+                rotation="-90 0 0" position="0 0.002 0.15"
+                material="color:#000000; opacity:0.35; transparent:true; shader:flat">
             </a-ellipse>
 
             <!-- STEP 1: In front of user, slightly below center — like waiter placed it -->
@@ -111,7 +117,7 @@
     <div id="ar-detail-card">
         <div id="ar-detail-top">
             <div id="ar-detail-name">Margherita Pizza</div>
-            <div id="ar-detail-price">Rs. 150</div>
+            <div id="ar-detail-price">£8.99</div>
         </div>
         <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
         <div id="ar-cal-row">
@@ -156,7 +162,7 @@
                 <div class="card-name">Margherita Pizza</div>
                 <div class="card-desc">Tomato, mozzarella, fresh basil</div>
                 <div class="card-size">📏 12 inch · 👥 2-3 people</div>
-                <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">Rs. 150</div></div>
+                <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">£8.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
                     <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
@@ -172,7 +178,7 @@
                 <div class="card-name">Classic Burger</div>
                 <div class="card-desc">Beef patty, cheese, lettuce</div>
                 <div class="card-size">📏 5 inch · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">Rs. 200</div></div>
+                <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">£11.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
                     <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
@@ -188,7 +194,7 @@
                 <div class="card-name">Fresh Lemonade</div>
                 <div class="card-desc">Cold pressed, mint, lime</div>
                 <div class="card-size">📏 350 ml · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">Rs. 80</div></div>
+                <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">£4.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
                     <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
@@ -204,7 +210,7 @@
                 <div class="card-name">Creamy Pasta</div>
                 <div class="card-desc">Herbs, garlic and parmesan</div>
                 <div class="card-size">📏 300g · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 480 kcal</div><div class="card-price">Rs. 180</div></div>
+                <div class="card-meta"><div class="card-cal">🔥 480 kcal</div><div class="card-price">£9.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('pasta')">👁 3D</button>
                     <button class="card-ar-btn" onclick="openAR('pasta')">📷 AR</button>
@@ -220,7 +226,7 @@
                 <div class="card-name">Sushi Platter</div>
                 <div class="card-desc">Premium rolls with wasabi</div>
                 <div class="card-size">📏 5 pieces · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 310 kcal</div><div class="card-price">Rs. 250</div></div>
+                <div class="card-meta"><div class="card-cal">🔥 310 kcal</div><div class="card-price">£13.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('sushi')">👁 3D</button>
                     <button class="card-ar-btn" onclick="openAR('sushi')">📷 AR</button>
