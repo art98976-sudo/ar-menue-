@@ -151,6 +151,10 @@
         <a-light type="directional" color="#ffd0a0" intensity="0.6" position="0 3 -5"></a-light>
         <a-light type="point" color="#ffcc88" intensity="0.8" position="0 2 2" distance="8"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
+            <!-- Shadow plane on ground level -->
+            <a-circle radius="0.3" rotation="-90 0 0" position="0 0.001 0"
+                material="color:#000000; opacity:0.25; transparent:true; shader:flat">
+            </a-circle>
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
@@ -231,6 +235,10 @@ function onDetected() {
     if (detected) return;
     detected = true;
 
+    // Keep model on ground level - y stays at 0
+    const el = document.getElementById(modelIds[modelId]);
+    if (el) el.setAttribute('position', '0 0 0');
+
     // Hide scan overlay
     document.getElementById('scan-overlay').classList.add('hidden');
 
@@ -282,12 +290,13 @@ document.addEventListener('touchmove', e => {
     if (!el) return;
 
     if (e.touches.length === 1 && lastX !== null) {
-        // Full 360 rotation in all directions
+        // Only Y rotation (spin around) - keeps food on ground
         const dx = e.touches[0].clientX - lastX;
-        const dy = e.touches[0].clientY - lastY;
-        rotY += dx * 1.0; // left/right rotation - no limit = 360
-        rotX += dy * 1.0; // up/down rotation - no limit = 360
-        el.setAttribute('rotation', `${rotX - 90} ${rotY} 0`);
+        rotY += dx * 1.0;
+        // Lock position to ground - only spin horizontally
+        el.setAttribute('rotation', `-90 ${rotY} 0`);
+        // Keep position locked on ground level
+        el.setAttribute('position', '0 0 0');
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && lastPinch !== null) {
@@ -296,6 +305,8 @@ document.addEventListener('touchmove', e => {
         const delta = (nd - lastPinch) / lastPinch;
         arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
         el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        // Keep position locked on ground
+        el.setAttribute('position', '0 0 0');
         lastPinch = nd;
     }
 }, { passive: true });
