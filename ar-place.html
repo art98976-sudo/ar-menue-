@@ -8,71 +8,57 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#000; overflow:hidden; font-family:-apple-system,sans-serif; }
-
         video {
             position:fixed; top:0; left:0;
             width:100vw; height:100vh;
             object-fit:cover; z-index:1;
         }
-
         canvas {
             position:fixed; top:0; left:0;
             width:100vw; height:100vh;
             z-index:2; background:transparent;
         }
-
         #ui { position:fixed; inset:0; z-index:10; pointer-events:none; }
-
         #top-bar {
             display:flex; justify-content:space-between; align-items:center;
             padding:14px 16px;
             background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);
             pointer-events:all;
         }
-
         #back-btn {
             background:rgba(0,0,0,0.6); color:white; border:none;
             padding:8px 16px; border-radius:20px; font-size:14px; cursor:pointer;
         }
-
         #food-title { color:white; font-size:16px; font-weight:bold; }
 
-        /* Reticle */
+        /* STEP 7: Reticle — slightly below center */
         #reticle {
-            position:fixed; top:50%; left:50%;
+            position:fixed;
+            top:58%; left:50%;
             transform:translate(-50%,-50%);
             z-index:9; pointer-events:none;
             display:flex; flex-direction:column;
-            align-items:center; gap:10px;
+            align-items:center; gap:12px;
         }
-
         #reticle-outer {
             width:80px; height:80px;
-            border:2px solid rgba(212,165,116,0.8);
+            border:2px solid rgba(212,165,116,0.9);
             border-radius:50%;
             display:flex; align-items:center; justify-content:center;
             animation:pulse 1.5s ease-in-out infinite;
-            box-shadow:0 0 20px rgba(212,165,116,0.4);
+            box-shadow: 0 0 20px rgba(212,165,116,0.4);
         }
-
-        #reticle-inner {
-            width:12px; height:12px;
-            background:#d4a574; border-radius:50%;
-        }
-
+        #reticle-inner { width:10px; height:10px; background:#d4a574; border-radius:50%; }
         #tap-hint {
-            color:white; font-size:13px; font-weight:bold;
+            color:white; font-size:14px; font-weight:bold;
             background:rgba(0,0,0,0.65);
-            padding:7px 18px; border-radius:20px;
-            letter-spacing:0.5px;
+            padding:8px 20px; border-radius:20px;
         }
-
         @keyframes pulse {
-            0%,100% { transform:scale(1); opacity:1; }
-            50% { transform:scale(1.12); opacity:0.7; }
+            0%,100%{transform:scale(1);opacity:1;}
+            50%{transform:scale(1.1);opacity:0.7;}
         }
 
-        /* Status message */
         #status {
             position:fixed; top:80px; left:50%;
             transform:translateX(-50%);
@@ -82,7 +68,6 @@
             display:none; white-space:nowrap;
         }
 
-        /* Bottom controls */
         #controls {
             position:fixed; bottom:0; left:0; right:0;
             z-index:10; padding:16px;
@@ -91,18 +76,13 @@
             align-items:center; gap:10px;
             pointer-events:all;
         }
-
         #ctrl-hint { color:rgba(255,255,255,0.8); font-size:12px; }
-
-        #ctrl-btns { display:flex; gap:12px; }
-
         .ctrl-btn {
             background:rgba(255,255,255,0.15);
             color:white; border:1.5px solid rgba(255,255,255,0.3);
             padding:10px 20px; border-radius:20px;
             font-size:13px; cursor:pointer;
         }
-
         #loading {
             position:fixed; inset:0; z-index:999;
             background:rgba(0,0,0,0.85);
@@ -110,7 +90,6 @@
             align-items:center; justify-content:center;
             color:white; gap:14px; font-size:16px;
         }
-
         .spinner {
             width:44px; height:44px;
             border:3px solid rgba(255,255,255,0.2);
@@ -118,16 +97,7 @@
             border-radius:50%;
             animation:spin 1s linear infinite;
         }
-
-        @keyframes spin { to { transform:rotate(360deg); } }
-
-        /* Shadow under model */
-        #shadow-ring {
-            position:absolute;
-            width:100px; height:30px;
-            background:radial-gradient(ellipse,rgba(0,0,0,0.4) 0%,transparent 70%);
-            display:none;
-        }
+        @keyframes spin { to{transform:rotate(360deg);} }
     </style>
 </head>
 <body>
@@ -140,9 +110,10 @@
     <div id="load-text">Starting camera...</div>
 </div>
 
+<!-- STEP 7: Reticle slightly below center -->
 <div id="reticle">
     <div id="reticle-outer"><div id="reticle-inner"></div></div>
-    <div id="tap-hint">👆 TAP TO PLACE</div>
+    <div id="tap-hint">👆 TAP TO PLACE FOOD</div>
 </div>
 
 <div id="status"></div>
@@ -154,8 +125,8 @@
         <div style="width:70px"></div>
     </div>
     <div id="controls">
-        <div id="ctrl-hint">☝️ Rotate · 🤏 Zoom</div>
-        <div id="ctrl-btns">
+        <div id="ctrl-hint">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
+        <div style="display:flex;gap:10px;">
             <button class="ctrl-btn" onclick="resetPlace()">🔄 Replace</button>
         </div>
     </div>
@@ -168,18 +139,17 @@
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
 const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb' };
-const modelScale = { pizza:1, burger:1, drink:1, pasta:1, sushi:1 };
 const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤', pasta:'Creamy Pasta 🍝', sushi:'Sushi Platter 🍣' };
 
 document.getElementById('food-title').innerText = modelNames[modelId];
 
-let model = null;
+// STEP 4: placed = locked in world space after tap
 let placed = false;
-let currentScale = modelScale[modelId];
-let rotY = 0; // default rotation
-let lastX = null, lastY = null, lastPinch = null;
+let currentScale = 1.0;
+let rotY = 0;
+let lastX = null, lastPinch = null;
 
-// Three.js setup
+// Three.js
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -191,32 +161,57 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.01, 100);
-camera.position.set(0, 1.5, 2.5);
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.01, 100);
+// STEP 4+7: Camera at sitting position looking slightly down
+camera.position.set(0, 1.2, 2.0);
 camera.lookAt(0, 0, 0);
 
-// Lighting
-scene.add(new THREE.AmbientLight(0xfff8f0, 1.5));
-const key = new THREE.DirectionalLight(0xffffff, 2.0);
-key.position.set(3, 5, 3); key.castShadow = true;
-key.shadow.mapSize.width = 1024; key.shadow.mapSize.height = 1024;
+// Premium lighting - STEP 6 grounding
+scene.add(new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0));
+const key = new THREE.DirectionalLight(0xFFD8B0, 1.8);
+key.position.set(-3, 6, 4); key.castShadow = true;
+key.shadow.mapSize.width = 2048; key.shadow.mapSize.height = 2048;
+key.shadow.radius = 12; key.shadow.bias = -0.0005;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xffe8d0, 0.8);
-fill.position.set(-3, 3, -2); scene.add(fill);
-const rim = new THREE.DirectionalLight(0xffd0a0, 0.6);
-rim.position.set(0, 2, -4); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffe8d5, 0.45);
+fill.position.set(4, 3, -2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xfff0e8, 0.6);
+rim.position.set(0, 4, -6); scene.add(rim);
 
-// Shadow ground
-const shadowGeo = new THREE.PlaneGeometry(2, 2);
-const shadowMat = new THREE.ShadowMaterial({ opacity:0.3 });
+// STEP 6: Ground shadow plane — what "sticks" it visually
+const shadowGeo = new THREE.PlaneGeometry(3, 3);
+const shadowMat = new THREE.ShadowMaterial({ opacity:0.4 });
 const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
 shadowPlane.rotation.x = -Math.PI/2;
-shadowPlane.position.y = -0.01;
+shadowPlane.position.y = 0;
 shadowPlane.receiveShadow = true;
 shadowPlane.visible = false;
 scene.add(shadowPlane);
 
-// Load model
+// STEP 6: Soft circular shadow under food (double layer)
+const softShadowGeo = new THREE.CircleGeometry(0.35, 32);
+const softShadowMat = new THREE.MeshBasicMaterial({
+    color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false
+});
+const softShadow = new THREE.Mesh(softShadowGeo, softShadowMat);
+softShadow.rotation.x = -Math.PI/2;
+softShadow.position.y = 0.001;
+softShadow.visible = false;
+scene.add(softShadow);
+
+// Inner stronger shadow
+const innerShadowGeo = new THREE.CircleGeometry(0.2, 32);
+const innerShadowMat = new THREE.MeshBasicMaterial({
+    color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false
+});
+const innerShadow = new THREE.Mesh(innerShadowGeo, innerShadowMat);
+innerShadow.rotation.x = -Math.PI/2;
+innerShadow.position.y = 0.002;
+innerShadow.visible = false;
+scene.add(innerShadow);
+
+// STEP 3: Load model and fix pivot to bottom center
+let model = null;
 const loader = new THREE.GLTFLoader();
 const draco = new THREE.DRACOLoader();
 draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
@@ -227,41 +222,40 @@ document.getElementById('load-text').innerText = 'Loading model...';
 
 loader.load(modelSrc[modelId], gltf => {
     model = gltf.scene;
-    model.traverse(c => { if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
+    model.traverse(c => {
+        if(c.isMesh){
+            c.castShadow = true;
+            c.receiveShadow = true;
+        }
+    });
 
-    // Normalize size
+    // STEP 5: Set real-world scale first
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
-    const norm = 1.5 / Math.max(size.x, size.y, size.z);
-    model.scale.setScalar(norm * currentScale);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const targetSize = 0.25; // real plate size ~25cm
+    const scale = targetSize / maxDim;
+    model.scale.setScalar(scale);
 
-    // Fix base — move model so bottom sits exactly at Y=0 (ground level)
-    // This replaces the need to fix in Blender!
+    // STEP 3: Fix pivot to bottom center (most important tech issue)
     model.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(model);
     const center = box2.getCenter(new THREE.Vector3());
-    // Center X and Z, but put bottom at Y=0
-    model.position.set(
-        -center.x,           // center horizontally
-        -box2.min.y,         // lift bottom to ground level
-        -center.z            // center depth
-    );
+    // Center X and Z, push Y so bottom = 0
+    model.position.set(-center.x, -box2.min.y, -center.z);
 
     model.visible = false;
-    // Auto fix orientation - rotate 180 degrees so model faces user
-    model.rotation.y = Math.PI;
-    rotY = Math.PI;
     scene.add(model);
 
     document.getElementById('loading').style.display = 'none';
-    showStatus('👆 Tap anywhere to place food');
+
 }, null, err => {
     console.error(err);
     document.getElementById('loading').style.display = 'none';
-    showStatus('❌ Model failed to load');
+    showStatus('Model failed to load');
 });
 
-// Start camera
+// Camera
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -270,11 +264,9 @@ async function startCamera() {
         document.getElementById('cam').srcObject = stream;
     } catch(e) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video:true });
-            document.getElementById('cam').srcObject = stream;
-        } catch(e2) {
-            showStatus('❌ Camera error: ' + e2.message);
-        }
+            const s = await navigator.mediaDevices.getUserMedia({ video:true });
+            document.getElementById('cam').srcObject = s;
+        } catch(e2) { showStatus('Camera error'); }
     }
 }
 startCamera();
@@ -286,7 +278,6 @@ function animate() {
 }
 animate();
 
-// Show status
 function showStatus(msg) {
     const el = document.getElementById('status');
     el.innerText = msg;
@@ -295,90 +286,95 @@ function showStatus(msg) {
     el._t = setTimeout(() => { el.style.display = 'none'; }, 2500);
 }
 
-// Place model on tap
+// STEP 4: Place and LOCK model — doesn't move anymore
 function placeModel() {
     if (!model) return;
     placed = true;
+
+    // STEP 7: Place slightly below center, slightly forward
+    model.position.set(
+        model.position.x,
+        model.position.y, // Y stays at ground (bottom fixed)
+        model.position.z
+    );
+
     model.visible = true;
     shadowPlane.visible = true;
+    softShadow.visible = true;
+    innerShadow.visible = true;
+
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'flex';
-    showStatus('📍 Placed! Drag to rotate · Pinch to zoom');
+    showStatus('✅ Placed! Drag to rotate · Pinch to zoom');
 }
 
 function resetPlace() {
     placed = false;
-    if (model) model.visible = false;
+    if(model) model.visible = false;
     shadowPlane.visible = false;
+    softShadow.visible = false;
+    innerShadow.visible = false;
+    rotY = 0;
     document.getElementById('reticle').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
-    showStatus('👆 Tap anywhere to place food');
 }
 
 // Touch controls
 canvas.addEventListener('touchstart', e => {
-    if (!placed) { placeModel(); return; }
-    if (e.touches.length === 1) {
-        lastX = e.touches[0].clientX;
-        lastPinch = null;
-    } else if (e.touches.length === 2) {
+    if(!placed) { placeModel(); return; }
+    if(e.touches.length === 1) { lastX = e.touches[0].clientX; lastPinch = null; }
+    else if(e.touches.length === 2) {
         lastPinch = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
         lastX = null;
     }
 }, { passive:true });
 
 canvas.addEventListener('touchmove', e => {
-    if (!model || !placed) return;
-    if (e.touches.length === 1 && lastX !== null) {
+    if(!model || !placed) return;
+    if(e.touches.length === 1 && lastX !== null) {
+        // Only Y rotation - plate stays flat
         const dx = e.touches[0].clientX - lastX;
         rotY += dx * 0.01;
         model.rotation.y = rotY;
         lastX = e.touches[0].clientX;
-    } else if (e.touches.length === 2 && lastPinch !== null) {
+    } else if(e.touches.length === 2 && lastPinch !== null) {
         const nd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
         const delta = (nd - lastPinch) / lastPinch;
         currentScale = Math.max(0.1, Math.min(5, currentScale * (1 + delta * 0.5)));
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const norm = 1.5 / Math.max(size.x, size.y, size.z);
-        model.scale.setScalar(norm * currentScale);
-        // Re-fix base after scale change
-        model.updateMatrixWorld(true);
-        const box3 = new THREE.Box3().setFromObject(model);
-        const center3 = box3.getCenter(new THREE.Vector3());
-        model.position.set(-center3.x, -box3.min.y, -center3.z);
+        model.scale.setScalar(currentScale * 0.25 / Math.max(...Object.values(new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()))));
+
+        // STEP 6: Keep shadow size with model
+        const s = currentScale;
+        softShadow.scale.set(s, s, s);
+        innerShadow.scale.set(s, s, s);
         lastPinch = nd;
     }
 }, { passive:true });
 
-canvas.addEventListener('touchend', () => { lastX=null; lastPinch=null; });
+canvas.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
 
-// Mouse controls for laptop
-canvas.addEventListener('click', () => { if (!placed) placeModel(); });
-let mouseDown=false, lastMX=null;
+// Mouse for laptop
+canvas.addEventListener('click', () => { if(!placed) placeModel(); });
+let mouseDown = false, lastMX = null;
 canvas.addEventListener('mousedown', e => { if(placed){ mouseDown=true; lastMX=e.clientX; } });
 canvas.addEventListener('mousemove', e => {
-    if(!mouseDown||!model) return;
-    rotY += (e.clientX-lastMX)*0.01;
+    if(!mouseDown || !model) return;
+    rotY += (e.clientX-lastMX) * 0.01;
     model.rotation.y = rotY;
     lastMX = e.clientX;
 });
-canvas.addEventListener('mouseup', () => mouseDown=false);
+canvas.addEventListener('mouseup', () => mouseDown = false);
 canvas.addEventListener('wheel', e => {
-    if(!model||!placed) return;
+    if(!model || !placed) return;
     currentScale = Math.max(0.1, Math.min(5, currentScale - e.deltaY*0.001));
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
-    model.scale.setScalar(1.5/Math.max(size.x,size.y,size.z)*currentScale);
-    model.updateMatrixWorld(true);
-    const boxW = new THREE.Box3().setFromObject(model);
-    const cW = boxW.getCenter(new THREE.Vector3());
-    model.position.set(-cW.x, -boxW.min.y, -cW.z);
+    model.scale.setScalar((0.25 / Math.max(size.x,size.y,size.z)) * currentScale);
 });
 
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 });
 </script>
