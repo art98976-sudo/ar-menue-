@@ -56,41 +56,35 @@
                 <a-asset-item id="pastaModel"  src="./pasta.glb"></a-asset-item>
                 <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
         </a-assets>
-        <!-- STEP 6: Camera slight top-down like sitting at restaurant table -->
-        <a-camera position="0 0.05 0" rotation="-10 0 0" look-controls="enabled: false"></a-camera>
+        <!-- STEP 4: Camera slight top-down like sitting at restaurant table -->
+        <a-camera position="0 0.1 0" rotation="-15 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- Lighting - warm restaurant feel -->
+        <!-- Warm restaurant lighting -->
         <a-light type="hemisphere" color="#fff5e0" ground-color="#443322" intensity="1.0"></a-light>
-        <a-light type="directional" color="#FFD8B0" intensity="1.6"
-            position="-3 6 4" cast-shadow="true"
-            shadow-map-width="2048" shadow-map-height="2048"
-            shadow-radius="12" shadow-bias="-0.0005"></a-light>
+        <a-light type="directional" color="#FFD8B0" intensity="1.6" position="-3 6 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048" shadow-radius="12" shadow-bias="-0.0005"></a-light>
         <a-light type="directional" color="#ffe8d5" intensity="0.45" position="4 3 -2"></a-light>
         <a-light type="directional" color="#fff0e8" intensity="0.6" position="0 4 -6"></a-light>
         <a-light type="point" color="#ffd8a0" intensity="0.5" position="0 5 1" distance="10"></a-light>
 
         <a-entity mindar-image-target="targetIndex: 0">
 
-            <!-- STEP 5: Soft shadow directly under food -->
-            <!-- Slightly stretched oval, blurred, not sharp black -->
-            <a-ellipse
-                radiusX="0.22" radiusY="0.18"
-                rotation="-90 0 0"
-                position="0 0.001 0.1"
-                material="color:#000000; opacity:0.25; transparent:true; shader:flat">
+            <!-- STEP 5: Strong soft shadow directly under food — grounds it to table -->
+            <a-ellipse radiusX="0.25" radiusY="0.20"
+                rotation="-90 0 0" position="0 0.001 0.15"
+                material="color:#000000; opacity:0.4; transparent:true; shader:flat">
             </a-ellipse>
 
-            <!-- STEP 1: Real world size — pizza=plate, burger=hand, drink=glass -->
-            <!-- STEP 2: Y=0 = bottom of model touches image = no floating  -->
-            <!-- STEP 3: Z=0.1 = slightly in front, below center of screen   -->
-            <!-- STEP 4: Perfect table contact — no gap, no sinking          -->
-            <!-- rotation -90 0 180 = flat on table + facing user            -->
+            <!-- STEP 1: In front of user, slightly below center — like waiter placed it -->
+            <!-- STEP 2: Y=0 bottom touches table — ZERO gap, no floating -->
+            <!-- STEP 3: Scale 1.0 = real plate size — no zoom needed -->
+            <!-- rotation -90 0 180 = flat on table facing user -->
+            <!-- Z=0.15 = slightly closer to user edge of table -->
 
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0.1" scale="0.6 0.6 0.6" rotation="-90 0 180" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0.1" scale="0.6 0.6 0.6" rotation="-90 0 180" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0.1" scale="0.6 0.6 0.6" rotation="-90 0 180" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0.1" scale="0.6 0.6 0.6" rotation="-90 0 180" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0.1" scale="0.6 0.6 0.6" rotation="-90 0 180" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0.15" scale="1.0 1.0 1.0" rotation="-90 0 180" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0.15" scale="1.0 1.0 1.0" rotation="-90 0 180" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0.15" scale="1.0 1.0 1.0" rotation="-90 0 180" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0.15" scale="1.0 1.0 1.0" rotation="-90 0 180" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0.15" scale="1.0 1.0 1.0" rotation="-90 0 180" visible="true"></a-gltf-model>
 
         </a-entity>
     </a-scene>
