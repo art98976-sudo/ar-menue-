@@ -162,8 +162,8 @@ renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.01, 100);
-// STEP 4+7: Camera at sitting position looking slightly down
-camera.position.set(0, 1.2, 2.0);
+// Fix floating - lower camera position
+camera.position.set(0, 0.3, 1.5);
 camera.lookAt(0, 0, 0);
 
 // Premium lighting - STEP 6 grounding
@@ -241,8 +241,12 @@ loader.load(modelSrc[modelId], gltf => {
     model.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(model);
     const center = box2.getCenter(new THREE.Vector3());
-    // Center X and Z, push Y so bottom = 0
-    model.position.set(-center.x, -box2.min.y, -center.z);
+    // Center X and Z, push Y so bottom = exactly 0 (no floating)
+    model.position.set(
+        -center.x,
+        -box2.min.y, // lift bottom to exact ground level
+        -center.z
+    );
 
     model.visible = false;
     scene.add(model);
