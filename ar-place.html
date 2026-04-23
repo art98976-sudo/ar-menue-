@@ -176,7 +176,7 @@ document.getElementById('food-title').innerText = modelNames[modelId];
 let model = null;
 let placed = false;
 let currentScale = modelScale[modelId];
-let rotY = 0;
+let rotY = Math.PI; // start facing correct direction
 let lastX = null, lastY = null, lastPinch = null;
 
 // Three.js setup
@@ -248,6 +248,7 @@ loader.load(modelSrc[modelId], gltf => {
     );
 
     model.visible = false;
+    model.rotation.y = Math.PI; // face correct direction by default
     scene.add(model);
 
     document.getElementById('loading').style.display = 'none';
