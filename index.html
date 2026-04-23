@@ -57,19 +57,33 @@
                 <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <!-- Premium AR lighting -->
-        <a-light type="ambient" color="#fff5e8" intensity="0.8"></a-light>
-        <a-light type="directional" color="#fff8f0" intensity="1.8" position="4 8 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048"></a-light>
-        <a-light type="directional" color="#e8f4ff" intensity="0.5" position="-4 4 -2"></a-light>
-        <a-light type="directional" color="#ffe0a0" intensity="0.4" position="0 2 -6"></a-light>
-        <a-light type="point" color="#fff0e0" intensity="0.3" position="0 -1 0" distance="8"></a-light>
+
+        <!-- STEP 1: HDRI simulated with hemisphere light -->
+        <a-light type="hemisphere" color="#fff5e0" ground-color="#443322" intensity="1.0"></a-light>
+
+        <!-- STEP 2: Key light - warm 3000K front left above 45deg -->
+        <a-light type="directional" color="#FFD8B0" intensity="1.6"
+            position="-3 6 4" cast-shadow="true"
+            shadow-map-width="2048" shadow-map-height="2048"
+            shadow-radius="12" shadow-bias="-0.0005"></a-light>
+
+        <!-- STEP 3: Fill light - opposite side, removes harsh shadows -->
+        <a-light type="directional" color="#ffe8d5" intensity="0.45" position="4 3 -2"></a-light>
+
+        <!-- STEP 4: Rim light - behind top, glowing Netflix edges -->
+        <a-light type="directional" color="#fff0e8" intensity="0.6" position="0 4 -6"></a-light>
+
+        <!-- Extra top shine for food -->
+        <a-light type="point" color="#ffd8a0" intensity="0.5" position="0 5 1" distance="10"></a-light>
         <a-entity mindar-image-target="targetIndex: 0">
-            <!-- scale 1 1 1 = exact real size from Blender -->
-            <!-- position y=0 = sits exactly on image surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1"     rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1"     rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1"     rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="1 1 1"     rotation="0 0 0" visible="true"></a-gltf-model>
+            <!-- STEP 6: Contact shadow oval anchors food to surface -->
+            <a-circle radius="0.25" rotation="-90 0 0" position="0 0.001 0"
+                material="color:#000000; opacity:0.3; transparent:true; shader:flat">
+            </a-circle>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1"       rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1"       rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1"       rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="1 1 1"       rotation="0 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="2.5 2.5 2.5" rotation="0 0 0" visible="true"></a-gltf-model>
         </a-entity>
     </a-scene>
