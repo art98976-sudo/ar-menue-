@@ -86,13 +86,14 @@
             <!-- rotation -90 0 180 = flat on table facing user -->
             <!-- Z=0.15 = slightly closer to user edge of table -->
 
-            <!-- -90 on X = model lies FLAT on menu like dish on table -->
-            <!-- position 0 0 0 = center of menu, zero gap -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0.8 0.8 0.8" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0.8 0.8 0.8" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0.8 0.8 0.8" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0.8 0.8 0.8" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0.8 0.8 0.8" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <!-- Real food sizes + pushed down to touch surface -->
+            <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
+            <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.15 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.15 0" scale="0.20 0.20 0.20" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.15 0" scale="0.15 0.15 0.15" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.15 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.15 0" scale="0.25 0.25 0.25" rotation="-90 0 0" visible="true"></a-gltf-model>
 
         </a-entity>
     </a-scene>
