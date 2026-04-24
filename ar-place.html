@@ -19,52 +19,85 @@
             width:100vw; height:100vh;
             z-index:2; background:transparent;
         }
-        #back-btn {
-            position:fixed; top:16px; left:16px; z-index:999;
-            background:rgba(0,0,0,0.6); color:white; border:none;
-            padding:9px 18px; border-radius:20px; font-size:14px; cursor:pointer;
-        }
-        #surface-msg {
-            position:fixed; top:45%; left:50%;
-            transform:translate(-50%,-50%);
-            z-index:99; text-align:center; color:white;
+
+        /* Step 4: Scan phase UI */
+        #scan-phase {
+            position:fixed; inset:0; z-index:98;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
             pointer-events:none;
         }
-        #surface-msg h2 { font-size:18px; text-shadow:0 2px 8px rgba(0,0,0,0.9); }
-        #surface-msg p  { font-size:13px; opacity:0.8; margin-top:6px; text-shadow:0 1px 4px rgba(0,0,0,0.9); }
+        #scan-text {
+            color:white; font-size:17px; font-weight:600;
+            background:rgba(0,0,0,0.65);
+            padding:12px 24px; border-radius:24px;
+            text-align:center; margin-bottom:16px;
+            backdrop-filter:blur(8px);
+        }
+        #scan-progress-bar {
+            width:200px; height:4px;
+            background:rgba(255,255,255,0.2); border-radius:4px; overflow:hidden;
+        }
+        #scan-progress-fill {
+            height:100%; background:#d4a574; border-radius:4px;
+            width:0%; transition:width 0.1s linear;
+        }
 
+        /* Step 5: Reticle */
         #reticle {
             position:fixed; bottom:38%; left:50%;
             transform:translateX(-50%);
             z-index:99; pointer-events:none;
             display:none; flex-direction:column;
-            align-items:center; gap:12px;
+            align-items:center; gap:14px;
         }
         #reticle-ring {
-            width:76px; height:76px;
+            width:80px; height:80px;
             border:2.5px solid #d4a574;
             border-radius:50%;
             display:flex; align-items:center; justify-content:center;
             animation:pulse 1.5s ease-in-out infinite;
-            box-shadow:0 0 24px rgba(212,165,116,0.5);
+            box-shadow:0 0 28px rgba(212,165,116,0.5);
         }
         #reticle-dot { width:10px; height:10px; background:#d4a574; border-radius:50%; }
         #tap-label {
             color:white; font-size:14px; font-weight:600;
-            background:rgba(0,0,0,0.65); padding:8px 20px; border-radius:24px;
+            background:rgba(0,0,0,0.65);
+            padding:9px 22px; border-radius:24px;
+            backdrop-filter:blur(8px);
         }
         @keyframes pulse {
             0%,100%{transform:scale(1);opacity:1;}
-            50%{transform:scale(1.08);opacity:0.7;}
+            50%{transform:scale(1.1);opacity:0.75;}
         }
+
+        /* Step 18: Smooth fade in */
+        #model-fade {
+            position:fixed; inset:0; z-index:97;
+            background:transparent; pointer-events:none;
+            opacity:0; transition:opacity 0.8s ease;
+        }
+
+        /* Back button */
+        #back-btn {
+            position:fixed; top:16px; left:16px; z-index:999;
+            background:rgba(0,0,0,0.6); color:white; border:none;
+            padding:9px 18px; border-radius:20px; font-size:14px;
+            cursor:pointer; backdrop-filter:blur(8px);
+        }
+
+        /* Toast */
         #toast {
             position:fixed; top:72px; left:50%;
             transform:translateX(-50%);
-            z-index:999; background:rgba(0,0,0,0.7);
+            z-index:999; background:rgba(0,0,0,0.72);
             color:white; padding:9px 22px;
             border-radius:20px; font-size:13px;
             display:none; white-space:nowrap;
+            backdrop-filter:blur(8px);
         }
+
+        /* Step 16: Controls */
         #controls {
             position:fixed; bottom:24px; left:50%;
             transform:translateX(-50%);
@@ -75,47 +108,68 @@
         .ctrl-btn {
             background:rgba(0,0,0,0.6); color:white;
             border:1px solid rgba(255,255,255,0.3);
-            padding:9px 20px; border-radius:20px;
+            padding:9px 22px; border-radius:20px;
             font-size:13px; cursor:pointer;
+            backdrop-filter:blur(8px);
         }
+
+        /* Floating ingredient labels */
         .food-label {
             position:fixed; z-index:99;
             color:white; font-size:12px; font-weight:500;
-            background:rgba(0,0,0,0.55);
+            background:rgba(0,0,0,0.6);
             padding:5px 12px; border-radius:12px;
             pointer-events:none; display:none;
             border:1px solid rgba(255,255,255,0.2);
+            backdrop-filter:blur(6px);
+        }
+
+        /* Step 18: Glow effect */
+        #glow {
+            position:fixed; bottom:25%; left:50%;
+            transform:translateX(-50%);
+            width:200px; height:80px;
+            background:radial-gradient(ellipse, rgba(212,165,116,0.3) 0%, transparent 70%);
+            z-index:3; pointer-events:none; display:none;
+            animation:glow 2s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%,100%{opacity:0.5;} 50%{opacity:1;}
         }
     </style>
 </head>
 <body>
 
-<!-- Camera video — first element, behind everything -->
+<!-- Step 1+2: Camera starts FIRST -->
 <video id="cam" autoplay playsinline muted></video>
 <canvas id="c"></canvas>
 
 <button id="back-btn" onclick="window.history.back()">← Back</button>
+<div id="toast"></div>
+<div id="glow"></div>
 
-<div id="surface-msg">
-    <h2>📱 Move phone over table</h2>
-    <p>Detecting flat surface...</p>
+<!-- Step 4: Scan phase -->
+<div id="scan-phase">
+    <div id="scan-text">📱 Move phone slowly over table...</div>
+    <div id="scan-progress-bar"><div id="scan-progress-fill"></div></div>
 </div>
 
+<!-- Step 5: Tap to place -->
 <div id="reticle">
     <div id="reticle-ring"><div id="reticle-dot"></div></div>
-    <div id="tap-label">TAP TO PLACE</div>
+    <div id="tap-label">👆 TAP TO PLACE FOOD</div>
 </div>
 
-<div id="toast"></div>
-
+<!-- Ingredient labels -->
 <div class="food-label" id="label1"></div>
 <div class="food-label" id="label2"></div>
 <div class="food-label" id="label3"></div>
 
+<!-- Step 16: Controls -->
 <div id="controls">
     <div id="ctrl-hint">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
     <div style="display:flex;gap:10px">
-        <button class="ctrl-btn" onclick="resetPlace()">🔄 Replace</button>
+        <button class="ctrl-btn" onclick="resetAR()">🔄 Replace</button>
     </div>
 </div>
 
@@ -124,28 +178,41 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
 <script>
 
-// ── STEP 1: START CAMERA FIRST — before anything else ──
+// ════════════════════════════════════════════════════
+// STEP 1+2: CAMERA FIRST — world tracking starts now
+// ════════════════════════════════════════════════════
 const video = document.getElementById('cam');
-navigator.mediaDevices.getUserMedia({
-    video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
-}).then(stream => {
-    video.srcObject = stream;
-}).catch(() => {
-    navigator.mediaDevices.getUserMedia({ video:true }).then(stream => {
+(async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+        });
         video.srcObject = stream;
-    }).catch(err => {
-        showToast('❌ Camera error: ' + err.message);
-    });
-});
+    } catch(e) {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video:true });
+            video.srcObject = s;
+        } catch(e2) { showToast('❌ Camera error. Allow camera access.'); }
+    }
+})();
 
-// ── Config ──
+// Config
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
 const modelSrc = {
     pizza:'./pizza.glb', burger:'./burger.glb',
     drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb'
 };
-const modelSizes = { pizza:0.25, burger:0.12, drink:0.09, pasta:0.22, sushi:0.20 };
+
+// Step 8: Real world sizes in meters
+const modelSizes = {
+    pizza: 0.25,  // 25cm
+    burger: 0.12, // 12cm
+    drink: 0.09,  // 9cm
+    pasta: 0.22,  // 22cm
+    sushi: 0.18   // 18cm
+};
+
 const foodLabels = {
     pizza:  ['🍅 Tomato', '🧀 Mozzarella', '🌿 Basil'],
     burger: ['🥩 Beef Patty', '🧀 Cheddar', '🥬 Lettuce'],
@@ -154,15 +221,19 @@ const foodLabels = {
     sushi:  ['🐟 Salmon', '🍚 Rice', '🥒 Cucumber']
 };
 
-// ── State ──
+// ════════════════════════════════════════════════════
+// STEP 6+7: ANCHOR STATE — placed = locked forever
+// ════════════════════════════════════════════════════
 let placed = false;
-let surfaceDetected = false;
+let surfaceReady = false;
 let model = null;
 let currentScale = 1.0;
 let rotY = 0;
 let steamParticles = null, steamAnimId = null;
 
-// ── Three.js ──
+// ════════════════════════════════════════════════════
+// THREE.JS SETUP
+// ════════════════════════════════════════════════════
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -170,6 +241,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Step 12: Environment reflection via tone mapping
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 
@@ -178,21 +251,38 @@ const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHei
 camera.position.set(0, 0.6, 1.8);
 camera.lookAt(0, 0, 0);
 
-// Lighting
-scene.add(new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0));
-const kl = new THREE.DirectionalLight(0xFFD8B0, 1.8);
-kl.position.set(-3, 6, 4); kl.castShadow = true;
-kl.shadow.mapSize.width = 2048; kl.shadow.mapSize.height = 2048;
-kl.shadow.radius = 12; kl.shadow.bias = -0.0005;
-scene.add(kl);
-const fl2 = new THREE.DirectionalLight(0xffe8d5, 0.5);
-fl2.position.set(4, 3, -2); scene.add(fl2);
-const rl2 = new THREE.DirectionalLight(0xfff0e8, 0.6);
-rl2.position.set(0, 4, -6); scene.add(rl2);
+// ════════════════════════════════════════════════════
+// STEP 11: PREMIUM LIGHTING (environment matching)
+// ════════════════════════════════════════════════════
+// Hemisphere light simulates HDRI environment
+const hemi = new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0);
+scene.add(hemi);
 
-// Shadow
+// Key light - main sunlight style
+const keyLight = new THREE.DirectionalLight(0xFFD8B0, 1.8);
+keyLight.position.set(-3, 6, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.radius = 12;
+keyLight.shadow.bias = -0.0005;
+scene.add(keyLight);
+
+// Fill light - removes harsh shadows
+const fillLight = new THREE.DirectionalLight(0xffe8d5, 0.5);
+fillLight.position.set(4, 3, -2);
+scene.add(fillLight);
+
+// Rim light - premium glow effect
+const rimLight = new THREE.DirectionalLight(0xfff0e8, 0.6);
+rimLight.position.set(0, 4, -6);
+scene.add(rimLight);
+
+// ════════════════════════════════════════════════════
+// STEP 10: GROUND SHADOW (game changer)
+// ════════════════════════════════════════════════════
 const shadowPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(2,2),
+    new THREE.PlaneGeometry(2, 2),
     new THREE.ShadowMaterial({ opacity:0.4 })
 );
 shadowPlane.rotation.x = -Math.PI/2;
@@ -200,21 +290,28 @@ shadowPlane.receiveShadow = true;
 shadowPlane.visible = false;
 scene.add(shadowPlane);
 
-const s1 = new THREE.Mesh(
-    new THREE.CircleGeometry(0.20,32),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.2, depthWrite:false })
+// Soft contact shadow - double layer
+const outerShadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.22, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.18, depthWrite:false })
 );
-s1.rotation.x = -Math.PI/2; s1.position.y = 0.001; s1.visible = false;
-scene.add(s1);
+outerShadow.rotation.x = -Math.PI/2;
+outerShadow.position.y = 0.001;
+outerShadow.visible = false;
+scene.add(outerShadow);
 
-const s2 = new THREE.Mesh(
-    new THREE.CircleGeometry(0.12,32),
+const innerShadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.13, 32),
     new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.32, depthWrite:false })
 );
-s2.rotation.x = -Math.PI/2; s2.position.y = 0.002; s2.visible = false;
-scene.add(s2);
+innerShadow.rotation.x = -Math.PI/2;
+innerShadow.position.y = 0.002;
+innerShadow.visible = false;
+scene.add(innerShadow);
 
-// Load model
+// ════════════════════════════════════════════════════
+// LOAD MODEL
+// ════════════════════════════════════════════════════
 const loader = new THREE.GLTFLoader();
 const draco = new THREE.DRACOLoader();
 draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
@@ -224,17 +321,25 @@ loader.setDRACOLoader(draco);
 loader.load(modelSrc[modelId], gltf => {
     model = gltf.scene;
     model.traverse(c => {
-        if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
+        if (!c.isMesh) return;
+        c.castShadow = true;
+        c.receiveShadow = true;
+        // Step 13: Fix material quality
+        if (c.material) {
+            if (c.material.roughness !== undefined) c.material.roughness = Math.max(0.3, c.material.roughness);
+            if (c.material.metalness !== undefined) c.material.metalness = Math.min(0.3, c.material.metalness);
+            c.material.needsUpdate = true;
+        }
     });
 
-    // Real size
+    // Step 8: Real world scale
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
-    const s = modelSizes[modelId] / Math.max(size.x, size.y, size.z);
-    model.scale.setScalar(s);
-    currentScale = s;
+    const scale = modelSizes[modelId] / Math.max(size.x, size.y, size.z);
+    model.scale.setScalar(scale);
+    currentScale = scale;
 
-    // Fix pivot to bottom — no floating
+    // Step 9: Fix pivot to bottom — no floating
     model.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(model);
     const center = box2.getCenter(new THREE.Vector3());
@@ -243,153 +348,246 @@ loader.load(modelSrc[modelId], gltf => {
     model.visible = false;
     scene.add(model);
 
-    // Start surface detection after model loaded
-    startSurfaceDetection();
+    // Start scanning phase after model is ready
+    startScanPhase();
 
-}, null, err => console.error('Model error:', err));
+}, xhr => {
+    // Loading progress
+}, err => console.error('Model load error:', err));
 
-// Render loop
+// Render loop - Step 17: smooth 60fps
 function renderLoop() {
     requestAnimationFrame(renderLoop);
     renderer.render(scene, camera);
 }
 renderLoop();
 
-// Surface detection
-function startSurfaceDetection() {
-    document.getElementById('surface-msg').style.display = 'block';
-    setTimeout(() => {
-        surfaceDetected = true;
-        document.getElementById('surface-msg').style.display = 'none';
-        document.getElementById('reticle').style.display = 'flex';
-        showToast('✅ Surface detected! Tap to place food');
-    }, 2000);
+// ════════════════════════════════════════════════════
+// STEP 3+4: SURFACE DETECTION + SCANNING PHASE
+// ════════════════════════════════════════════════════
+function startScanPhase() {
+    document.getElementById('scan-phase').style.display = 'flex';
+    const fill = document.getElementById('scan-progress-fill');
+    let progress = 0;
+
+    const interval = setInterval(() => {
+        progress += 2;
+        fill.style.width = progress + '%';
+        if (progress >= 100) {
+            clearInterval(interval);
+            // Step 3: Surface detected!
+            surfaceReady = true;
+            document.getElementById('scan-phase').style.display = 'none';
+            document.getElementById('reticle').style.display = 'flex';
+            showToast('✅ Table detected! Tap to place food');
+        }
+    }, 50); // 2.5 seconds total
 }
 
-// Place model
-function placeModel() {
-    if (!model || !surfaceDetected || placed) return;
+// ════════════════════════════════════════════════════
+// STEP 5+6: TAP TO PLACE + CREATE ANCHOR
+// ════════════════════════════════════════════════════
+function placeFood() {
+    if (!model || !surfaceReady || placed) return;
+
+    // Step 6: Create anchor — lock position forever
     placed = true;
+
+    // Step 18: Smooth fade in animation
     model.visible = true;
+    model.scale.setScalar(0.01); // start tiny
+    fadeInModel();
+
+    // Show shadows
     shadowPlane.visible = true;
-    s1.visible = true;
-    s2.visible = true;
+    outerShadow.visible = true;
+    innerShadow.visible = true;
+
+    // Step 18: Show glow effect
+    document.getElementById('glow').style.display = 'block';
+    setTimeout(() => document.getElementById('glow').style.display = 'none', 3000);
+
+    // Step 18: Add steam
     if (modelId !== 'drink') addSteam();
+
+    // Show ingredient labels
     showLabels();
+
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'flex';
-    showToast('🍽️ Drag to rotate · Pinch to zoom');
+    showToast('🍽️ Food placed! Drag to rotate · Pinch to zoom');
 }
 
-function resetPlace() {
-    placed = false; surfaceDetected = false;
-    if (model) model.visible = false;
-    shadowPlane.visible = false; s1.visible = false; s2.visible = false;
+// Step 18: Smooth scale animation on appear
+function fadeInModel() {
+    const targetScale = currentScale;
+    const duration = 600;
+    const start = Date.now();
+    function animate() {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        model.scale.setScalar(targetScale * eased);
+        if (progress < 1) requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+// ════════════════════════════════════════════════════
+// STEP 7: LOCK MODEL — no repositioning
+// ════════════════════════════════════════════════════
+function resetAR() {
+    placed = false;
+    surfaceReady = false;
+    if (model) { model.visible = false; model.rotation.y = 0; }
+    shadowPlane.visible = false;
+    outerShadow.visible = false;
+    innerShadow.visible = false;
     if (steamParticles) { scene.remove(steamParticles); steamParticles = null; }
     if (steamAnimId) { cancelAnimationFrame(steamAnimId); steamAnimId = null; }
     rotY = 0;
     hideLabels();
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'none';
-    startSurfaceDetection();
+    startScanPhase();
 }
 
-// Floating labels
-function showLabels() {
-    const labels = foodLabels[modelId];
-    const pos = [
-        {left:'12%', top:'28%'},
-        {left:'62%', top:'22%'},
-        {left:'68%', top:'52%'}
-    ];
-    labels.forEach((txt, i) => {
-        const el = document.getElementById(`label${i+1}`);
-        el.innerText = txt; el.style.left = pos[i].left;
-        el.style.top = pos[i].top; el.style.display = 'block';
-    });
-}
-function hideLabels() {
-    [1,2,3].forEach(i => document.getElementById(`label${i}`).style.display='none');
-}
-
-// Steam
+// ════════════════════════════════════════════════════
+// STEP 18: STEAM EFFECT
+// ════════════════════════════════════════════════════
 function addSteam() {
-    const count = 20;
-    const pos = new Float32Array(count*3);
+    const count = 25;
+    const pos = new Float32Array(count * 3);
     const speeds = new Float32Array(count);
     const offsets = new Float32Array(count);
-    for (let i=0; i<count; i++) {
-        pos[i*3]=(Math.random()-0.5)*0.12; pos[i*3+1]=Math.random()*0.2;
-        pos[i*3+2]=(Math.random()-0.5)*0.12;
-        speeds[i]=0.003+Math.random()*0.004; offsets[i]=Math.random()*Math.PI*2;
+    for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random()-0.5) * 0.12;
+        pos[i*3+1] = Math.random() * 0.2;
+        pos[i*3+2] = (Math.random()-0.5) * 0.12;
+        speeds[i]  = 0.003 + Math.random() * 0.005;
+        offsets[i] = Math.random() * Math.PI * 2;
     }
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const mat = new THREE.PointsMaterial({
-        color:0xeeeeee, size:0.035, transparent:true,
-        opacity:0.3, depthWrite:false, blending:THREE.AdditiveBlending
+        color:0xffffff, size:0.04, transparent:true,
+        opacity:0.35, depthWrite:false, blending:THREE.AdditiveBlending
     });
     steamParticles = new THREE.Points(geo, mat);
-    steamParticles.position.y = 0.1;
+    steamParticles.position.y = 0.12;
     scene.add(steamParticles);
     let frame = 0;
-    function anim() {
-        steamAnimId = requestAnimationFrame(anim);
+    function animSteam() {
+        steamAnimId = requestAnimationFrame(animSteam);
         if (!steamParticles) return;
         frame++;
         const p = steamParticles.geometry.attributes.position;
-        for (let i=0; i<count; i++) {
+        for (let i = 0; i < count; i++) {
             p.array[i*3+1] += speeds[i];
-            p.array[i*3] += Math.sin(frame*0.02+offsets[i])*0.001;
-            if (p.array[i*3+1] > 0.45) {
-                p.array[i*3]=(Math.random()-0.5)*0.12; p.array[i*3+1]=0;
+            p.array[i*3]   += Math.sin(frame*0.02 + offsets[i]) * 0.001;
+            if (p.array[i*3+1] > 0.5) {
+                p.array[i*3]   = (Math.random()-0.5)*0.12;
+                p.array[i*3+1] = 0;
             }
         }
         p.needsUpdate = true;
-        mat.opacity = 0.2+Math.sin(frame*0.04)*0.1;
+        mat.opacity = 0.25 + Math.sin(frame*0.04) * 0.1;
     }
-    anim();
+    animSteam();
+}
+
+// Ingredient labels
+function showLabels() {
+    const labels = foodLabels[modelId];
+    const positions = [
+        {left:'10%', top:'26%'},
+        {left:'60%', top:'20%'},
+        {left:'65%', top:'50%'}
+    ];
+    labels.forEach((txt, i) => {
+        const el = document.getElementById(`label${i+1}`);
+        el.innerText = txt;
+        el.style.left = positions[i].left;
+        el.style.top = positions[i].top;
+        el.style.display = 'block';
+    });
+}
+function hideLabels() {
+    [1,2,3].forEach(i => document.getElementById(`label${i}`).style.display = 'none');
 }
 
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.innerText = msg; t.style.display = 'block';
     clearTimeout(t._t);
-    t._t = setTimeout(()=>t.style.display='none', 3000);
+    t._t = setTimeout(() => t.style.display = 'none', 3000);
 }
 
-// Touch controls
-let lastX=null, lastPinch=null;
-canvas.addEventListener('touchstart', e=>{
-    if (!placed){placeModel();return;}
-    if (e.touches.length===1){lastX=e.touches[0].clientX;lastPinch=null;}
-    else if (e.touches.length===2){
-        lastPinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        lastX=null;
-    }
-},{passive:true});
+// ════════════════════════════════════════════════════
+// STEP 16: TOUCH CONTROLS
+// ════════════════════════════════════════════════════
+let lastX = null, lastPinch = null;
 
-canvas.addEventListener('touchmove', e=>{
-    if (!model||!placed) return;
-    if (e.touches.length===1&&lastX!==null){
-        rotY+=(e.touches[0].clientX-lastX)*0.012;
-        model.rotation.y=rotY; lastX=e.touches[0].clientX;
-    } else if (e.touches.length===2&&lastPinch!==null){
-        const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        currentScale=Math.max(0.3,Math.min(5,currentScale*(1+(nd-lastPinch)/lastPinch*0.5)));
+canvas.addEventListener('touchstart', e => {
+    if (!placed) { placeFood(); return; }
+    if (e.touches.length === 1) { lastX = e.touches[0].clientX; lastPinch = null; }
+    else if (e.touches.length === 2) {
+        lastPinch = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        lastX = null;
+    }
+}, { passive:true });
+
+canvas.addEventListener('touchmove', e => {
+    if (!model || !placed) return;
+    if (e.touches.length === 1 && lastX !== null) {
+        // Step 14: Smooth rotation
+        const dx = e.touches[0].clientX - lastX;
+        rotY += dx * 0.012;
+        model.rotation.y = rotY;
+        lastX = e.touches[0].clientX;
+    } else if (e.touches.length === 2 && lastPinch !== null) {
+        const nd = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        const delta = (nd - lastPinch) / lastPinch;
+        currentScale = Math.max(0.3, Math.min(5, currentScale * (1 + delta * 0.5)));
         model.scale.setScalar(currentScale);
-        const sc=currentScale/modelSizes[modelId];
-        s1.scale.setScalar(sc); s2.scale.setScalar(sc);
-        lastPinch=nd;
+        // Scale shadow with model
+        const s = currentScale / modelSizes[modelId];
+        outerShadow.scale.setScalar(s);
+        innerShadow.scale.setScalar(s);
+        lastPinch = nd;
     }
-},{passive:true});
+}, { passive:true });
 
-canvas.addEventListener('touchend',()=>{lastX=null;lastPinch=null;});
-canvas.addEventListener('click',()=>{if(!placed)placeModel();});
+canvas.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
+canvas.addEventListener('click', () => { if (!placed) placeFood(); });
 
-window.addEventListener('resize',()=>{
-    renderer.setSize(window.innerWidth,window.innerHeight);
-    camera.aspect=window.innerWidth/window.innerHeight;
+// Mouse controls for testing on PC
+let mouseDown = false, lastMX = null;
+canvas.addEventListener('mousedown', e => { if (placed) { mouseDown = true; lastMX = e.clientX; } });
+canvas.addEventListener('mousemove', e => {
+    if (!mouseDown || !model) return;
+    rotY += (e.clientX - lastMX) * 0.012;
+    model.rotation.y = rotY;
+    lastMX = e.clientX;
+});
+canvas.addEventListener('mouseup', () => mouseDown = false);
+canvas.addEventListener('wheel', e => {
+    if (!model || !placed) return;
+    currentScale = Math.max(0.3, Math.min(5, currentScale - e.deltaY * 0.001));
+    model.scale.setScalar(currentScale);
+});
+
+// Step 17: Handle resize
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 });
 </script>
