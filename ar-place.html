@@ -8,22 +8,12 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#000; overflow:hidden; font-family:-apple-system,sans-serif; }
-        video {
-            position:fixed; top:0; left:0;
-            width:100vw; height:100vh;
-            object-fit:cover; z-index:1;
-        }
-        canvas {
-            position:fixed; top:0; left:0;
-            width:100vw; height:100vh;
-            z-index:2; background:transparent;
-        }
-        #ui { position:fixed; inset:0; z-index:10; pointer-events:none; }
+
         #top-bar {
+            position:fixed; top:0; left:0; right:0; z-index:999;
             display:flex; justify-content:space-between; align-items:center;
             padding:14px 16px;
             background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);
-            pointer-events:all;
         }
         #back-btn {
             background:rgba(0,0,0,0.6); color:white; border:none;
@@ -31,61 +21,33 @@
         }
         #food-title { color:white; font-size:16px; font-weight:bold; }
 
-        /* STEP 7: Reticle — slightly below center */
-        #reticle {
-            position:fixed;
-            top:58%; left:50%;
-            transform:translate(-50%,-50%);
-            z-index:9; pointer-events:none;
-            display:flex; flex-direction:column;
-            align-items:center; gap:12px;
-        }
-        #reticle-outer {
-            width:80px; height:80px;
-            border:2px solid rgba(212,165,116,0.9);
-            border-radius:50%;
-            display:flex; align-items:center; justify-content:center;
-            animation:pulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(212,165,116,0.4);
-        }
-        #reticle-inner { width:10px; height:10px; background:#d4a574; border-radius:50%; }
-        #tap-hint {
-            color:white; font-size:14px; font-weight:bold;
-            background:rgba(0,0,0,0.65);
-            padding:8px 20px; border-radius:20px;
-        }
-        @keyframes pulse {
-            0%,100%{transform:scale(1);opacity:1;}
-            50%{transform:scale(1.1);opacity:0.7;}
-        }
-
         #status {
-            position:fixed; top:80px; left:50%;
-            transform:translateX(-50%);
-            z-index:99; background:rgba(44,24,16,0.9);
-            color:#d4a574; padding:10px 22px;
-            border-radius:20px; font-size:14px; font-weight:bold;
-            display:none; white-space:nowrap;
+            position:fixed; top:80px; left:50%; transform:translateX(-50%);
+            z-index:999; background:rgba(0,0,0,0.75);
+            color:white; padding:10px 22px;
+            border-radius:20px; font-size:13px;
+            text-align:center; white-space:nowrap;
+            pointer-events:none;
         }
 
         #controls {
-            position:fixed; bottom:0; left:0; right:0;
-            z-index:10; padding:16px;
+            position:fixed; bottom:0; left:0; right:0; z-index:999;
+            padding:16px;
             background:linear-gradient(to top,rgba(0,0,0,0.8),transparent);
             display:none; flex-direction:column;
             align-items:center; gap:10px;
-            pointer-events:all;
         }
         #ctrl-hint { color:rgba(255,255,255,0.8); font-size:12px; }
         .ctrl-btn {
-            background:rgba(255,255,255,0.15);
-            color:white; border:1.5px solid rgba(255,255,255,0.3);
+            background:rgba(255,255,255,0.15); color:white;
+            border:1.5px solid rgba(255,255,255,0.3);
             padding:10px 20px; border-radius:20px;
             font-size:13px; cursor:pointer;
         }
+
         #loading {
-            position:fixed; inset:0; z-index:999;
-            background:rgba(0,0,0,0.85);
+            position:fixed; inset:0; z-index:9999;
+            background:#000;
             display:flex; flex-direction:column;
             align-items:center; justify-content:center;
             color:white; gap:14px; font-size:16px;
@@ -98,37 +60,51 @@
             animation:spin 1s linear infinite;
         }
         @keyframes spin { to{transform:rotate(360deg);} }
+
+        #no-webxr {
+            position:fixed; inset:0; z-index:9999;
+            background:#111;
+            display:none; flex-direction:column;
+            align-items:center; justify-content:center;
+            color:white; gap:16px; padding:32px; text-align:center;
+        }
+        #no-webxr h2 { color:#d4a574; font-size:20px; }
+        #no-webxr p { color:#aaa; font-size:14px; line-height:1.6; }
+        #no-webxr button {
+            background:#d4a574; color:white; border:none;
+            padding:12px 28px; border-radius:20px;
+            font-size:15px; cursor:pointer; margin-top:8px;
+        }
     </style>
 </head>
 <body>
 
-<video id="cam" autoplay playsinline muted></video>
-<canvas id="c"></canvas>
-
 <div id="loading">
     <div class="spinner"></div>
-    <div id="load-text">Starting camera...</div>
+    <div id="load-text">Loading model...</div>
 </div>
 
-<!-- STEP 7: Reticle slightly below center -->
-<div id="reticle">
-    <div id="reticle-outer"><div id="reticle-inner"></div></div>
-    <div id="tap-hint">👆 TAP TO PLACE FOOD</div>
+<div id="no-webxr">
+    <h2>📱 AR Not Supported</h2>
+    <p>Your browser doesn't support WebXR AR.<br><br>
+    Please use:<br>
+    <strong>Android → Chrome browser</strong><br>
+    <strong>iPhone → Safari 16+</strong></p>
+    <button onclick="window.history.back()">← Go Back</button>
 </div>
 
-<div id="status"></div>
+<div id="top-bar">
+    <button id="back-btn" onclick="exitAR()">← Back</button>
+    <div id="food-title">Loading...</div>
+    <div style="width:70px"></div>
+</div>
 
-<div id="ui">
-    <div id="top-bar">
-        <button id="back-btn" onclick="window.history.back()">← Back</button>
-        <div id="food-title">Loading...</div>
-        <div style="width:70px"></div>
-    </div>
-    <div id="controls">
-        <div id="ctrl-hint">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
-        <div style="display:flex;gap:10px;">
-            <button class="ctrl-btn" onclick="resetPlace()">🔄 Replace</button>
-        </div>
+<div id="status">📱 Detecting surfaces...</div>
+
+<div id="controls">
+    <div id="ctrl-hint">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
+    <div style="display:flex;gap:10px;">
+        <button class="ctrl-btn" onclick="resetPlacement()">🔄 Replace</button>
     </div>
 </div>
 
@@ -138,249 +114,320 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
-const modelSrc = { pizza:'./pizza.glb', burger:'./burger.glb', drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb' };
-const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤', pasta:'Creamy Pasta 🍝', sushi:'Sushi Platter 🍣' };
+const modelSrc = {
+    pizza:'./pizza.glb', burger:'./burger.glb',
+    drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb'
+};
+const modelNames = {
+    pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔',
+    drink:'Fresh Lemonade 🥤', pasta:'Creamy Pasta 🍝', sushi:'Sushi Platter 🍣'
+};
 
 document.getElementById('food-title').innerText = modelNames[modelId];
 
-// STEP 4: placed = locked in world space after tap
-let placed = false;
-let currentScale = 1.0;
-let rotY = 0;
-let lastX = null, lastPinch = null;
-
-// Three.js
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+// ── Three.js setup ──
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000, 0);
+renderer.xr.enabled = true; // STEP 1: Enable WebXR
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
+document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.01, 100);
-// Fix floating - lower camera position
-camera.position.set(0, 0.3, 1.5);
-camera.lookAt(0, 0, 0);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.01, 20);
 
-// Premium lighting - STEP 6 grounding
+// Premium lighting
 scene.add(new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0));
 const key = new THREE.DirectionalLight(0xFFD8B0, 1.8);
-key.position.set(-3, 6, 4); key.castShadow = true;
-key.shadow.mapSize.width = 2048; key.shadow.mapSize.height = 2048;
-key.shadow.radius = 12; key.shadow.bias = -0.0005;
+key.position.set(-3, 6, 4);
+key.castShadow = true;
+key.shadow.mapSize.width = 2048;
+key.shadow.mapSize.height = 2048;
+key.shadow.radius = 12;
+key.shadow.bias = -0.0005;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xffe8d5, 0.45);
-fill.position.set(4, 3, -2); scene.add(fill);
+const fill = new THREE.DirectionalLight(0xffe8d5, 0.5);
+fill.position.set(4, 3, -2);
+scene.add(fill);
 const rim = new THREE.DirectionalLight(0xfff0e8, 0.6);
-rim.position.set(0, 4, -6); scene.add(rim);
+rim.position.set(0, 4, -6);
+scene.add(rim);
 
-// STEP 6: Ground shadow plane — what "sticks" it visually
-const shadowGeo = new THREE.PlaneGeometry(3, 3);
+// STEP 3: Reticle — shows where surface is detected
+const reticleGeo = new THREE.RingGeometry(0.08, 0.12, 32);
+const reticleMat = new THREE.MeshBasicMaterial({ color:0xd4a574, side:THREE.DoubleSide });
+const reticle = new THREE.Mesh(reticleGeo, reticleMat);
+reticle.rotation.x = -Math.PI / 2;
+reticle.visible = false;
+scene.add(reticle);
+
+// Inner reticle dot
+const dotGeo = new THREE.CircleGeometry(0.02, 16);
+const dotMat = new THREE.MeshBasicMaterial({ color:0xd4a574 });
+const dot = new THREE.Mesh(dotGeo, dotMat);
+dot.rotation.x = -Math.PI / 2;
+dot.position.y = 0.001;
+dot.visible = false;
+scene.add(dot);
+
+// STEP 6: Shadow plane under model
+const shadowGeo = new THREE.PlaneGeometry(1, 1);
 const shadowMat = new THREE.ShadowMaterial({ opacity:0.4 });
 const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
-shadowPlane.rotation.x = -Math.PI/2;
-shadowPlane.position.y = 0;
 shadowPlane.receiveShadow = true;
 shadowPlane.visible = false;
 scene.add(shadowPlane);
 
-// STEP 6: Soft circular shadow under food (double layer)
-const softShadowGeo = new THREE.CircleGeometry(0.35, 32);
-const softShadowMat = new THREE.MeshBasicMaterial({
-    color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false
-});
-const softShadow = new THREE.Mesh(softShadowGeo, softShadowMat);
-softShadow.rotation.x = -Math.PI/2;
-softShadow.position.y = 0.001;
-softShadow.visible = false;
-scene.add(softShadow);
+// Soft contact shadow (double layer)
+const softShadow1 = new THREE.Mesh(
+    new THREE.CircleGeometry(0.22, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.2, depthWrite:false })
+);
+softShadow1.rotation.x = -Math.PI/2;
+softShadow1.visible = false;
+scene.add(softShadow1);
 
-// Inner stronger shadow
-const innerShadowGeo = new THREE.CircleGeometry(0.2, 32);
-const innerShadowMat = new THREE.MeshBasicMaterial({
-    color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false
-});
-const innerShadow = new THREE.Mesh(innerShadowGeo, innerShadowMat);
-innerShadow.rotation.x = -Math.PI/2;
-innerShadow.position.y = 0.002;
-innerShadow.visible = false;
-scene.add(innerShadow);
+const softShadow2 = new THREE.Mesh(
+    new THREE.CircleGeometry(0.14, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.3, depthWrite:false })
+);
+softShadow2.rotation.x = -Math.PI/2;
+softShadow2.visible = false;
+scene.add(softShadow2);
 
-// STEP 3: Load model and fix pivot to bottom center
+// Load model
 let model = null;
+let placed = false;
+let currentScale = 1.0;
+let rotY = 0;
+
 const loader = new THREE.GLTFLoader();
 const draco = new THREE.DRACOLoader();
 draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
 draco.setDecoderConfig({ type:'js' });
 loader.setDRACOLoader(draco);
 
-document.getElementById('load-text').innerText = 'Loading model...';
-
 loader.load(modelSrc[modelId], gltf => {
     model = gltf.scene;
     model.traverse(c => {
-        if(c.isMesh){
-            c.castShadow = true;
-            c.receiveShadow = true;
-        }
+        if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }
     });
 
-    // STEP 5: Set real-world scale first
+    // STEP 5: Real world scale
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const targetSize = 0.25; // real plate size ~25cm
-    const scale = targetSize / maxDim;
-    model.scale.setScalar(scale);
+    const targetSize = 0.25; // 25cm real plate size
+    const s = targetSize / maxDim;
+    model.scale.setScalar(s);
 
-    // STEP 3: Fix pivot to bottom center (most important tech issue)
+    // STEP 2+3: Fix pivot to bottom center — stops floating
     model.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(model);
     const center = box2.getCenter(new THREE.Vector3());
-    // Center X and Z, push Y so bottom = exactly 0 (no floating)
-    model.position.set(
-        -center.x,
-        -box2.min.y, // lift bottom to exact ground level
-        -center.z
-    );
+    model.position.set(-center.x, -box2.min.y, -center.z);
 
     model.visible = false;
     scene.add(model);
-
     document.getElementById('loading').style.display = 'none';
 
 }, null, err => {
     console.error(err);
-    document.getElementById('loading').style.display = 'none';
-    showStatus('Model failed to load');
+    document.getElementById('load-text').innerText = 'Failed to load model';
 });
 
-// Camera
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
-        });
-        document.getElementById('cam').srcObject = stream;
-    } catch(e) {
-        try {
-            const s = await navigator.mediaDevices.getUserMedia({ video:true });
-            document.getElementById('cam').srcObject = s;
-        } catch(e2) { showStatus('Camera error'); }
-    }
-}
-startCamera();
+// STEP 1: Start WebXR hit-test session
+let xrSession = null;
+let hitTestSource = null;
+let hitTestSourceRequested = false;
+let xrRefSpace = null;
 
-// Animate
-function animate() {
-    requestAnimationFrame(animate);
+async function startAR() {
+    if (!navigator.xr) {
+        showNoWebXR();
+        return;
+    }
+
+    const supported = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
+    if (!supported) {
+        showNoWebXR();
+        return;
+    }
+
+    // Request AR session with hit-test
+    xrSession = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test'],
+        optionalFeatures: ['dom-overlay'],
+        domOverlay: { root: document.body }
+    });
+
+    renderer.xr.setReferenceSpaceType('local');
+    await renderer.xr.setSession(xrSession);
+
+    xrSession.addEventListener('end', () => {
+        xrSession = null;
+        hitTestSource = null;
+        hitTestSourceRequested = false;
+    });
+
+    renderer.setAnimationLoop(render);
+    setStatus('📱 Move phone slowly over table...');
+}
+
+function showNoWebXR() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('no-webxr').style.display = 'flex';
+}
+
+// STEP 2: Render loop with hit-test
+function render(timestamp, frame) {
+    if (!frame) return;
+
+    const referenceSpace = renderer.xr.getReferenceSpace();
+    const session = renderer.xr.getSession();
+
+    // Request hit-test source once
+    if (!hitTestSourceRequested) {
+        session.requestReferenceSpace('viewer').then(refSpace => {
+            session.requestHitTestSource({ space: refSpace }).then(source => {
+                hitTestSource = source;
+            });
+        });
+        hitTestSourceRequested = true;
+    }
+
+    // STEP 2+3: Get hit-test results — detect surface, show reticle
+    if (hitTestSource && !placed) {
+        const hitTestResults = frame.getHitTestResults(hitTestSource);
+        if (hitTestResults.length > 0) {
+            const hit = hitTestResults[0];
+            const pose = hit.getPose(referenceSpace);
+
+            // Show reticle exactly on detected surface
+            reticle.visible = true;
+            dot.visible = true;
+            reticle.matrix.fromArray(pose.transform.matrix);
+            reticle.position.setFromMatrixPosition(reticle.matrix);
+            dot.position.copy(reticle.position);
+            dot.position.y += 0.001;
+
+            setStatus('👆 Tap to place food on table');
+        } else {
+            reticle.visible = false;
+            dot.visible = false;
+            setStatus('📱 Move phone over table surface...');
+        }
+    }
+
     renderer.render(scene, camera);
 }
-animate();
 
-function showStatus(msg) {
-    const el = document.getElementById('status');
-    el.innerText = msg;
-    el.style.display = 'block';
-    clearTimeout(el._t);
-    el._t = setTimeout(() => { el.style.display = 'none'; }, 2500);
-}
-
-// STEP 4: Place and LOCK model — doesn't move anymore
-function placeModel() {
-    if (!model) return;
+// STEP 4: Tap to place — lock to world space
+function placeFood() {
+    if (!model || !reticle.visible || placed) return;
     placed = true;
 
-    // STEP 7: Place slightly below center, slightly forward
-    model.position.set(
-        model.position.x,
-        model.position.y, // Y stays at ground (bottom fixed)
-        model.position.z
-    );
-
+    // Place model exactly where reticle is (on real table surface)
+    model.position.copy(reticle.position);
+    model.position.y += model.position.y; // keep bottom on surface
     model.visible = true;
-    shadowPlane.visible = true;
-    softShadow.visible = true;
-    innerShadow.visible = true;
 
-    document.getElementById('reticle').style.display = 'none';
+    // Place shadows at same position
+    const pos = reticle.position;
+    shadowPlane.position.set(pos.x, pos.y + 0.001, pos.z);
+    shadowPlane.visible = true;
+    softShadow1.position.set(pos.x, pos.y + 0.001, pos.z);
+    softShadow1.visible = true;
+    softShadow2.position.set(pos.x, pos.y + 0.002, pos.z);
+    softShadow2.visible = true;
+
+    // Hide reticle
+    reticle.visible = false;
+    dot.visible = false;
+
+    // Show controls
     document.getElementById('controls').style.display = 'flex';
-    showStatus('✅ Placed! Drag to rotate · Pinch to zoom');
+    setStatus('✅ Food placed! Drag to rotate · Pinch to zoom');
+    setTimeout(() => { document.getElementById('status').style.display = 'none'; }, 3000);
 }
 
-function resetPlace() {
+function resetPlacement() {
     placed = false;
     if(model) model.visible = false;
     shadowPlane.visible = false;
-    softShadow.visible = false;
-    innerShadow.visible = false;
+    softShadow1.visible = false;
+    softShadow2.visible = false;
     rotY = 0;
-    document.getElementById('reticle').style.display = 'flex';
+    reticle.visible = true;
+    dot.visible = true;
     document.getElementById('controls').style.display = 'none';
+    setStatus('📱 Move phone over table surface...');
 }
 
-// Touch controls
-canvas.addEventListener('touchstart', e => {
-    if(!placed) { placeModel(); return; }
-    if(e.touches.length === 1) { lastX = e.touches[0].clientX; lastPinch = null; }
-    else if(e.touches.length === 2) {
-        lastPinch = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        lastX = null;
-    }
-}, { passive:true });
+function exitAR() {
+    if(xrSession) xrSession.end();
+    window.history.back();
+}
 
-canvas.addEventListener('touchmove', e => {
-    if(!model || !placed) return;
-    if(e.touches.length === 1 && lastX !== null) {
-        // Only Y rotation - plate stays flat
-        const dx = e.touches[0].clientX - lastX;
-        rotY += dx * 0.01;
+// Select event (tap in AR)
+renderer.domElement.addEventListener('click', placeFood);
+renderer.domElement.addEventListener('touchend', e => {
+    if(!placed && reticle.visible) { placeFood(); return; }
+});
+
+// Touch rotate and zoom after placement
+let lastX=null, lastPinch=null;
+renderer.domElement.addEventListener('touchstart', e => {
+    if(!placed) return;
+    if(e.touches.length===1){ lastX=e.touches[0].clientX; lastPinch=null; }
+    else if(e.touches.length===2){
+        lastPinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        lastX=null;
+    }
+}, {passive:true});
+
+renderer.domElement.addEventListener('touchmove', e => {
+    if(!model||!placed) return;
+    if(e.touches.length===1&&lastX!==null){
+        rotY += (e.touches[0].clientX-lastX)*0.01;
         model.rotation.y = rotY;
-        lastX = e.touches[0].clientX;
-    } else if(e.touches.length === 2 && lastPinch !== null) {
-        const nd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        const delta = (nd - lastPinch) / lastPinch;
-        currentScale = Math.max(0.1, Math.min(5, currentScale * (1 + delta * 0.5)));
-        model.scale.setScalar(currentScale * 0.25 / Math.max(...Object.values(new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()))));
-
-        // STEP 6: Keep shadow size with model
-        const s = currentScale;
-        softShadow.scale.set(s, s, s);
-        innerShadow.scale.set(s, s, s);
-        lastPinch = nd;
+        lastX=e.touches[0].clientX;
+    } else if(e.touches.length===2&&lastPinch!==null){
+        const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        currentScale = Math.max(0.5, Math.min(3, currentScale*(1+(nd-lastPinch)/lastPinch)));
+        const box=new THREE.Box3().setFromObject(model);
+        const size=box.getSize(new THREE.Vector3());
+        model.scale.setScalar((0.25/Math.max(size.x,size.y,size.z))*currentScale);
+        lastPinch=nd;
     }
-}, { passive:true });
+}, {passive:true});
 
-canvas.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
+renderer.domElement.addEventListener('touchend',()=>{lastX=null;lastPinch=null;});
 
-// Mouse for laptop
-canvas.addEventListener('click', () => { if(!placed) placeModel(); });
-let mouseDown = false, lastMX = null;
-canvas.addEventListener('mousedown', e => { if(placed){ mouseDown=true; lastMX=e.clientX; } });
-canvas.addEventListener('mousemove', e => {
-    if(!mouseDown || !model) return;
-    rotY += (e.clientX-lastMX) * 0.01;
-    model.rotation.y = rotY;
-    lastMX = e.clientX;
-});
-canvas.addEventListener('mouseup', () => mouseDown = false);
-canvas.addEventListener('wheel', e => {
-    if(!model || !placed) return;
-    currentScale = Math.max(0.1, Math.min(5, currentScale - e.deltaY*0.001));
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    model.scale.setScalar((0.25 / Math.max(size.x,size.y,size.z)) * currentScale);
-});
+function setStatus(msg) {
+    const el = document.getElementById('status');
+    el.innerText = msg;
+    el.style.display = 'block';
+}
 
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
 });
+
+// Start AR when model is loaded
+document.getElementById('loading').style.display = 'flex';
+// Wait for model then start AR
+const checkModel = setInterval(() => {
+    if(model !== null) {
+        clearInterval(checkModel);
+        startAR();
+    }
+}, 100);
 </script>
 </body>
 </html>
