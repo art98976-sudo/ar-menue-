@@ -295,7 +295,7 @@ loader.load(modelSrc[modelId], gltf => {
     model.visible = false;
     scene.add(model);
 
-    document.getElementById('loading').style.display = 'none';
+    // Don't hide loading here - camera will hide it
     startSurfaceDetection();
 
 }, xhr => {
@@ -310,17 +310,25 @@ async function startCamera() {
     const video = document.createElement('video');
     video.autoplay = true; video.playsInline = true; video.muted = true;
     video.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:1;';
-    document.body.appendChild(video);
+    // Insert as first child so it's behind everything
+    document.body.insertBefore(video, document.body.firstChild);
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
         });
         video.srcObject = stream;
+        video.play();
+        // Hide loading immediately when camera starts
+        document.getElementById('loading').style.display = 'none';
     } catch(e) {
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video:true });
             video.srcObject = s;
-        } catch(e2) { showToast('Camera error'); }
+            video.play();
+            document.getElementById('loading').style.display = 'none';
+        } catch(e2) {
+            document.getElementById('load-txt').innerText = '❌ Camera permission denied. Please allow camera access.';
+        }
     }
 }
 startCamera();
