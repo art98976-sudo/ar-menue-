@@ -9,86 +9,99 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#000; overflow:hidden; font-family:-apple-system,sans-serif; }
 
-        video {
+        /* Stage 1: Surface detection overlay */
+        #surface-msg {
+            position:fixed; top:50%; left:50%;
+            transform:translate(-50%,-50%);
+            z-index:999; text-align:center;
+            color:white; pointer-events:none;
+        }
+        #surface-msg h2 { font-size:18px; margin-bottom:8px; text-shadow:0 2px 8px rgba(0,0,0,0.8); }
+        #surface-msg p { font-size:13px; opacity:0.8; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
+
+        /* Stage 1: Surface grid dots */
+        #grid-canvas {
             position:fixed; top:0; left:0;
             width:100vw; height:100vh;
-            object-fit:cover; z-index:1;
-        }
-        canvas {
-            position:fixed; top:0; left:0;
-            width:100vw; height:100vh;
-            z-index:2; background:transparent;
+            z-index:3; pointer-events:none;
+            opacity:0; transition:opacity 0.5s;
         }
 
-        /* STEP 2: Scan surface instruction */
-        #scan-msg {
-            position:fixed; bottom:120px; left:50%;
-            transform:translateX(-50%);
-            z-index:99;
-            background:rgba(0,0,0,0.7);
-            color:white; font-size:14px; font-weight:bold;
-            padding:12px 24px; border-radius:24px;
-            text-align:center; white-space:nowrap;
-            transition: opacity 0.5s;
-        }
-
-        /* STEP 3: Tap to place reticle */
+        /* Stage 2: Tap to place */
         #reticle {
-            position:fixed; bottom:35%;
-            left:50%; transform:translateX(-50%);
+            position:fixed; bottom:38%; left:50%;
+            transform:translateX(-50%);
             z-index:99; pointer-events:none;
             display:none; flex-direction:column;
-            align-items:center; gap:10px;
+            align-items:center; gap:12px;
         }
-        #reticle-ring {
-            width:72px; height:72px;
-            border:2.5px solid #d4a574;
+        #reticle-outer {
+            width:76px; height:76px;
+            border:2px solid rgba(255,255,255,0.9);
             border-radius:50%;
             display:flex; align-items:center; justify-content:center;
             animation:pulse 1.5s ease-in-out infinite;
-            box-shadow:0 0 20px rgba(212,165,116,0.5);
+            box-shadow:0 0 24px rgba(255,255,255,0.3);
         }
-        #reticle-dot { width:10px; height:10px; background:#d4a574; border-radius:50%; }
-        #reticle-label {
-            color:white; font-size:13px; font-weight:bold;
-            background:rgba(0,0,0,0.65); padding:7px 18px; border-radius:20px;
+        #reticle-inner { width:8px; height:8px; background:white; border-radius:50%; }
+        #tap-label {
+            color:white; font-size:14px; font-weight:600;
+            background:rgba(0,0,0,0.6); padding:8px 20px; border-radius:24px;
+            letter-spacing:0.3px;
         }
         @keyframes pulse {
             0%,100%{transform:scale(1);opacity:1;}
-            50%{transform:scale(1.1);opacity:0.7;}
+            50%{transform:scale(1.08);opacity:0.8;}
         }
 
         /* Back button */
         #back-btn {
-            position:fixed; top:16px; left:16px; z-index:999;
-            background:rgba(0,0,0,0.6); color:white; border:none;
-            padding:8px 16px; border-radius:20px; font-size:14px; cursor:pointer;
+            position:fixed; top:16px; left:16px; z-index:9999;
+            background:rgba(0,0,0,0.55); color:white; border:none;
+            padding:9px 18px; border-radius:20px; font-size:14px; cursor:pointer;
+            backdrop-filter:blur(10px);
         }
 
-        /* STEP 12: Controls */
+        /* Stage 10: Controls */
         #controls {
-            position:fixed; bottom:20px; left:50%;
+            position:fixed; bottom:24px; left:50%;
             transform:translateX(-50%);
-            z-index:99; display:none;
+            z-index:999; display:none;
             flex-direction:column; align-items:center; gap:8px;
         }
-        #ctrl-hint { color:rgba(255,255,255,0.8); font-size:11px; }
+        #ctrl-hint {
+            color:rgba(255,255,255,0.75); font-size:11px;
+            background:rgba(0,0,0,0.4); padding:5px 14px; border-radius:12px;
+        }
         #ctrl-btns { display:flex; gap:10px; }
         .ctrl-btn {
-            background:rgba(0,0,0,0.6); color:white;
-            border:1.5px solid rgba(255,255,255,0.3);
-            padding:8px 18px; border-radius:20px;
+            background:rgba(0,0,0,0.55); color:white;
+            border:1px solid rgba(255,255,255,0.25);
+            padding:9px 20px; border-radius:20px;
             font-size:12px; cursor:pointer;
+            backdrop-filter:blur(10px);
         }
 
-        /* Status toast */
+        /* Toast */
         #toast {
             position:fixed; top:72px; left:50%;
             transform:translateX(-50%);
-            z-index:999; background:rgba(44,24,16,0.9);
-            color:#d4a574; padding:8px 20px;
+            z-index:9999; background:rgba(0,0,0,0.7);
+            color:white; padding:9px 22px;
             border-radius:20px; font-size:13px;
             display:none; white-space:nowrap;
+            backdrop-filter:blur(10px);
+        }
+
+        /* Floating ingredient labels (like in video) */
+        .food-label {
+            position:fixed; z-index:998;
+            color:white; font-size:12px; font-weight:500;
+            background:rgba(0,0,0,0.5);
+            padding:4px 10px; border-radius:10px;
+            pointer-events:none; display:none;
+            backdrop-filter:blur(6px);
+            border:1px solid rgba(255,255,255,0.2);
         }
 
         /* Loading */
@@ -101,7 +114,7 @@
         }
         .spinner {
             width:44px; height:44px;
-            border:3px solid rgba(255,255,255,0.2);
+            border:3px solid rgba(255,255,255,0.15);
             border-top-color:#d4a574;
             border-radius:50%;
             animation:spin 1s linear infinite;
@@ -111,29 +124,33 @@
 </head>
 <body>
 
-<video id="cam" autoplay playsinline muted></video>
-<canvas id="c"></canvas>
-
 <div id="loading">
     <div class="spinner"></div>
-    <div id="load-txt">Starting camera...</div>
+    <div id="load-txt">Loading...</div>
 </div>
 
-<!-- STEP 2: Scan surface instruction -->
-<div id="scan-msg">📱 Move phone slowly to detect surface</div>
+<div id="surface-msg">
+    <h2>📱 Move phone over table</h2>
+    <p>Detecting flat surface...</p>
+</div>
 
-<!-- STEP 3: Tap to place reticle -->
+<canvas id="grid-canvas"></canvas>
+
 <div id="reticle">
-    <div id="reticle-ring"><div id="reticle-dot"></div></div>
-    <div id="reticle-label">👆 TAP TO PLACE FOOD</div>
+    <div id="reticle-outer"><div id="reticle-inner"></div></div>
+    <div id="tap-label">TAP TO PLACE</div>
 </div>
 
 <button id="back-btn" onclick="window.history.back()">← Back</button>
 <div id="toast"></div>
 
-<!-- STEP 12: Controls -->
+<!-- Floating ingredient labels -->
+<div class="food-label" id="label1"></div>
+<div class="food-label" id="label2"></div>
+<div class="food-label" id="label3"></div>
+
 <div id="controls">
-    <div id="ctrl-hint">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+    <div id="ctrl-hint">☝️ Rotate &nbsp;·&nbsp; 🤏 Zoom</div>
     <div id="ctrl-btns">
         <button class="ctrl-btn" onclick="resetPlace()">🔄 Replace</button>
     </div>
@@ -143,49 +160,57 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
 <script>
+// ── Config ──
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
+
 const modelSrc = {
     pizza:'./pizza.glb', burger:'./burger.glb',
     drink:'./drink.glb', pasta:'./pasta.glb', sushi:'./sushi.glb'
 };
-// STEP 6: Real world sizes in meters
-const modelSizes = {
-    pizza: 0.25,   // 25cm plate
-    burger: 0.12,  // 12cm burger
-    drink: 0.09,   // 9cm glass
-    pasta: 0.22,   // 22cm plate
-    sushi: 0.20    // 20cm platter
+
+// Stage 4: Real world sizes
+const modelSizes = { pizza:0.25, burger:0.12, drink:0.09, pasta:0.22, sushi:0.20 };
+
+// Food labels (like in the video)
+const foodLabels = {
+    pizza:  ['🍅 Tomato', '🧀 Mozzarella', '🌿 Basil'],
+    burger: ['🥩 Beef Patty', '🧀 Cheddar', '🥬 Lettuce'],
+    drink:  ['🍋 Lemon', '🌿 Mint', '🍯 Honey'],
+    pasta:  ['🧄 Garlic', '🌿 Herbs', '🧀 Parmesan'],
+    sushi:  ['🐟 Salmon', '🍚 Rice', '🥒 Cucumber']
 };
 
-// STEP 4: placed = locked, never updated again
-let placed = false;
+// ── State ──
+let placed = false;       // Stage 3: lock
+let surfaceDetected = false;
 let model = null;
 let currentScale = 1.0;
 let rotY = 0;
-let surfaceDetected = false;
+let steamParticles = null, steamAnimId = null;
 
-// Three.js
-const canvas = document.getElementById('c');
+// ── Three.js ──
+const canvas = document.createElement('canvas');
+canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:4;background:transparent;';
+document.body.appendChild(canvas);
+
 const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-// STEP 9: Environment reflection tone mapping
+// Stage 11: Environment blending
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.01, 100);
-camera.position.set(0, 0.8, 2.0);
+camera.position.set(0, 0.6, 1.8);
 camera.lookAt(0, 0, 0);
 
-// STEP 8: Premium lighting setup
-// Ambient light — soft fill
+// Stage 6: Premium lighting
 scene.add(new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0));
-// Main key light — sunlight style
 const keyLight = new THREE.DirectionalLight(0xFFD8B0, 1.8);
 keyLight.position.set(-3, 6, 4);
 keyLight.castShadow = true;
@@ -194,16 +219,13 @@ keyLight.shadow.mapSize.height = 2048;
 keyLight.shadow.radius = 12;
 keyLight.shadow.bias = -0.0005;
 scene.add(keyLight);
-// Fill light — removes harsh shadows
-const fillLight = new THREE.DirectionalLight(0xffe8d5, 0.5);
-fillLight.position.set(4, 3, -2);
-scene.add(fillLight);
-// Rim light — Netflix glow effect
-const rimLight = new THREE.DirectionalLight(0xfff0e8, 0.6);
-rimLight.position.set(0, 4, -6);
-scene.add(rimLight);
+scene.add(Object.assign(new THREE.DirectionalLight(0xffe8d5, 0.5), {position:{x:4,y:3,z:-2, set(){return this;}}.set&&{x:4,y:3,z:-2}}));
+const fl = new THREE.DirectionalLight(0xffe8d5, 0.5);
+fl.position.set(4, 3, -2); scene.add(fl);
+const rl = new THREE.DirectionalLight(0xfff0e8, 0.6);
+rl.position.set(0, 4, -6); scene.add(rl);
 
-// STEP 7: Shadow plane — soft shadow under model
+// Stage 5: Shadow plane
 const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
     new THREE.ShadowMaterial({ opacity:0.4 })
@@ -213,10 +235,9 @@ shadowPlane.receiveShadow = true;
 shadowPlane.visible = false;
 scene.add(shadowPlane);
 
-// Soft contact shadow (double layer)
 const softShadow1 = new THREE.Mesh(
-    new THREE.CircleGeometry(0.18, 32),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.2, depthWrite:false })
+    new THREE.CircleGeometry(0.20, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.18, depthWrite:false })
 );
 softShadow1.rotation.x = -Math.PI/2;
 softShadow1.position.y = 0.001;
@@ -224,60 +245,15 @@ softShadow1.visible = false;
 scene.add(softShadow1);
 
 const softShadow2 = new THREE.Mesh(
-    new THREE.CircleGeometry(0.10, 32),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.35, depthWrite:false })
+    new THREE.CircleGeometry(0.12, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.32, depthWrite:false })
 );
 softShadow2.rotation.x = -Math.PI/2;
 softShadow2.position.y = 0.002;
 softShadow2.visible = false;
 scene.add(softShadow2);
 
-// STEP 9: Steam particles
-let steamParticles = null, steamAnimId = null;
-function addSteam() {
-    if (modelId === 'drink') return; // no steam for cold drink
-    const count = 20;
-    const pos = new Float32Array(count*3);
-    const speeds = new Float32Array(count);
-    const offsets = new Float32Array(count);
-    for (let i=0; i<count; i++) {
-        pos[i*3]   = (Math.random()-0.5)*0.15;
-        pos[i*3+1] = Math.random()*0.3;
-        pos[i*3+2] = (Math.random()-0.5)*0.15;
-        speeds[i]  = 0.003 + Math.random()*0.005;
-        offsets[i] = Math.random()*Math.PI*2;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({
-        color:0xdddddd, size:0.04, transparent:true,
-        opacity:0.3, depthWrite:false, blending:THREE.AdditiveBlending
-    });
-    steamParticles = new THREE.Points(geo, mat);
-    steamParticles.position.y = 0.15;
-    scene.add(steamParticles);
-    let frame = 0;
-    function animate() {
-        steamAnimId = requestAnimationFrame(animate);
-        if (!steamParticles) return;
-        frame++;
-        const p = steamParticles.geometry.attributes.position;
-        for (let i=0; i<count; i++) {
-            p.array[i*3+1] += speeds[i];
-            p.array[i*3]   += Math.sin(frame*0.02+offsets[i])*0.001;
-            if (p.array[i*3+1] > 0.5) {
-                p.array[i*3]   = (Math.random()-0.5)*0.15;
-                p.array[i*3+1] = 0;
-                p.array[i*3+2] = (Math.random()-0.5)*0.15;
-            }
-        }
-        p.needsUpdate = true;
-        mat.opacity = 0.2 + Math.sin(frame*0.05)*0.1;
-    }
-    animate();
-}
-
-// Load model
+// ── Load model ──
 const loader = new THREE.GLTFLoader();
 const draco = new THREE.DRACOLoader();
 draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
@@ -292,98 +268,163 @@ loader.load(modelSrc[modelId], gltf => {
         if (c.isMesh) {
             c.castShadow = true;
             c.receiveShadow = true;
+            // Stage 9: Improve material quality
+            if (c.material) {
+                if (c.material.roughness !== undefined) c.material.roughness = Math.max(0.3, c.material.roughness);
+                if (c.material.metalness !== undefined) c.material.metalness = Math.min(0.2, c.material.metalness);
+                c.material.needsUpdate = true;
+            }
         }
     });
 
-    // STEP 6: Set real-world scale
+    // Stage 4: Real size
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const targetSize = modelSizes[modelId];
-    const s = targetSize / maxDim;
+    const s = modelSizes[modelId] / Math.max(size.x, size.y, size.z);
     model.scale.setScalar(s);
     currentScale = s;
 
-    // STEP 5: Fix pivot to bottom — no floating
+    // Stage 5+7: Fix pivot to bottom, align with surface
     model.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(model);
     const center = box2.getCenter(new THREE.Vector3());
     model.position.set(-center.x, -box2.min.y, -center.z);
 
-    // STEP 10: Keep rotation straight
+    // Stage 10: Straight rotation
     model.rotation.set(0, 0, 0);
-
     model.visible = false;
     scene.add(model);
 
     document.getElementById('loading').style.display = 'none';
-
-    // STEP 1+2: Start surface detection simulation
     startSurfaceDetection();
 
-}, null, err => {
-    console.error(err);
-    document.getElementById('load-txt').innerText = 'Failed to load model';
+}, xhr => {
+    const pct = Math.round(xhr.loaded/xhr.total*100);
+    document.getElementById('load-txt').innerText = `Loading... ${pct}%`;
+}, err => {
+    document.getElementById('load-txt').innerText = 'Failed to load';
 });
 
-// Camera
+// ── Camera ──
 async function startCamera() {
+    const video = document.createElement('video');
+    video.autoplay = true; video.playsInline = true; video.muted = true;
+    video.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:1;';
+    document.body.appendChild(video);
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
         });
-        document.getElementById('cam').srcObject = stream;
+        video.srcObject = stream;
     } catch(e) {
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video:true });
-            document.getElementById('cam').srcObject = s;
+            video.srcObject = s;
         } catch(e2) { showToast('Camera error'); }
     }
 }
 startCamera();
 
-// Animate
+// ── Animate ──
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
 }
 animate();
 
-// STEP 1+2: Simulate surface detection
+// ── Stage 1: Surface detection with grid animation ──
 function startSurfaceDetection() {
-    document.getElementById('scan-msg').style.display = 'block';
-    // Simulate surface detection after 2 seconds of scanning
+    const gridCanvas = document.getElementById('grid-canvas');
+    const ctx = gridCanvas.getContext('2d');
+    gridCanvas.width = window.innerWidth;
+    gridCanvas.height = window.innerHeight;
+
+    let dots = [];
+    let detecting = true;
+    let dotTimer = 0;
+
+    // Create grid dots
+    for (let i = 0; i < 30; i++) {
+        dots.push({
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight * 0.4 + Math.random() * window.innerHeight * 0.4,
+            size: Math.random() * 3 + 1,
+            opacity: 0,
+            delay: Math.random() * 2000
+        });
+    }
+
+    function drawDots(timestamp) {
+        if (!detecting) return;
+        ctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+        dots.forEach(dot => {
+            if (timestamp > dot.delay) {
+                dot.opacity = Math.min(dot.opacity + 0.02, 0.7);
+            }
+            ctx.beginPath();
+            ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI*2);
+            ctx.fillStyle = `rgba(255,255,255,${dot.opacity})`;
+            ctx.fill();
+        });
+        requestAnimationFrame(drawDots);
+    }
+    requestAnimationFrame(drawDots);
+    gridCanvas.style.opacity = '1';
+
+    // Stage 2: After 2.5s show tap instruction
     setTimeout(() => {
+        detecting = false;
         surfaceDetected = true;
-        document.getElementById('scan-msg').style.display = 'none';
+        gridCanvas.style.opacity = '0';
+        document.getElementById('surface-msg').style.display = 'none';
         document.getElementById('reticle').style.display = 'flex';
-        showToast('✅ Surface detected! Tap to place');
-    }, 2000);
+        showToast('✅ Surface found! Tap to place food');
+    }, 2500);
 }
 
-// STEP 3+4: Place and LOCK model on tap
+// ── Stage 3+4: Place and LOCK ──
 function placeModel() {
     if (!model || !surfaceDetected || placed) return;
-
-    // STEP 4: Lock — placed = true, never update position again
-    placed = true;
+    placed = true; // Stage 4: locked forever
 
     model.visible = true;
     shadowPlane.visible = true;
     softShadow1.visible = true;
     softShadow2.visible = true;
 
-    // STEP 7: Position shadows exactly under model
-    shadowPlane.position.set(0, 0, 0);
-    softShadow1.position.set(0, 0.001, 0);
-    softShadow2.position.set(0, 0.002, 0);
+    // Stage 9: Steam
+    if (modelId !== 'drink') addSteam();
 
-    // STEP 9: Add steam
-    addSteam();
+    // Stage 11: Show ingredient labels
+    showLabels();
 
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'flex';
-    showToast('🍽️ Placed! Drag to rotate · Pinch to zoom');
+    showToast('🍽️ Tap · Drag to rotate · Pinch to zoom');
+}
+
+// Stage 11: Floating ingredient labels like in video
+function showLabels() {
+    const labels = foodLabels[modelId];
+    const positions = [
+        { left:'15%', top:'30%' },
+        { left:'65%', top:'25%' },
+        { left:'70%', top:'55%' }
+    ];
+    labels.forEach((text, i) => {
+        const el = document.getElementById(`label${i+1}`);
+        el.innerText = text;
+        el.style.left = positions[i].left;
+        el.style.top = positions[i].top;
+        el.style.display = 'block';
+        el.style.animation = `float${i} 3s ease-in-out infinite`;
+    });
+}
+
+function hideLabels() {
+    [1,2,3].forEach(i => {
+        document.getElementById(`label${i}`).style.display = 'none';
+    });
 }
 
 function resetPlace() {
@@ -396,22 +437,63 @@ function resetPlace() {
     if (steamParticles) { scene.remove(steamParticles); steamParticles = null; }
     if (steamAnimId) { cancelAnimationFrame(steamAnimId); steamAnimId = null; }
     rotY = 0;
+    hideLabels();
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'none';
+    document.getElementById('surface-msg').style.display = 'block';
     startSurfaceDetection();
+}
+
+// Stage 9: Steam
+function addSteam() {
+    const count = 20;
+    const pos = new Float32Array(count*3);
+    const speeds = new Float32Array(count);
+    const offsets = new Float32Array(count);
+    for (let i=0; i<count; i++) {
+        pos[i*3]   = (Math.random()-0.5)*0.12;
+        pos[i*3+1] = Math.random()*0.2;
+        pos[i*3+2] = (Math.random()-0.5)*0.12;
+        speeds[i]  = 0.003 + Math.random()*0.004;
+        offsets[i] = Math.random()*Math.PI*2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+        color:0xeeeeee, size:0.035, transparent:true,
+        opacity:0.3, depthWrite:false, blending:THREE.AdditiveBlending
+    });
+    steamParticles = new THREE.Points(geo, mat);
+    steamParticles.position.y = 0.1;
+    scene.add(steamParticles);
+    let frame = 0;
+    function anim() {
+        steamAnimId = requestAnimationFrame(anim);
+        if (!steamParticles) return;
+        frame++;
+        const p = steamParticles.geometry.attributes.position;
+        for (let i=0; i<count; i++) {
+            p.array[i*3+1] += speeds[i];
+            p.array[i*3]   += Math.sin(frame*0.02+offsets[i])*0.001;
+            if (p.array[i*3+1] > 0.45) {
+                p.array[i*3]   = (Math.random()-0.5)*0.12;
+                p.array[i*3+1] = 0;
+            }
+        }
+        p.needsUpdate = true;
+        mat.opacity = 0.2 + Math.sin(frame*0.04)*0.1;
+    }
+    anim();
 }
 
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.innerText = msg; t.style.display = 'block';
     clearTimeout(t._t);
-    t._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
+    t._t = setTimeout(() => t.style.display = 'none', 3000);
 }
 
-// STEP 3: Tap to place
-canvas.addEventListener('click', () => { if (!placed) placeModel(); });
-
-// STEP 12: Touch controls — rotate and zoom
+// ── Stage 10+12: Touch controls ──
 let lastX = null, lastPinch = null;
 
 canvas.addEventListener('touchstart', e => {
@@ -428,24 +510,17 @@ canvas.addEventListener('touchstart', e => {
 
 canvas.addEventListener('touchmove', e => {
     if (!model || !placed) return;
-
     if (e.touches.length === 1 && lastX !== null) {
-        // STEP 12: Drag to rotate — only Y axis (plate stays flat)
-        const dx = e.touches[0].clientX - lastX;
-        rotY += dx * 0.01;
+        rotY += (e.touches[0].clientX - lastX) * 0.012;
         model.rotation.y = rotY;
         lastX = e.touches[0].clientX;
     } else if (e.touches.length === 2 && lastPinch !== null) {
-        // STEP 12: Pinch to resize
         const nd = Math.hypot(
             e.touches[0].clientX-e.touches[1].clientX,
             e.touches[0].clientY-e.touches[1].clientY
         );
-        const delta = (nd - lastPinch) / lastPinch;
-        currentScale = Math.max(0.3, Math.min(5, currentScale * (1 + delta * 0.5)));
+        currentScale = Math.max(0.3, Math.min(5, currentScale*(1+(nd-lastPinch)/lastPinch*0.5)));
         model.scale.setScalar(currentScale);
-
-        // STEP 7: Scale shadow with model
         const s = currentScale / modelSizes[modelId];
         softShadow1.scale.setScalar(s);
         softShadow2.scale.setScalar(s);
@@ -454,25 +529,26 @@ canvas.addEventListener('touchmove', e => {
 }, { passive:true });
 
 canvas.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
+canvas.addEventListener('click', () => { if (!placed) placeModel(); });
 
-// Mouse controls for laptop testing
-canvas.addEventListener('mousedown', e => { if (placed) { lastX = e.clientX; } });
+let mouseDown = false, lastMX = null;
+canvas.addEventListener('mousedown', e => { if (placed) { mouseDown=true; lastMX=e.clientX; } });
 canvas.addEventListener('mousemove', e => {
-    if (!model || !placed || lastX === null) return;
-    rotY += (e.clientX - lastX) * 0.01;
+    if (!mouseDown || !model) return;
+    rotY += (e.clientX-lastMX)*0.012;
     model.rotation.y = rotY;
-    lastX = e.clientX;
+    lastMX = e.clientX;
 });
-canvas.addEventListener('mouseup', () => { lastX = null; });
+canvas.addEventListener('mouseup', () => mouseDown = false);
 canvas.addEventListener('wheel', e => {
     if (!model || !placed) return;
-    currentScale = Math.max(0.3, Math.min(5, currentScale - e.deltaY * 0.001));
+    currentScale = Math.max(0.3, Math.min(5, currentScale - e.deltaY*0.001));
     model.scale.setScalar(currentScale);
 });
 
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
 });
 </script>
