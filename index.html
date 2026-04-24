@@ -89,11 +89,12 @@
             <!-- Real food sizes + pushed down to touch surface -->
             <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
             <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.15 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.15 0" scale="0.20 0.20 0.20" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.15 0" scale="0.15 0.15 0.15" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.15 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.15 0" scale="0.25 0.25 0.25" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <!-- Pushed down -0.5 to stick on image surface -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.5 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.5 0" scale="0.20 0.20 0.20" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.5 0" scale="0.15 0.15 0.15" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.5 0" scale="0.30 0.30 0.30" rotation="-90 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.5 0" scale="0.25 0.25 0.25" rotation="-90 0 0" visible="true"></a-gltf-model>
 
         </a-entity>
     </a-scene>
@@ -241,7 +242,7 @@
 </div>
 
 <div id="cart-bar">
-    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">Rs. 0</div></div>
+    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">£0</div></div>
     <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
 </div>
 
@@ -257,9 +258,9 @@
     <div id="cart-items"></div>
     <div id="empty-cart"><div class="empty-icon">🛒</div><div>Your cart is empty</div><small>Add items from the menu</small></div>
     <div id="cart-summary">
-        <div class="summary-row"><span id="summary-subtotal">Rs. 0</span></div>
-        <div class="summary-row"><span id="summary-tax">Rs. 0</span></div>
-        <div class="summary-row total"><span id="summary-total">Rs. 0</span></div>
+        <div class="summary-row"><span id="summary-subtotal">£0</span></div>
+        <div class="summary-row"><span id="summary-tax">£0</span></div>
+        <div class="summary-row total"><span id="summary-total">£0</span></div>
         <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
     </div>
 </div>

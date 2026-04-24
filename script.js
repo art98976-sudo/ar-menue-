@@ -232,7 +232,7 @@ function onFound(){
         const el = document.getElementById(menuData[currentModel].arId);
         if(el){
             const s = menuData[currentModel].arScale;
-            el.setAttribute('position', '0 -0.15 0'); // push down to touch surface
+            el.setAttribute('position', '0 -0.5 0'); // push down to touch surface
             el.setAttribute('scale', `${s} ${s} ${s}`);
             el.setAttribute('rotation', '-90 0 0');
         }
@@ -281,7 +281,7 @@ function closeCart(){document.getElementById('cart-page').classList.remove('open
 function renderCartPage(){
     const c=document.getElementById('cart-items'),e=document.getElementById('empty-cart'),k=Object.keys(cart);
     if(!k.length){c.innerHTML='';e.style.display='flex';}
-    else{e.style.display='none';c.innerHTML=k.map(id=>{const m=menuData[id],q=cart[id].qty;return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">£${m.price} × ${q} = Rs.${m.price*q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`;}).join('');}
+    else{e.style.display='none';c.innerHTML=k.map(id=>{const m=menuData[id],q=cart[id].qty;return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">£${m.price} × ${q} = £${m.price*q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`;}).join('');}
     const s=getCartTotal(),tax=Math.round(s*0.05);
     document.getElementById('summary-subtotal').innerText='£'+s;document.getElementById('summary-tax').innerText='£'+tax;document.getElementById('summary-total').innerText='£'+(s+tax);
 }
