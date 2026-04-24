@@ -97,11 +97,25 @@
 
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.5 0" scale="0.8 0.8 0.8" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.5 0" scale="0.5 0.5 0.5" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.5 0" scale="0.4 0.4 0.4" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.5 0" scale="0.8 0.8 0.8" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.5 0" scale="0.7 0.7 0.7" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.5 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.5 0" scale="1.5 1.5 1.5" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.5 0" scale="1.2 1.2 1.2" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.5 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.5 0" scale="1.8 1.8 1.8" rotation="0 0 0" visible="true"></a-gltf-model>
+
+            <!-- Steam effect — animated rising smoke puffs -->
+            <a-sphere position="-0.05 0.25 0" radius="0.04" color="#ffffff" opacity="0.25"
+                animation="property:position; to:-0.05 0.6 0; loop:true; dur:2000; easing:easeInQuad"
+                animation__op="property:opacity; from:0.25; to:0; loop:true; dur:2000">
+            </a-sphere>
+            <a-sphere position="0.05 0.2 0.02" radius="0.035" color="#ffffff" opacity="0.2"
+                animation="property:position; to:0.08 0.55 0.02; loop:true; dur:2500; easing:easeInQuad"
+                animation__op="property:opacity; from:0.2; to:0; loop:true; dur:2500">
+            </a-sphere>
+            <a-sphere position="0 0.22 -0.03" radius="0.03" color="#ffffff" opacity="0.2"
+                animation="property:position; to:0 0.58 -0.03; loop:true; dur:1800; easing:easeInQuad"
+                animation__op="property:opacity; from:0.2; to:0; loop:true; dur:1800">
+            </a-sphere>
 
         </a-entity>
     </a-scene>
