@@ -206,11 +206,11 @@ const modelSrc = {
 
 // Step 8: Real world sizes in meters
 const modelSizes = {
-    pizza: 0.25,  // 25cm
-    burger: 0.12, // 12cm
-    drink: 0.09,  // 9cm
-    pasta: 0.22,  // 22cm
-    sushi: 0.18   // 18cm
+    pizza: 0.80,  // massive - fills screen
+    burger: 0.60,
+    drink: 0.50,
+    pasta: 0.75,
+    sushi: 0.70
 };
 
 const foodLabels = {
@@ -244,22 +244,24 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // Step 12: Environment reflection via tone mapping
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.1;
+// Slight reflection like in video
+renderer.physicallyCorrectLights = true;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.01, 100);
-camera.position.set(0, 0.6, 1.8);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 1.2, 0.8);
+camera.lookAt(0, 0, 0); // top down like video
 
 // ════════════════════════════════════════════════════
 // STEP 11: PREMIUM LIGHTING (environment matching)
 // ════════════════════════════════════════════════════
 // Hemisphere light simulates HDRI environment
-const hemi = new THREE.HemisphereLight(0xfff5e0, 0x443322, 1.0);
+const hemi = new THREE.HemisphereLight(0xfff8e8, 0x554433, 1.4); // brighter natural
 scene.add(hemi);
 
 // Key light - main sunlight style
-const keyLight = new THREE.DirectionalLight(0xFFD8B0, 1.8);
+const keyLight = new THREE.DirectionalLight(0xFFE4B5, 2.5); // stronger warmer
 keyLight.position.set(-3, 6, 4);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.width = 2048;
@@ -283,7 +285,7 @@ scene.add(rimLight);
 // ════════════════════════════════════════════════════
 const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
-    new THREE.ShadowMaterial({ opacity:0.4 })
+    new THREE.ShadowMaterial({ opacity:0.6 }) // stronger shadow like video
 );
 shadowPlane.rotation.x = -Math.PI/2;
 shadowPlane.receiveShadow = true;
@@ -292,8 +294,8 @@ scene.add(shadowPlane);
 
 // Soft contact shadow - double layer
 const outerShadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.22, 32),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.18, depthWrite:false })
+    new THREE.CircleGeometry(0.55, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.30, depthWrite:false })
 );
 outerShadow.rotation.x = -Math.PI/2;
 outerShadow.position.y = 0.001;
@@ -301,8 +303,8 @@ outerShadow.visible = false;
 scene.add(outerShadow);
 
 const innerShadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.13, 32),
-    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.32, depthWrite:false })
+    new THREE.CircleGeometry(0.35, 32),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.45, depthWrite:false })
 );
 innerShadow.rotation.x = -Math.PI/2;
 innerShadow.position.y = 0.002;
@@ -324,10 +326,13 @@ loader.load(modelSrc[modelId], gltf => {
         if (!c.isMesh) return;
         c.castShadow = true;
         c.receiveShadow = true;
-        // Step 13: Fix material quality
+        // Step 13: Photorealistic material quality
         if (c.material) {
-            if (c.material.roughness !== undefined) c.material.roughness = Math.max(0.3, c.material.roughness);
-            if (c.material.metalness !== undefined) c.material.metalness = Math.min(0.3, c.material.metalness);
+            // Plate/bowl - slight metallic reflection like steel bowl in video
+            if (c.material.roughness !== undefined) c.material.roughness = Math.max(0.2, c.material.roughness);
+            if (c.material.metalness !== undefined) c.material.metalness = Math.min(0.4, c.material.metalness);
+            // Boost color saturation slightly - food looks more vibrant
+            if (c.material.color) c.material.color.multiplyScalar(1.1);
             c.material.needsUpdate = true;
         }
     });
