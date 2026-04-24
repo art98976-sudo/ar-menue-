@@ -286,6 +286,24 @@
     <div class="toast-sub" id="toast-sub"></div>
 </div>
 
+<script>
+// Ground fix component - places model bottom exactly at Y=0
+AFRAME.registerComponent('ground-fix', {
+    init: function() {
+        this.el.addEventListener('model-loaded', () => {
+            setTimeout(() => {
+                const mesh = this.el.getObject3D('mesh');
+                if (!mesh) return;
+                mesh.updateMatrixWorld(true);
+                const box = new THREE.Box3().setFromObject(mesh);
+                // Move model so bottom touches Y=0
+                this.el.object3D.position.y = -box.min.y;
+                console.log('Ground fix:', this.el.id, 'minY was:', box.min.y);
+            }, 300);
+        });
+    }
+});
+</script>
 <script src="script.js"></script>
 </body>
 </html>
