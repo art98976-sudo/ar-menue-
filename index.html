@@ -24,7 +24,7 @@
 
 <button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
 
-<div id="ar-topbar">
+<div id="ar-topbar" style="display:none!important">
     <div id="ar-food-name">Pizza</div>
     <div id="ar-food-price">£8.99</div>
 </div>
@@ -107,7 +107,7 @@
     </a-scene>
 
     <!-- Scanning Guide - no text -->
-    <div id="scan-overlay">
+    <div id="scan-overlay" style="display:none!important">
         <div id="scan-box">
             <div class="scan-corner tl"></div>
             <div class="scan-corner tr"></div>
@@ -116,7 +116,7 @@
             <div id="scan-line"></div>
         </div>
     </div>
-    <div id="ar-detected">
+    <div id="ar-detected" style="display:none!important">
         <div id="ar-detected-icon">✅</div>
         <div id="ar-detected-text">Image Detected!</div>
     </div>
@@ -130,7 +130,7 @@
 
 <!-- BOTTOM BAR -->
 <div id="ar-bottombar">
-    <div id="ar-hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
     <div id="ar-detail-card">
         <div id="ar-detail-top">
             <div id="ar-detail-name">Margherita Pizza</div>
