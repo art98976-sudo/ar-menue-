@@ -90,12 +90,19 @@
             <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
             <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
             <!-- Pushed down -0.5 to stick on image surface -->
-            <!-- ground-fix component auto-calculates exact Y to touch surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0.30 0.30 0.30" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0.20 0.20 0.20" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0.15 0.15 0.15" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0.30 0.30 0.30" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0.25 0.25 0.25" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <!-- STEP 5: Soft shadow directly under food -->
+            <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0.1"
+                material="color:#000; opacity:0.3; transparent:true; shader:flat">
+            </a-circle>
+
+            <!-- STEP 1: ground-fix puts bottom at Y=0 exactly -->
+            <!-- STEP 2: Real sizes - pizza=0.28m burger=0.15m drink=0.10m -->
+            <!-- STEP 3+4: Z=0.1 slightly in front, Y auto-fixed by component -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0.1" scale="0.28 0.28 0.28" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0.1" scale="0.15 0.15 0.15" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0.1" scale="0.10 0.10 0.10" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0.1" scale="0.28 0.28 0.28" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0.1" scale="0.22 0.22 0.22" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
 
         </a-entity>
     </a-scene>
@@ -287,19 +294,22 @@
 </div>
 
 <script>
-// Ground fix component - places model bottom exactly at Y=0
+// Ground fix — places model bottom exactly at Y=0 (surface level)
 AFRAME.registerComponent('ground-fix', {
     init: function() {
         this.el.addEventListener('model-loaded', () => {
             setTimeout(() => {
                 const mesh = this.el.getObject3D('mesh');
                 if (!mesh) return;
+                // Force full matrix update
                 mesh.updateMatrixWorld(true);
+                // Get world bounding box
                 const box = new THREE.Box3().setFromObject(mesh);
-                // Move model so bottom touches Y=0
-                this.el.object3D.position.y = -box.min.y;
-                console.log('Ground fix:', this.el.id, 'minY was:', box.min.y);
-            }, 300);
+                const minY = box.min.y;
+                // Shift model so its bottom is at Y=0
+                this.el.object3D.position.y -= minY;
+                console.log('Ground fix applied:', this.el.id, '| shifted by:', -minY);
+            }, 500);
         });
     }
 });

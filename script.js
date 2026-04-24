@@ -1,9 +1,9 @@
 const menuData = {
-    pizza:  { icon:'🍕', name:'Margherita Pizza', price:8.99, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.30, size:'12 inch', serves:'2-3 people', weight:'400g' },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:8.99, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:0.28, size:'12 inch', serves:'2-3 people', weight:'400g' },
     burger: { icon:'🍔', name:'Classic Burger',   price:11.99, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:0.15, size:'5 inch',  serves:'1 person',   weight:'250g' },
-    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:4.99,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.15, size:'350 ml',   serves:'1 person',  weight:'350g' },
-    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:9.99, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:0.30, size:'300g',     serves:'1 person',  weight:'300g' },
-    sushi:  { icon:'🍣', name:'Sushi Platter',    price:13.99, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:0.25, size:'5 pieces',  serves:'1 person',  weight:'200g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:4.99,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:0.10, size:'350 ml',   serves:'1 person',  weight:'350g' },
+    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:9.99, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:0.28, size:'300g',     serves:'1 person',  weight:'300g' },
+    sushi:  { icon:'🍣', name:'Sushi Platter',    price:13.99, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:0.22, size:'5 pieces',  serves:'1 person',  weight:'200g' },
 };
 
 let cart={}, currentModel=null, arQty=1, viewerMode=null;
@@ -326,3 +326,32 @@ document.addEventListener('touchmove',e=>{
     }
 },{passive:true});
 document.addEventListener('touchend',()=>{arLastX=null;arLastY=null;arLastPinch=null;});
+
+// ── Height adjustment for AR model ──
+let arYOffset = -0.5;
+
+function adjustHeight(delta) {
+    arYOffset += delta;
+    if (!currentModel) return;
+    const el = document.getElementById(menuData[currentModel].arId);
+    if (el) {
+        el.setAttribute('position', `0 ${arYOffset.toFixed(2)} 0`);
+        console.log('Y offset:', arYOffset.toFixed(2));
+    }
+}
+
+// Show height controls when AR opens
+const _origOpenAR = openAR;
+openAR = function(id) {
+    _origOpenAR(id);
+    arYOffset = -0.5;
+    setTimeout(() => {
+        document.getElementById('height-controls').style.display = 'flex';
+    }, 500);
+};
+
+const _origCloseViewer = closeViewer;
+closeViewer = function() {
+    _origCloseViewer();
+    document.getElementById('height-controls').style.display = 'none';
+};
