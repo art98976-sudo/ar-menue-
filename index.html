@@ -97,12 +97,11 @@
 
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
-            <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1.5 1.5 1.5" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1.2 1.2 1.2" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="1.8 1.8 1.8" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.5 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.5 0" scale="1.5 1.5 1.5" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.5 0" scale="1.2 1.2 1.2" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -0.5 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -0.5 0" scale="1.8 1.8 1.8" rotation="0 0 0" visible="true"></a-gltf-model>
 
             <!-- Steam effect — animated rising smoke puffs -->
             <a-sphere position="-0.05 0.25 0" radius="0.04" color="#ffffff" opacity="0.25"
@@ -137,7 +136,7 @@
     </div>
 
     <!-- Height adjustment buttons -->
-    <div id="height-controls" style="display:none!important">
+    <div id="height-controls">
         <button onclick="adjustHeight(0.05)">⬆️ Up</button>
         <button onclick="adjustHeight(-0.05)">⬇️ Down</button>
     </div>
@@ -197,7 +196,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">£8.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=pizza'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
@@ -213,7 +212,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">£11.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=burger'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
@@ -229,7 +228,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">£4.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=drink'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>
@@ -245,7 +244,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 480 kcal</div><div class="card-price">£9.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('pasta')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=pasta'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('pasta')">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
                 </div>
             </div>
@@ -261,7 +260,7 @@
                 <div class="card-meta"><div class="card-cal">🔥 310 kcal</div><div class="card-price">£13.99</div></div>
                 <div class="card-btns">
                     <button class="card-3d-btn" onclick="open3D('sushi')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="window.location.href='ar-place.html?model=sushi'">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('sushi')">📷 AR</button>
                     <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
                 </div>
             </div>
@@ -308,25 +307,22 @@
 </div>
 
 <script>
-// Ground fix — places model bottom exactly at Y=0 (image surface)
+// Ground fix — places model bottom exactly at Y=0 (surface level)
 AFRAME.registerComponent('ground-fix', {
     init: function() {
         this.el.addEventListener('model-loaded', () => {
-            // Try multiple times to ensure model is ready
-            [300, 600, 1000].forEach(delay => {
-                setTimeout(() => {
-                    const mesh = this.el.getObject3D('mesh');
-                    if (!mesh) return;
-                    mesh.updateMatrixWorld(true);
-                    const box = new THREE.Box3().setFromObject(mesh);
-                    if (box.isEmpty()) return;
-                    const minY = box.min.y;
-                    if (Math.abs(minY) > 0.001) {
-                        this.el.object3D.position.y -= minY;
-                        console.log('Ground fix:', this.el.id, 'shifted by:', (-minY).toFixed(3));
-                    }
-                }, delay);
-            });
+            setTimeout(() => {
+                const mesh = this.el.getObject3D('mesh');
+                if (!mesh) return;
+                // Force full matrix update
+                mesh.updateMatrixWorld(true);
+                // Get world bounding box
+                const box = new THREE.Box3().setFromObject(mesh);
+                const minY = box.min.y;
+                // Shift model so its bottom is at Y=0
+                this.el.object3D.position.y -= minY;
+                console.log('Ground fix applied:', this.el.id, '| shifted by:', -minY);
+            }, 500);
         });
     }
 });
