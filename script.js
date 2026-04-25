@@ -16,11 +16,11 @@ const AR_TEMPLATE = {
 
     // Fixed position — Y pushed down to touch image surface
     position: {
-        pizza:  { x: 0, y: -1.5, z: 0 },
-        burger: { x: 0, y: -1.5, z: 0 },
-        drink:  { x: 0, y: -1.5, z: 0 },
-        pasta:  { x: 0, y: -1.5, z: 0 },
-        sushi:  { x: 0, y: -1.5, z: 0 },
+        pizza:  { x: 0, y: -0.05, z: 0 },  // height=0.0534m * scale2.0 / 2 = 0.0534
+        burger: { x: 0, y: -0.05, z: 0 },
+        drink:  { x: 0, y: -0.05, z: 0 },
+        pasta:  { x: 0, y: -0.05, z: 0 },
+        sushi:  { x: 0, y: -0.05, z: 0 },
     },
 
     // Fixed rotation — perfectly flat on table
