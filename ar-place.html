@@ -369,9 +369,21 @@ loader.load(modelSrc[modelId], gltf => {
     // Loading progress
 }, err => console.error('Model load error:', err));
 
+// ANCHOR SYSTEM - locked world position
+let anchorPosition = null;
+
 // Render loop - Step 17: smooth 60fps
 function renderLoop() {
     requestAnimationFrame(renderLoop);
+
+    // ANCHOR LOCK — once placed, model NEVER moves
+    // Camera movement does NOT affect model position
+    if (placed && model && anchorPosition) {
+        model.position.x = anchorPosition.x;
+        model.position.y = anchorPosition.y;
+        model.position.z = anchorPosition.z;
+    }
+
     renderer.render(scene, camera);
 }
 renderLoop();
@@ -406,6 +418,14 @@ function placeFood() {
 
     // Step 6: Create anchor — lock position forever
     placed = true;
+
+    // Save exact world position as anchor point
+    // Model will NEVER move from this point regardless of camera
+    anchorPosition = {
+        x: model.position.x,
+        y: model.position.y,
+        z: model.position.z
+    };
 
     // Step 18: Smooth fade in animation
     model.visible = true;
@@ -454,6 +474,7 @@ function fadeInModel() {
 function resetAR() {
     placed = false;
     surfaceReady = false;
+    anchorPosition = null; // clear anchor
     if (model) { model.visible = false; model.rotation.y = 0; }
     shadowPlane.visible = false;
     outerShadow.visible = false;

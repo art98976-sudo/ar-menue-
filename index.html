@@ -66,7 +66,7 @@
         <a-light type="directional" color="#fff0e8" intensity="0.6" position="0 4 -6"></a-light>
         <a-light type="point" color="#ffd8a0" intensity="0.5" position="0 5 1" distance="10"></a-light>
 
-        <a-entity mindar-image-target="targetIndex: 0">
+        <a-entity mindar-image-target="targetIndex: 0" ar-anchor>
 
             <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
             <!-- Outer soft shadow -->
@@ -308,6 +308,37 @@
 </div>
 
 <script>
+// ANCHOR SYSTEM — locks model position after first detection
+// Camera movement does NOT affect it — no shaking, no drifting
+AFRAME.registerComponent('ar-anchor', {
+    init: function() {
+        let anchored = false;
+        let anchorPos = null;
+
+        this.el.sceneEl.addEventListener('targetFound', () => {
+            if (!anchored) {
+                // First detection — save exact position as anchor
+                anchorPos = {
+                    x: this.el.object3D.position.x,
+                    y: this.el.object3D.position.y,
+                    z: this.el.object3D.position.z
+                };
+                anchored = true;
+            }
+        });
+
+        this.tick = function() {
+            // Once anchored — lock position every frame
+            // Prevents any drift or shaking
+            if (anchored && anchorPos) {
+                this.el.object3D.position.x = anchorPos.x;
+                this.el.object3D.position.z = anchorPos.z;
+                // Y stays at our set value
+            }
+        };
+    }
+});
+
 // Ground fix — places model bottom exactly at Y=0 (image surface)
 AFRAME.registerComponent('ground-fix', {
     init: function() {
