@@ -1,3 +1,79 @@
+
+// ════════════════════════════════════════════════════════════
+// AR SCENE TEMPLATE — Every dish has fixed rules
+// Like AR Code app — consistent across all food items
+// ════════════════════════════════════════════════════════════
+const AR_TEMPLATE = {
+
+    // Fixed scale rules — real world sizes
+    scale: {
+        pizza:  { x: 2.0, y: 2.0, z: 2.0 },  // ~28cm plate
+        burger: { x: 1.5, y: 1.5, z: 1.5 },  // ~15cm plate
+        drink:  { x: 1.2, y: 1.2, z: 1.2 },  // ~10cm glass
+        pasta:  { x: 2.0, y: 2.0, z: 2.0 },  // ~25cm bowl
+        sushi:  { x: 1.8, y: 1.8, z: 1.8 },  // ~20cm platter
+    },
+
+    // Fixed position — Y pushed down to touch image surface
+    position: {
+        pizza:  { x: 0, y: -1.0, z: 0 },
+        burger: { x: 0, y: -1.0, z: 0 },
+        drink:  { x: 0, y: -1.0, z: 0 },
+        pasta:  { x: 0, y: -1.0, z: 0 },
+        sushi:  { x: 0, y: -1.0, z: 0 },
+    },
+
+    // Fixed rotation — flat on table, facing user
+    rotation: {
+        pizza:  { x: 0, y: 0, z: 0 },
+        burger: { x: 0, y: 0, z: 0 },
+        drink:  { x: 0, y: 0, z: 0 },
+        pasta:  { x: 0, y: 0, z: 0 },
+        sushi:  { x: 0, y: 0, z: 0 },
+    },
+
+    // Fixed shadow — same for all dishes
+    shadow: {
+        outerRadius: 0.30,
+        innerRadius: 0.20,
+        outerOpacity: 0.15,
+        innerOpacity: 0.35,
+    },
+
+    // Fixed lighting behavior
+    lighting: {
+        ambient: { color: '#fff5e0', intensity: 1.0 },
+        key:     { color: '#FFD8B0', intensity: 1.6, position: '-3 6 4' },
+        fill:    { color: '#ffe8d5', intensity: 0.45, position: '4 3 -2' },
+        rim:     { color: '#fff0e8', intensity: 0.6,  position: '0 4 -6' },
+    },
+};
+
+// Apply AR template to a model
+function applyARTemplate(modelId) {
+    const el = document.getElementById(menuData[modelId].arId);
+    if (!el) return;
+
+    const s = AR_TEMPLATE.scale[modelId];
+    const p = AR_TEMPLATE.position[modelId];
+    const r = AR_TEMPLATE.rotation[modelId];
+
+    el.setAttribute('scale',    `${s.x} ${s.y} ${s.z}`);
+    el.setAttribute('position', `${p.x} ${p.y} ${p.z}`);
+    el.setAttribute('rotation', `${r.x} ${r.y} ${r.z}`);
+    el.setAttribute('visible',  'true');
+}
+
+// Hide all AR models using template
+function hideAllARModels() {
+    Object.keys(AR_TEMPLATE.scale).forEach(id => {
+        const arId = menuData[id] ? menuData[id].arId : null;
+        if (!arId) return;
+        const el = document.getElementById(arId);
+        if (el) el.setAttribute('scale', '0 0 0');
+    });
+}
+
 const menuData = {
     pizza:  { icon:'🍕', name:'Margherita Pizza', price:8.99, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:2.0, size:'12 inch', serves:'2-3 people', weight:'400g' },
     burger: { icon:'🍔', name:'Classic Burger',   price:11.99, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:1.5, size:'5 inch',  serves:'1 person',   weight:'250g' },
@@ -151,6 +227,7 @@ function loadGLBModel(path){
         const scale=2.8/Math.max(size.x,size.y,size.z);
         loadedModel.scale.setScalar(scale);loadedModel.position.sub(center.multiplyScalar(scale));
         threeScene.add(loadedModel);
+        addSteamEffect(); // add steam rising from hot food
         setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
         threeCamera.position.set(0,0.5,3);threeControls&&threeControls.reset();threeControls&&(threeControls.autoRotate=true);
     },function(xhr){
@@ -247,7 +324,9 @@ function fixVideo(){
 setInterval(()=>{if(document.getElementById('viewer-ar').style.display==='block')fixVideo();},1000);
 
 function closeViewer(){
-    currentModel=null;viewerMode=null;stopRendering();
+    currentModel=null;viewerMode=null;
+    removeSteamEffect();
+    stopRendering();
     const t=document.querySelector('[mindar-image-target]');
     if(t){t.removeEventListener('targetFound',onFound);t.removeEventListener('targetLost',onLost);}
     document.getElementById('viewer-3d').style.display='none';document.getElementById('viewer-ar').style.display='none';
@@ -355,3 +434,67 @@ closeViewer = function() {
     _origCloseViewer();
     document.getElementById('height-controls').style.display = 'none';
 };
+
+// ── Steam Effect for 3D Viewer ──
+let steamParticles = null, steamAnimId = null;
+
+function addSteamEffect() {
+    const THREE = getThree();
+    if (!THREE || !threeScene || currentModel === 'drink') return;
+    removeSteamEffect();
+
+    const count = 25;
+    const positions = new Float32Array(count * 3);
+    const speeds = new Float32Array(count);
+    const offsets = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+        positions[i*3]   = (Math.random() - 0.5) * 0.8;
+        positions[i*3+1] = Math.random() * 1.5;
+        positions[i*3+2] = (Math.random() - 0.5) * 0.8;
+        speeds[i]  = 0.004 + Math.random() * 0.008;
+        offsets[i] = Math.random() * Math.PI * 2;
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const mat = new THREE.PointsMaterial({
+        color: 0xdddddd,
+        size: 0.12,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    steamParticles = new THREE.Points(geo, mat);
+    steamParticles.position.y = 0.8;
+    threeScene.add(steamParticles);
+
+    let frame = 0;
+    function animateSteam() {
+        steamAnimId = requestAnimationFrame(animateSteam);
+        if (!steamParticles) return;
+        frame++;
+        const pos = steamParticles.geometry.attributes.position;
+        for (let i = 0; i < count; i++) {
+            pos.array[i*3+1] += speeds[i];
+            pos.array[i*3]   += Math.sin(frame * 0.02 + offsets[i]) * 0.002;
+            pos.array[i*3+2] += Math.cos(frame * 0.02 + offsets[i]) * 0.002;
+            if (pos.array[i*3+1] > 2.5) {
+                pos.array[i*3]   = (Math.random() - 0.5) * 0.8;
+                pos.array[i*3+1] = 0;
+                pos.array[i*3+2] = (Math.random() - 0.5) * 0.8;
+            }
+        }
+        pos.needsUpdate = true;
+        mat.opacity = 0.25 + Math.sin(frame * 0.05) * 0.1;
+    }
+    animateSteam();
+}
+
+function removeSteamEffect() {
+    if (steamParticles) { threeScene && threeScene.remove(steamParticles); steamParticles = null; }
+    if (steamAnimId) { cancelAnimationFrame(steamAnimId); steamAnimId = null; }
+}
