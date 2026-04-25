@@ -113,16 +113,7 @@
             backdrop-filter:blur(8px);
         }
 
-        /* Floating ingredient labels */
-        .food-label {
-            position:fixed; z-index:99;
-            color:white; font-size:12px; font-weight:500;
-            background:rgba(0,0,0,0.6);
-            padding:5px 12px; border-radius:12px;
-            pointer-events:none; display:none;
-            border:1px solid rgba(255,255,255,0.2);
-            backdrop-filter:blur(6px);
-        }
+
 
         /* Step 18: Glow effect */
         #glow {
@@ -161,9 +152,9 @@
 </div>
 
 <!-- Ingredient labels -->
-<div class="food-label" id="label1"></div>
-<div class="food-label" id="label2"></div>
-<div class="food-label" id="label3"></div>
+
+
+
 
 <!-- Step 16: Controls -->
 <div id="controls">
@@ -442,10 +433,10 @@ function placeFood() {
     setTimeout(() => document.getElementById('glow').style.display = 'none', 3000);
 
     // Step 18: Add steam
-    if (modelId !== 'drink') addSteam();
+    // Steam removed
 
     // Show ingredient labels
-    showLabels();
+    // Labels removed
 
     document.getElementById('reticle').style.display = 'none';
     document.getElementById('controls').style.display = 'flex';
@@ -565,6 +556,7 @@ function showToast(msg) {
 let lastX = null, lastPinch = null;
 
 canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
     if (!placed) { placeFood(); return; }
     if (e.touches.length === 1) { lastX = e.touches[0].clientX; lastPinch = null; }
     else if (e.touches.length === 2) {
@@ -574,14 +566,14 @@ canvas.addEventListener('touchstart', e => {
         );
         lastX = null;
     }
-}, { passive:true });
+}, { passive:false });
 
 canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
     if (!model || !placed) return;
     if (e.touches.length === 1 && lastX !== null) {
-        // Step 14: Smooth rotation
         const dx = e.touches[0].clientX - lastX;
-        rotY += dx * 0.012;
+        rotY += dx * 0.015;
         model.rotation.y = rotY;
         lastX = e.touches[0].clientX;
     } else if (e.touches.length === 2 && lastPinch !== null) {
@@ -590,15 +582,11 @@ canvas.addEventListener('touchmove', e => {
             e.touches[0].clientY - e.touches[1].clientY
         );
         const delta = (nd - lastPinch) / lastPinch;
-        currentScale = Math.max(0.3, Math.min(5, currentScale * (1 + delta * 0.5)));
+        currentScale = Math.max(0.3, Math.min(8, currentScale * (1 + delta * 0.6)));
         model.scale.setScalar(currentScale);
-        // Scale shadow with model
-        const s = currentScale / modelSizes[modelId];
-        outerShadow.scale.setScalar(s);
-        innerShadow.scale.setScalar(s);
         lastPinch = nd;
     }
-}, { passive:true });
+}, { passive:false });
 
 canvas.addEventListener('touchend', () => { lastX = null; lastPinch = null; });
 canvas.addEventListener('click', () => { if (!placed) placeFood(); });
