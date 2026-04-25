@@ -16,20 +16,20 @@ const AR_TEMPLATE = {
 
     // Fixed position — Y pushed down to touch image surface
     position: {
-        pizza:  { x: 0, y: -1.0, z: 0 },
-        burger: { x: 0, y: -1.0, z: 0 },
-        drink:  { x: 0, y: -1.0, z: 0 },
-        pasta:  { x: 0, y: -1.0, z: 0 },
-        sushi:  { x: 0, y: -1.0, z: 0 },
+        pizza:  { x: 0, y: -0.5, z: 0 },
+        burger: { x: 0, y: -0.5, z: 0 },
+        drink:  { x: 0, y: -0.5, z: 0 },
+        pasta:  { x: 0, y: -0.5, z: 0 },
+        sushi:  { x: 0, y: -0.5, z: 0 },
     },
 
-    // Fixed rotation — flat on table, facing user
+    // Fixed rotation — perfectly flat on table
     rotation: {
-        pizza:  { x: 0, y: 0, z: 0 },
-        burger: { x: 0, y: 0, z: 0 },
-        drink:  { x: 0, y: 0, z: 0 },
-        pasta:  { x: 0, y: 0, z: 0 },
-        sushi:  { x: 0, y: 0, z: 0 },
+        pizza:  { x: -90, y: 0, z: 0 },
+        burger: { x: -90, y: 0, z: 0 },
+        drink:  { x: -90, y: 0, z: 0 },
+        pasta:  { x: -90, y: 0, z: 0 },
+        sushi:  { x: -90, y: 0, z: 0 },
     },
 
     // Fixed shadow — same for all dishes
