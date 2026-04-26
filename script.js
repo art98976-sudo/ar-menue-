@@ -394,13 +394,15 @@ document.addEventListener('touchmove',e=>{
     if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
     const el=getArEl();if(!el)return;
     if(e.touches.length===1&&arLastX!==null){
-        arRotY+=e.touches[0].clientX-arLastX;
-        // Step 5: Keep flat -90, only spin Y axis
-        el.setAttribute('rotation',`-90 ${arRotY} 0`);
+        const dx=e.touches[0].clientX-arLastX;
+        const dy=e.touches[0].clientY-arLastY;
+        arRotY+=dx; // left/right rotation
+        arRotX+=dy; // up/down rotation
+        el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
         arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
     }else if(e.touches.length===2&&arLastPinch!==null){
         const nd=pd(e.touches);arScale=Math.max(0.05,Math.min(4,arScale+(nd-arLastPinch)*0.008));
-        arScale=Math.max(0.05,Math.min(arMaxScale,arScale+(nd-arLastPinch)*0.015)); // faster zoom
+        arScale=Math.max(0.05,Math.min(arMaxScale,arScale+(nd-arLastPinch)*0.015));
         el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);arLastPinch=nd;
     }
 },{passive:true});
