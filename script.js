@@ -16,11 +16,11 @@ const AR_TEMPLATE = {
 
     // Fixed position — Y pushed down to touch image surface
     position: {
-        pizza:  { x: 0, y: -0.7, z: 0 },
-        burger: { x: 0, y: -0.7, z: 0 },
-        drink:  { x: 0, y: -0.7, z: 0 },
-        pasta:  { x: 0, y: -0.7, z: 0 },
-        sushi:  { x: 0, y: -0.7, z: 0 },
+        pizza:  { x: 0, y: -0.6, z: 0 },
+        burger: { x: 0, y: -0.6, z: 0 },
+        drink:  { x: 0, y: -0.6, z: 0 },
+        pasta:  { x: 0, y: -0.6, z: 0 },
+        sushi:  { x: 0, y: -0.6, z: 0 },
     },
 
     // Fixed rotation — 0 0 0 since model is already flat in Blender
