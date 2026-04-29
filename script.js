@@ -8,7 +8,7 @@ const AR_TEMPLATE = {
     // Fixed scale rules — real world sizes
     scale: {
         pizza:  { x: 2.0, y: 2.0, z: 2.0 },  // ~28cm plate
-        burger: { x: 1.5, y: 1.5, z: 1.5 },  // ~15cm plate
+        burger: { x: 2.0, y: 2.0, z: 2.0 },  // increased to match pizza
         drink:  { x: 1.2, y: 1.2, z: 1.2 },  // ~10cm glass
         pasta:  { x: 2.0, y: 2.0, z: 2.0 },  // ~25cm bowl
         sushi:  { x: 1.8, y: 1.8, z: 1.8 },  // ~20cm platter
