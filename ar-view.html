@@ -188,8 +188,6 @@
             color:rgba(255,255,255,0.8); font-size:12px; text-align:center;
         }
 
-
-
         #scan-again-btn {
             background:rgba(212,165,116,0.9); color:white; border:none;
             padding:10px 24px; border-radius:20px;
@@ -237,7 +235,7 @@
     </a-scene>
 </div>
 
-<!-- Scan overlay - minimal, no text -->
+<!-- Scan overlay -->
 <div id="scan-overlay">
     <div id="scan-box">
         <div class="scan-corner tl"></div>
@@ -263,20 +261,22 @@
     <div>Image Detected!</div>
 </div>
 
-<!-- Free placement controls - empty -->
+<!-- Free placement controls -->
 <div id="free-controls"></div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const modelId = params.get('model') || 'pizza';
 const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤' };
-const modelScales = { pizza:2.5, burger:0.4, drink:1.2 };
+
+// ── BURGER SIZE INCREASED FROM 0.4 TO 2.0 ──
+const modelScales = { pizza:2.5, burger:2.0, drink:1.2 };
+
 const modelIds = { pizza:'ar-pizza', burger:'ar-burger', drink:'ar-drink' };
 
 document.getElementById('food-title').innerText = modelNames[modelId];
 
 let arScale = modelScales[modelId];
-let sizePercent = 100;
 let rotY = 0, rotX = 0;
 let detected = false;
 
@@ -291,13 +291,13 @@ function fixVideo() {
 }
 setInterval(() => { if(document.getElementById('viewer-ar').style.display !== 'none') fixVideo(); }, 500);
 
-// Hide other models show only selected
+// Hide all models first
 Object.keys(modelIds).forEach(key => {
     const el = document.getElementById(modelIds[key]);
     if (el) el.setAttribute('scale', '0 0 0');
 });
 
-// Set correct model scale
+// Set correct model scale after load
 setTimeout(() => {
     const el = document.getElementById(modelIds[modelId]);
     if (el) {
@@ -306,7 +306,7 @@ setTimeout(() => {
     }
 }, 500);
 
-// MindAR detection
+// MindAR detection events
 setTimeout(() => {
     const target = document.querySelector('[mindar-image-target]');
     if (target) {
@@ -321,24 +321,16 @@ function onDetected() {
     if (detected) return;
     detected = true;
 
-    // Hide scan overlay
     document.getElementById('scan-overlay').classList.add('hidden');
 
-    // Hide detected popup
     const det = document.getElementById('ar-detected');
     det.style.display = 'flex';
     setTimeout(() => { det.style.display = 'none'; }, 1500);
 
-    // Show reticle - tap to place
     document.getElementById('reticle').style.display = 'flex';
 
-    // Hide model until tapped
     const el = document.getElementById(modelIds[modelId]);
     if (el) el.setAttribute('scale', '0 0 0');
-
-    // No vibration
-
-
 }
 
 function onLost() {
@@ -353,10 +345,8 @@ function tapToPlace() {
     if (!detected || placed) return;
     placed = true;
 
-    // Hide reticle
     document.getElementById('reticle').style.display = 'none';
 
-    // Show model at correct scale
     const el = document.getElementById(modelIds[modelId]);
     if (el) {
         el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
@@ -364,16 +354,14 @@ function tapToPlace() {
         el.setAttribute('rotation', '-90 0 0');
     }
 
-    // Show free controls
     document.getElementById('free-controls').style.display = 'flex';
 
-    // Show confirmation
     const confirm = document.getElementById('place-confirm');
     confirm.style.display = 'block';
     setTimeout(() => { confirm.style.display = 'none'; }, 2000);
 }
 
-// Listen for tap on screen to place
+// Tap on screen to place
 document.addEventListener('click', function(e) {
     if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
     if (detected && !placed) tapToPlace();
@@ -385,25 +373,25 @@ function scanAgain() {
     document.getElementById('scan-overlay').classList.remove('hidden');
     document.getElementById('free-controls').style.display = 'none';
     document.getElementById('reticle').style.display = 'none';
-    // Reset model
     const el = document.getElementById(modelIds[modelId]);
     if (el) el.setAttribute('scale', '0 0 0');
 }
 
-
-
-// Touch controls - rotate and zoom
+// Touch controls — rotate and zoom
 let lastX = null, lastY = null, lastPinch = null;
 
 document.addEventListener('touchstart', e => {
     if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-    if (!placed) { tapToPlace(); return; } // tap to place
+    if (!placed) { tapToPlace(); return; }
     if (e.touches.length === 1) {
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
         lastPinch = null;
     } else if (e.touches.length === 2) {
-        lastPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        lastPinch = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
         lastX = null; lastY = null;
     }
 }, { passive: true });
@@ -414,28 +402,28 @@ document.addEventListener('touchmove', e => {
     if (!el) return;
 
     if (e.touches.length === 1 && lastX !== null) {
-        // Only Y rotation (spin around) - keeps food on ground
         const dx = e.touches[0].clientX - lastX;
         rotY += dx * 1.0;
-        // Lock position to ground - only spin horizontally
         el.setAttribute('rotation', `-90 ${rotY} 0`);
-        // Keep position locked on ground level
         el.setAttribute('position', '0 0 0');
         lastX = e.touches[0].clientX;
         lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && lastPinch !== null) {
-        // Pinch to zoom
-        const nd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const nd = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
         const delta = (nd - lastPinch) / lastPinch;
         arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
         el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        // Keep position locked on ground
         el.setAttribute('position', '0 0 0');
         lastPinch = nd;
     }
 }, { passive: true });
 
-document.addEventListener('touchend', () => { lastX = null; lastY = null; lastPinch = null; });
+document.addEventListener('touchend', () => {
+    lastX = null; lastY = null; lastPinch = null;
+});
 </script>
 </body>
 </html>
