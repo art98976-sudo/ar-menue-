@@ -98,7 +98,7 @@ function initThreeJS(){
     threeRenderer.setClearColor(0x0f0f0f,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure = 0.9; // avoid overexposure
+    threeRenderer.toneMappingExposure = 1.15; // brighter, food clearly visible
     threeScene=new THREE.Scene();
 
     // ── PREMIUM RESTAURANT BACKGROUND ──
@@ -134,40 +134,38 @@ function initThreeJS(){
     // Simulated using hemisphere light (warm top, cool bottom)
     // Creates natural reflections, removes plastic toy look
     const hemiLight = new THREE.HemisphereLight(
-        0xfff5e0,  // sky color - warm white like studio softbox
-        0x443322,  // ground color - warm dark like table reflection
-        1.0        // intensity 0.8-1.2
+        0xffffff,  // sky color - bright neutral white so colours stay true
+        0x807060,  // ground color - soft warm bounce
+        1.4        // brighter ambient base
     );
     threeScene.add(hemiLight);
 
     // STEP 2 — Key Light (Main light - food highlights)
-    // Front + slightly above at 45 degrees, warm white 3000K
-    const keyLight = new THREE.DirectionalLight(0xFFD8B0, 1.6);
-    keyLight.position.set(-3, 6, 4); // front left above
+    // Front + slightly above, bright neutral white spotlight
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(-2, 6, 4); // front left above
     keyLight.castShadow = true;
     // STEP 5 — Shadow Settings
     keyLight.shadow.mapSize.width = 2048;
     keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.radius = 12;      // soft blurred edges
+    keyLight.shadow.radius = 10;      // soft blurred edges
     keyLight.shadow.bias = -0.0005;
     keyLight.shadow.camera.near = 0.1;
     keyLight.shadow.camera.far = 20;
     threeScene.add(keyLight);
 
-    // STEP 3 — Fill Light (removes harsh shadows)
-    // Opposite side of key light, light warm grey
-    const fillLight = new THREE.DirectionalLight(0xffe8d5, 0.45);
-    fillLight.position.set(4, 3, -2); // opposite side
+    // STEP 3 — Fill Light (removes harsh shadows so nothing goes black)
+    const fillLight = new THREE.DirectionalLight(0xfff8f0, 1.0);
+    fillLight.position.set(4, 3, -1); // opposite side
     threeScene.add(fillLight);
 
-    // STEP 4 — Rim Light (Netflix quality glowing edges)
-    // Behind object from top-back, warm neutral
-    const rimLight = new THREE.DirectionalLight(0xfff0e8, 0.6);
+    // STEP 4 — Rim Light (outlines the food so it pops)
+    const rimLight = new THREE.DirectionalLight(0xfff5ea, 1.1);
     rimLight.position.set(0, 4, -6); // top back
     threeScene.add(rimLight);
 
-    // Extra top light for food shine
-    const topLight = new THREE.PointLight(0xffd8a0, 0.5, 10);
+    // Extra top light for food shine (cheese, sauce highlights)
+    const topLight = new THREE.PointLight(0xfffaf0, 0.9, 12);
     topLight.position.set(0, 5, 1);
     threeScene.add(topLight);
 
