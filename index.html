@@ -104,11 +104,11 @@
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
             <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.9"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.5"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.38"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.8"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.78"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="cm: 30"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" rotation="0 0 0" visible="true" real-size="cm: 12"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="cm: 8"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="cm: 26"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="cm: 25"></a-gltf-model>
 
             <!-- Steam effect removed -->
 
@@ -340,12 +340,15 @@ AFRAME.registerComponent('ground-fix', {
     }
 });
 
-// FIT-SIZE — scales each dish to a nice on-screen size (fits the phone frame
-// when scanning, no zoom needed) AND sits it flat on the table in one step.
-// widthUnits = on-screen width relative to the target image (1.0 = same width
-// as the printed target image). Tune per dish for good relative sizes.
+// REAL-SIZE — shows each dish at its true real-world size AND sits it flat
+// on the menu with no float. Size is measured relative to the printed target.
+//
+// >>> TARGET_CM = the width of your PRINTED target image in centimetres. <<<
+// Measure your printed image edge-to-edge and set this number. Everything
+// else then appears at correct real-world size automatically.
+const TARGET_CM = 20; // <-- CHANGE THIS to your printed image width in cm
 AFRAME.registerComponent('real-size', {
-    schema: { widthUnits: { type: 'number', default: 1.0 } },
+    schema: { cm: { type: 'number', default: 20 } }, // real dish width in cm
     init: function () {
         const fit = () => {
             const obj = this.el.object3D;
@@ -363,21 +366,29 @@ AFRAME.registerComponent('real-size', {
             // Screen-fit uses the on-image footprint = X (width) and Y (height).
             const footprint = Math.max(size.x, size.y);
             if (footprint <= 0) return;
-            // Scale so the dish fits nicely in frame (widthUnits = fraction of target width)
-            const factor = this.data.widthUnits / footprint;
+            // Real-world size: desired width in AR units = dishCm / targetCm
+            // (in MindAR, 1 unit = the printed target image's width)
+            const desiredUnits = this.data.cm / TARGET_CM;
+            const factor = desiredUnits / footprint;
             obj.scale.setScalar(factor);
-            // Ground onto the image surface: the model's lowest Y edge sits on the
-            // target's bottom line so it looks placed ON the menu, and its back
-            // (min Z) sits flush against the image plane — no floating in any axis.
+            // Ground the dish onto the menu surface.
+            // Only the vertical (Y) is adjusted so the model's base rests exactly
+            // on the surface. Z is kept at 0 so it stays ON the image plane and
+            // does NOT lift toward the camera (that lift was the floating).
             obj.updateMatrixWorld(true);
             const b = new THREE.Box3().setFromObject(obj);
             if (!b.isEmpty()) {
-                obj.position.y = -b.min.y; // rest bottom edge on the menu surface
-                obj.position.z = -b.min.z; // push flush against image plane (no lift)
+                obj.position.y = -b.min.y; // base sits exactly on the surface
+                obj.position.z = 0;        // stay flat on the menu, no lift
             }
         };
         this.el.addEventListener('model-loaded', () => {
             [150, 400, 800, 1300, 2000].forEach(d => setTimeout(fit, d));
+        });
+        // Keep it grounded even if the target re-detects or the model settles late:
+        // re-fit whenever the image is found again.
+        this.el.sceneEl.addEventListener('targetFound', () => {
+            [100, 400, 800].forEach(d => setTimeout(fit, d));
         });
     }
 });
