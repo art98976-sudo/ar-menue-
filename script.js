@@ -232,7 +232,7 @@ function initThreeJS(){
     threeControls.enableDamping=true;threeControls.dampingFactor=0.05;
     threeControls.minDistance=1.4;threeControls.maxDistance=8;
     threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.0;
-    threeControls.target.set(0, -0.4, 0); threeControls.update();
+    threeControls.target.set(0, -0.6, 0); threeControls.update();
     canvas.addEventListener('touchstart',()=>{threeControls.autoRotate=false;});
     canvas.addEventListener('mousedown',()=>{threeControls.autoRotate=false;});
     startRendering();
@@ -279,12 +279,13 @@ function loadGLBModel(path){
         const scale=2.8/Math.max(size.x,size.y,size.z);
         loadedModel.scale.setScalar(scale);
         loadedModel.position.sub(center.multiplyScalar(scale));
-        // Rest the base on the shadow plane
+        // Drop the model so its base rests on the shadow plane (grounded, not floating)
         const scaledBox = new THREE.Box3().setFromObject(loadedModel);
         loadedModel.position.y -= (scaledBox.min.y - (-1.4));
         threeScene.add(loadedModel);
         // addSteamEffect(); // steam removed
         setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
+        threeCamera.position.set(0,0.5,3);threeControls&&threeControls.reset();threeControls&&(threeControls.autoRotate=true);
         // Aim the orbit pivot at the TRUE center of the placed model so zoom
         // always keeps the dish framed — bottom never slides off screen
         const finalBox = new THREE.Box3().setFromObject(loadedModel);
