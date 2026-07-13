@@ -348,7 +348,10 @@ AFRAME.registerComponent('ground-fix', {
 // else then appears at correct real-world size automatically.
 const TARGET_CM = 20; // <-- CHANGE THIS to your printed image width in cm
 AFRAME.registerComponent('real-size', {
-    schema: { cm: { type: 'number', default: 20 } }, // real dish width in cm
+    schema: {
+        cm:   { type: 'number', default: 20 },  // real dish width in cm
+        drop: { type: 'number', default: 0 }    // manual nudge DOWN if it floats
+    },
     init: function () {
         const fit = () => {
             const obj = this.el.object3D;
@@ -378,7 +381,8 @@ AFRAME.registerComponent('real-size', {
             obj.updateMatrixWorld(true);
             const b = new THREE.Box3().setFromObject(obj);
             if (!b.isEmpty()) {
-                obj.position.y = -b.min.y; // base sits exactly on the surface
+                // base sits on the surface, minus a manual nudge if you set 'drop'
+                obj.position.y = -b.min.y - this.data.drop;
                 obj.position.z = 0;        // stay flat on the menu, no lift
             }
         };
