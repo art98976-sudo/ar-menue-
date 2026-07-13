@@ -344,56 +344,55 @@ AFRAME.registerComponent('ground-fix', {
 // on the menu with no float. Size is measured relative to the printed target.
 //
 // >>> TARGET_CM = the width of your PRINTED target image in centimetres. <<<
-// Measure your printed image edge-to-edge and set this number. Everything
-// else then appears at correct real-world size automatically.
-const TARGET_CM = 20; // <-- CHANGE THIS to your printed image width in cm
+// Measure your printed image edge-to-edge and set this number. Tuned so dishes
+// fit nicely on an iPhone 15 Pro held at normal distance. If dishes look too
+// big, INCREASE this number; too small, DECREASE it.
+const TARGET_CM = 15; // <-- set to your printed image width in cm (15 = good default)
 AFRAME.registerComponent('real-size', {
     schema: {
-        cm:   { type: 'number', default: 20 },  // real dish width in cm
-        drop: { type: 'number', default: 0 }    // manual nudge DOWN if it floats
+        cm:   { type: 'number', default: 20 },  // dish width in cm (real size)
+        drop: { type: 'number', default: 0 }    // manual nudge DOWN if needed
     },
     init: function () {
-        const fit = () => {
-            const obj = this.el.object3D;
-            const mesh = this.el.getObject3D('mesh');
-            if (!mesh) return;
-            // Reset transform for a clean measurement each attempt
-            obj.scale.setScalar(1);
-            obj.position.set(0, 0, 0);
-            obj.updateMatrixWorld(true);
-            let box = new THREE.Box3().setFromObject(obj);
-            if (box.isEmpty()) return;
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            // In MindAR the target image lies in the X-Y plane facing the camera.
-            // Screen-fit uses the on-image footprint = X (width) and Y (height).
-            const footprint = Math.max(size.x, size.y);
-            if (footprint <= 0) return;
-            // Real-world size: desired width in AR units = dishCm / targetCm
-            // (in MindAR, 1 unit = the printed target image's width)
-            const desiredUnits = this.data.cm / TARGET_CM;
-            const factor = desiredUnits / footprint;
-            obj.scale.setScalar(factor);
-            // Ground the dish onto the menu surface.
-            // Only the vertical (Y) is adjusted so the model's base rests exactly
-            // on the surface. Z is kept at 0 so it stays ON the image plane and
-            // does NOT lift toward the camera (that lift was the floating).
-            obj.updateMatrixWorld(true);
-            const b = new THREE.Box3().setFromObject(obj);
-            if (!b.isEmpty()) {
-                // base sits on the surface, minus a manual nudge if you set 'drop'
-                obj.position.y = -b.min.y - this.data.drop;
-                obj.position.z = 0;        // stay flat on the menu, no lift
-            }
-        };
-        this.el.addEventListener('model-loaded', () => {
-            [150, 400, 800, 1300, 2000].forEach(d => setTimeout(fit, d));
-        });
-        // Keep it grounded even if the target re-detects or the model settles late:
-        // re-fit whenever the image is found again.
-        this.el.sceneEl.addEventListener('targetFound', () => {
-            [100, 400, 800].forEach(d => setTimeout(fit, d));
-        });
+        this.ready = false;      // becomes true once the model is sized+grounded
+        this.baseY = 0;          // the grounded Y we lock to every frame
+    },
+    apply: function () {
+        const obj = this.el.object3D;
+        const mesh = this.el.getObject3D('mesh');
+        if (!mesh) return false;
+        // Clean measurement
+        obj.scale.setScalar(1);
+        obj.position.set(0, 0, 0);
+        obj.updateMatrixWorld(true);
+        let box = new THREE.Box3().setFromObject(obj);
+        if (box.isEmpty()) return false;
+        const size = new THREE.Vector3(); box.getSize(size);
+        const footprint = Math.max(size.x, size.y);
+        if (footprint <= 0) return false;
+        // Real-world size relative to the printed target (1 unit = target width)
+        const factor = (this.data.cm / TARGET_CM) / footprint;
+        obj.scale.setScalar(factor);
+        // Ground: rest the base exactly on the menu surface
+        obj.updateMatrixWorld(true);
+        const b = new THREE.Box3().setFromObject(obj);
+        if (b.isEmpty()) return false;
+        this.baseY = -b.min.y - this.data.drop;
+        obj.position.set(0, this.baseY, 0);
+        return true;
+    },
+    tick: function () {
+        // Keep trying until sized+grounded, then lock every frame so it can
+        // never drift or float — this removes all timing races.
+        if (!this.ready) {
+            if (this.apply()) this.ready = true;
+            return;
+        }
+        // Locked: hold the grounded position solid every frame
+        const p = this.el.object3D.position;
+        if (Math.abs(p.y - this.baseY) > 0.0001 || Math.abs(p.z) > 0.0001) {
+            this.el.object3D.position.set(0, this.baseY, 0);
+        }
     }
 });
 </script>
