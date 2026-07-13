@@ -105,11 +105,11 @@
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
             <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -1.45 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -1.45 0" scale="2.5 2.5 2.5" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -1.45 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -1.45 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -1.45 0" scale="2.8 2.8 2.8" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="2.5 2.5 2.5" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="2.8 2.8 2.8" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
 
             <!-- Steam effect removed -->
 
@@ -336,8 +336,32 @@ AFRAME.registerComponent('ar-anchor', {
 
 // Ground fix — places model bottom exactly at Y=0 (image surface)
 AFRAME.registerComponent('ground-fix', {
+    schema: { extra: { type: 'number', default: 0 } }, // fine-tune nudge if needed
     init: function() {
-        // Disabled — grounding is now handled inside real-size to avoid conflict
+        this.done = false;
+        this.tries = 0;
+        const groundIt = () => {
+            if (this.done) return;
+            const obj = this.el.object3D;
+            const mesh = this.el.getObject3D('mesh');
+            if (!mesh) return retry();
+            obj.updateMatrixWorld(true);
+            const box = new THREE.Box3().setFromObject(obj);
+            if (box.isEmpty()) return retry();
+            // Push the model down so its lowest point sits exactly on the
+            // image surface (y=0). This grounds any model regardless of height.
+            const minY = box.min.y;
+            obj.position.y -= (minY + this.data.extra);
+            this.done = true; // success, lock it
+        };
+        const retry = () => {
+            this.tries++;
+            if (this.tries < 40) setTimeout(groundIt, 200); // keep trying ~8s
+        };
+        this.el.addEventListener('model-loaded', () => { this.tries = 0; this.done = false; groundIt(); });
+        this.el.sceneEl.addEventListener('targetFound', () => {
+            if (!this.done) { this.tries = 0; groundIt(); }
+        });
     }
 });
 
