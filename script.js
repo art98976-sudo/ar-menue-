@@ -95,78 +95,97 @@ function initThreeJS(){
     threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
-    threeRenderer.setClearColor(0x0f0f0f,1);
+    threeRenderer.setClearColor(0xe8e2da,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure = 1.15; // brighter, food clearly visible
     threeScene=new THREE.Scene();
 
-    // ── PREMIUM RESTAURANT BACKGROUND ──
-    // Warm dark gradient - food pops, background supports not distracts
+    // ── PREMIUM STUDIO BACKGROUND ──
+    // Clean bright studio backdrop like professional food photography
     const bgCanvas=document.createElement('canvas');
     bgCanvas.width=512;bgCanvas.height=512;
     const bgCtx=bgCanvas.getContext('2d');
 
-    // Radial gradient: warm center lighter, dark edges = vignette
-    const grad=bgCtx.createRadialGradient(256,300,30,256,256,380);
-    grad.addColorStop(0,   '#2a1f14'); // warm dark center - wooden table feel
-    grad.addColorStop(0.5, '#1a1208'); // mid dark warm
-    grad.addColorStop(1,   '#050302'); // very dark edges - vignette
+    // Radial gradient: bright soft center, gentle darker edges = studio softbox
+    const grad=bgCtx.createRadialGradient(256,220,40,256,256,400);
+    grad.addColorStop(0,   '#f5f0ea'); // bright warm-white center
+    grad.addColorStop(0.55,'#e2dad8'); // soft neutral
+    grad.addColorStop(1,   '#c4bdb4'); // soft grey edges - subtle depth
     bgCtx.fillStyle=grad;
     bgCtx.fillRect(0,0,512,512);
 
-    // Soft ceiling light glow from top
-    const topGlow=bgCtx.createRadialGradient(256,0,0,256,0,280);
-    topGlow.addColorStop(0,   'rgba(255,200,120,0.15)');
-    topGlow.addColorStop(1,   'rgba(0,0,0,0)');
+    // Soft top glow like an overhead softbox
+    const topGlow=bgCtx.createRadialGradient(256,40,0,256,40,320);
+    topGlow.addColorStop(0,   'rgba(255,255,255,0.45)');
+    topGlow.addColorStop(1,   'rgba(255,255,255,0)');
     bgCtx.fillStyle=topGlow;
     bgCtx.fillRect(0,0,512,512);
 
     threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
-    // Depth fog - natural falloff behind food (real space feeling)
-    threeScene.fog=new THREE.FogExp2(0x0f0a05, 0.06);
+    // Very light fog matching bright background - subtle depth, no darkening
+    threeScene.fog=new THREE.FogExp2(0xe8e2da, 0.015);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.1,100);
     threeCamera.position.set(0,0.5,3);
 
     // ══════════════════════════════════════════
-    // STEP 1 — HDRI Environment Light (base of everything)
-    // Simulated using hemisphere light (warm top, cool bottom)
-    // Creates natural reflections, removes plastic toy look
+    // PREMIUM STUDIO WRAPAROUND RIG
+    // Lights from every side so no corner of the dish is ever dark
+    // ══════════════════════════════════════════
+
+    // STEP 1 — Environment ambient (bright, even base — kills all dark patches)
     const hemiLight = new THREE.HemisphereLight(
-        0xffffff,  // sky color - bright neutral white so colours stay true
-        0x807060,  // ground color - soft warm bounce
-        1.4        // brighter ambient base
+        0xffffff,  // sky - clean bright white, true colours
+        0xe0d8ce,  // ground - light bounce so undersides aren't dark
+        2.0        // strong even fill
     );
     threeScene.add(hemiLight);
 
-    // STEP 2 — Key Light (Main light - food highlights)
-    // Front + slightly above, bright neutral white spotlight
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    keyLight.position.set(-2, 6, 4); // front left above
+    // Pure ambient top-up — guarantees a visible floor of light everywhere
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    threeScene.add(ambient);
+
+    // STEP 2 — Key Light (main, front-top-left) — defines form and highlights
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    keyLight.position.set(-3, 6, 5);
     keyLight.castShadow = true;
-    // STEP 5 — Shadow Settings
     keyLight.shadow.mapSize.width = 2048;
     keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.radius = 10;      // soft blurred edges
+    keyLight.shadow.radius = 10;
     keyLight.shadow.bias = -0.0005;
     keyLight.shadow.camera.near = 0.1;
     keyLight.shadow.camera.far = 20;
     threeScene.add(keyLight);
 
-    // STEP 3 — Fill Light (removes harsh shadows so nothing goes black)
-    const fillLight = new THREE.DirectionalLight(0xfff8f0, 1.0);
-    fillLight.position.set(4, 3, -1); // opposite side
+    // STEP 3 — Fill Light (front-top-right) — softens key shadows
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    fillLight.position.set(4, 4, 3);
     threeScene.add(fillLight);
 
-    // STEP 4 — Rim Light (outlines the food so it pops)
-    const rimLight = new THREE.DirectionalLight(0xfff5ea, 1.1);
-    rimLight.position.set(0, 4, -6); // top back
+    // STEP 4 — Left side light — lights the left edge fully
+    const leftLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    leftLight.position.set(-6, 2, 0);
+    threeScene.add(leftLight);
+
+    // STEP 5 — Right side light — lights the right edge fully
+    const rightLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    rightLight.position.set(6, 2, 0);
+    threeScene.add(rightLight);
+
+    // STEP 6 — Front fill — lights the face toward the user, no dark front
+    const frontLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    frontLight.position.set(0, 1, 7);
+    threeScene.add(frontLight);
+
+    // STEP 7 — Rim/back light — separates dish from background, premium pop
+    const rimLight = new THREE.DirectionalLight(0xfff7ee, 1.2);
+    rimLight.position.set(0, 4, -6);
     threeScene.add(rimLight);
 
-    // Extra top light for food shine (cheese, sauce highlights)
-    const topLight = new THREE.PointLight(0xfffaf0, 0.9, 12);
-    topLight.position.set(0, 5, 1);
+    // STEP 8 — Top point light — bright highlight on top surfaces (sauce/cheese shine)
+    const topLight = new THREE.PointLight(0xffffff, 1.0, 15);
+    topLight.position.set(0, 6, 1);
     threeScene.add(topLight);
 
     // STEP 5+6 — Shadow Ground + Contact Shadow
@@ -225,7 +244,7 @@ function loadGLBModel(path){
         const scale=2.8/Math.max(size.x,size.y,size.z);
         loadedModel.scale.setScalar(scale);loadedModel.position.sub(center.multiplyScalar(scale));
         threeScene.add(loadedModel);
-        addSteamEffect(); // add steam rising from hot food
+        // addSteamEffect(); // steam removed
         setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
         threeCamera.position.set(0,0.5,3);threeControls&&threeControls.reset();threeControls&&(threeControls.autoRotate=true);
     },function(xhr){
