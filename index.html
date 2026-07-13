@@ -307,12 +307,14 @@
 // Camera movement does NOT affect it — no shaking, no drifting
 AFRAME.registerComponent('ar-anchor', {
     init: function() {
+        // The models (children) are scaled and grounded by the real-size
+        // component. This anchor only keeps the target parent steady so the
+        // dish doesn't drift or shake once the image is detected.
         let anchored = false;
         let anchorPos = null;
 
         this.el.sceneEl.addEventListener('targetFound', () => {
             if (!anchored) {
-                // First detection — save exact position as anchor
                 anchorPos = {
                     x: this.el.object3D.position.x,
                     y: this.el.object3D.position.y,
@@ -323,12 +325,9 @@ AFRAME.registerComponent('ar-anchor', {
         });
 
         this.tick = function() {
-            // Once anchored — lock position every frame
-            // Prevents any drift or shaking
             if (anchored && anchorPos) {
                 this.el.object3D.position.x = anchorPos.x;
                 this.el.object3D.position.z = anchorPos.z;
-                // Y stays at our set value
             }
         };
     }
@@ -349,30 +348,36 @@ AFRAME.registerComponent('real-size', {
     schema: { widthUnits: { type: 'number', default: 1.0 } },
     init: function () {
         const fit = () => {
+            const obj = this.el.object3D;
             const mesh = this.el.getObject3D('mesh');
             if (!mesh) return;
-            // Reset scale so measurement is clean each attempt
-            this.el.object3D.scale.setScalar(1);
-            this.el.object3D.position.y = 0;
-            this.el.object3D.updateMatrixWorld(true);
-            let box = new THREE.Box3().setFromObject(this.el.object3D);
+            // Reset transform for a clean measurement each attempt
+            obj.scale.setScalar(1);
+            obj.position.set(0, 0, 0);
+            obj.updateMatrixWorld(true);
+            let box = new THREE.Box3().setFromObject(obj);
             if (box.isEmpty()) return;
             const size = new THREE.Vector3();
             box.getSize(size);
-            const currentWidth = Math.max(size.x, size.z);
-            if (currentWidth <= 0) return;
-            // Scale so the dish footprint = widthUnits (relative to target image)
-            const factor = this.data.widthUnits / currentWidth;
-            this.el.object3D.scale.setScalar(factor);
-            // Ground: measure again after scaling, drop base exactly to table (y=0)
-            this.el.object3D.updateMatrixWorld(true);
-            const grounded = new THREE.Box3().setFromObject(this.el.object3D);
-            if (!grounded.isEmpty()) {
-                this.el.object3D.position.y = -grounded.min.y; // base sits on table
+            // In MindAR the target image lies in the X-Y plane facing the camera.
+            // Screen-fit uses the on-image footprint = X (width) and Y (height).
+            const footprint = Math.max(size.x, size.y);
+            if (footprint <= 0) return;
+            // Scale so the dish fits nicely in frame (widthUnits = fraction of target width)
+            const factor = this.data.widthUnits / footprint;
+            obj.scale.setScalar(factor);
+            // Ground onto the image surface: the model's lowest Y edge sits on the
+            // target's bottom line so it looks placed ON the menu, and its back
+            // (min Z) sits flush against the image plane — no floating in any axis.
+            obj.updateMatrixWorld(true);
+            const b = new THREE.Box3().setFromObject(obj);
+            if (!b.isEmpty()) {
+                obj.position.y = -b.min.y; // rest bottom edge on the menu surface
+                obj.position.z = -b.min.z; // push flush against image plane (no lift)
             }
         };
         this.el.addEventListener('model-loaded', () => {
-            [150, 400, 800, 1300].forEach(d => setTimeout(fit, d));
+            [150, 400, 800, 1300, 2000].forEach(d => setTimeout(fit, d));
         });
     }
 });
