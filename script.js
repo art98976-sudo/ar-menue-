@@ -98,7 +98,7 @@ function initThreeJS(){
     threeRenderer.setClearColor(0xe8e2da,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure = 1.15; // brighter, food clearly visible
+    threeRenderer.toneMappingExposure = 0.95; // premium bright, not washed out
     threeScene=new THREE.Scene();
 
     // ── HDRI ENVIRONMENT REFLECTIONS (premium realism) ──
@@ -151,7 +151,7 @@ function initThreeJS(){
 
     // Very light fog matching bright background - subtle depth, no darkening
     threeScene.fog=new THREE.FogExp2(0xe8e2da, 0.015);
-    threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.1,100);
+    threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
     threeCamera.position.set(0,0.5,3);
 
     // ══════════════════════════════════════════
@@ -163,12 +163,12 @@ function initThreeJS(){
     const hemiLight = new THREE.HemisphereLight(
         0xffffff,  // sky - clean bright white, true colours
         0xe0d8ce,  // ground - light bounce so undersides aren't dark
-        2.0        // strong even fill
+        1.4        // even fill, softened
     );
     threeScene.add(hemiLight);
 
     // Pure ambient top-up — guarantees a visible floor of light everywhere
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.35);
     threeScene.add(ambient);
 
     // STEP 2 — Key Light (main, front-top-left) — defines form and highlights
@@ -245,7 +245,7 @@ function initThreeJS(){
     if(!OC)return;
     threeControls=new OC(threeCamera,canvas);
     threeControls.enableDamping=true;threeControls.dampingFactor=0.05;
-    threeControls.minDistance=1;threeControls.maxDistance=8;
+    threeControls.minDistance=1.4;threeControls.maxDistance=8;
     threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.0;
     threeControls.target.set(0, -0.6, 0); threeControls.update();
     canvas.addEventListener('touchstart',()=>{threeControls.autoRotate=false;});
