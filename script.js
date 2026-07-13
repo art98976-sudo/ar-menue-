@@ -232,7 +232,7 @@ function initThreeJS(){
     threeControls.enableDamping=true;threeControls.dampingFactor=0.05;
     threeControls.minDistance=1.4;threeControls.maxDistance=8;
     threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.0;
-    threeControls.target.set(0, -0.6, 0); threeControls.update();
+    threeControls.target.set(0, -0.4, 0); threeControls.update();
     canvas.addEventListener('touchstart',()=>{threeControls.autoRotate=false;});
     canvas.addEventListener('mousedown',()=>{threeControls.autoRotate=false;});
     startRendering();
@@ -279,13 +279,22 @@ function loadGLBModel(path){
         const scale=2.8/Math.max(size.x,size.y,size.z);
         loadedModel.scale.setScalar(scale);
         loadedModel.position.sub(center.multiplyScalar(scale));
-        // Drop the model so its base rests on the shadow plane (grounded, not floating)
+        // Rest the base on the shadow plane
         const scaledBox = new THREE.Box3().setFromObject(loadedModel);
         loadedModel.position.y -= (scaledBox.min.y - (-1.4));
         threeScene.add(loadedModel);
         // addSteamEffect(); // steam removed
         setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
-        threeCamera.position.set(0,0.5,3);threeControls&&threeControls.reset();threeControls&&(threeControls.autoRotate=true);
+        // Aim the orbit pivot at the TRUE center of the placed model so zoom
+        // always keeps the dish framed — bottom never slides off screen
+        const finalBox = new THREE.Box3().setFromObject(loadedModel);
+        const finalCenter = finalBox.getCenter(new THREE.Vector3());
+        if(threeControls){
+            threeControls.target.copy(finalCenter);
+            threeCamera.position.set(finalCenter.x, finalCenter.y + 0.4, 3);
+            threeControls.update();
+            threeControls.autoRotate=true;
+        }
     },function(xhr){
         if(xhr.lengthComputable){const p=Math.round(xhr.loaded/xhr.total*100);if(pb)pb.style.width=p+'%';if(pp)pp.innerText=p+'%';}
     },function(err){console.error(err);document.getElementById('ar-loading').style.display='none';});
@@ -393,7 +402,19 @@ function closeViewer(){
 }
 
 function resetModel(){
-    if(viewerMode==='3d'&&threeControls){threeControls.reset();threeControls.autoRotate=true;}
+    if(viewerMode==='3d'&&threeControls){
+        const THREE=getThree();
+        if(THREE&&loadedModel){
+            const b=new THREE.Box3().setFromObject(loadedModel);
+            const c=b.getCenter(new THREE.Vector3());
+            threeControls.target.copy(c);
+            threeCamera.position.set(c.x, c.y + 0.4, 3);
+            threeControls.update();
+        } else {
+            threeControls.reset();
+        }
+        threeControls.autoRotate=true;
+    }
     if(viewerMode==='ar'){arRotY=0;arRotX=0;const el=document.getElementById(menuData[currentModel].arId);if(el)el.setAttribute('rotation','0 0 0');}
 }
 
