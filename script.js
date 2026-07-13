@@ -101,6 +101,31 @@ function initThreeJS(){
     threeRenderer.toneMappingExposure = 1.15; // brighter, food clearly visible
     threeScene=new THREE.Scene();
 
+    // ── HDRI ENVIRONMENT REFLECTIONS (premium realism) ──
+    // Builds a soft studio environment so food gets real reflections
+    // (glossy sauce looks wet, drinks look like glass, no plastic look)
+    try {
+        const pmrem = new THREE.PMREMGenerator(threeRenderer);
+        pmrem.compileEquirectangularShader();
+        let envTex;
+        const RoomEnv = THREE.RoomEnvironment || (window.THREE && window.THREE.RoomEnvironment);
+        if (RoomEnv) {
+            envTex = pmrem.fromScene(new RoomEnv(), 0.04).texture;
+        } else {
+            // Fallback: bright soft gradient environment if RoomEnvironment unavailable
+            const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+            const cx = c.getContext('2d');
+            const g = cx.createLinearGradient(0, 0, 0, 64);
+            g.addColorStop(0, '#ffffff'); g.addColorStop(0.5, '#e8e2da'); g.addColorStop(1, '#c8c0b6');
+            cx.fillStyle = g; cx.fillRect(0, 0, 64, 64);
+            const eqTex = new THREE.CanvasTexture(c);
+            eqTex.mapping = THREE.EquirectangularReflectionMapping;
+            envTex = pmrem.fromEquirectangular(eqTex).texture;
+        }
+        threeScene.environment = envTex;
+    } catch (e) { console.warn('Env map setup skipped:', e); }
+
+
     // ── PREMIUM STUDIO BACKGROUND ──
     // Clean bright studio backdrop like professional food photography
     const bgCanvas=document.createElement('canvas');
@@ -189,19 +214,40 @@ function initThreeJS(){
     threeScene.add(topLight);
 
     // STEP 5+6 — Shadow Ground + Contact Shadow
-    // Soft dark oval under food - makes it feel anchored
-    const groundMat = new THREE.ShadowMaterial({ opacity: 0.35 });
+    // Cast shadow plane just beneath the dish so it looks planted
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -1.5;
+    ground.position.y = -1.42;
     ground.receiveShadow = true;
     threeScene.add(ground);
+
+    // Soft baked contact shadow — tight dark blob right under the dish
+    // This is what really sells "it's sitting on the surface"
+    const csCanvas = document.createElement('canvas');
+    csCanvas.width = 256; csCanvas.height = 256;
+    const csCtx = csCanvas.getContext('2d');
+    const csGrad = csCtx.createRadialGradient(128, 128, 10, 128, 128, 120);
+    csGrad.addColorStop(0, 'rgba(0,0,0,0.45)');
+    csGrad.addColorStop(0.5, 'rgba(0,0,0,0.22)');
+    csGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    csCtx.fillStyle = csGrad;
+    csCtx.fillRect(0, 0, 256, 256);
+    const csTex = new THREE.CanvasTexture(csCanvas);
+    const contactShadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(3.2, 3.2),
+        new THREE.MeshBasicMaterial({ map: csTex, transparent: true, depthWrite: false })
+    );
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = -1.4;
+    threeScene.add(contactShadow);
     const OC=(window.AFRAME&&window.AFRAME.THREE&&window.AFRAME.THREE.OrbitControls)||window.OrbitControls;
     if(!OC)return;
     threeControls=new OC(threeCamera,canvas);
     threeControls.enableDamping=true;threeControls.dampingFactor=0.05;
     threeControls.minDistance=1;threeControls.maxDistance=8;
-    threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.5;
+    threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.0;
+    threeControls.target.set(0, -0.6, 0); threeControls.update();
     canvas.addEventListener('touchstart',()=>{threeControls.autoRotate=false;});
     canvas.addEventListener('mousedown',()=>{threeControls.autoRotate=false;});
     startRendering();
@@ -231,18 +277,27 @@ function loadGLBModel(path){
             if(c.isMesh){
                 c.castShadow=true;
                 c.receiveShadow=true;
-                // Improve material quality
+                // Improve material quality + enable env reflections
                 if(c.material){
-                    c.material.roughness = c.material.roughness !== undefined ? c.material.roughness : 0.7;
-                    c.material.metalness = c.material.metalness !== undefined ? c.material.metalness : 0.1;
-                    c.material.needsUpdate = true;
+                    const mats = Array.isArray(c.material) ? c.material : [c.material];
+                    mats.forEach(m => {
+                        if (m.roughness === undefined || m.roughness === null) m.roughness = 0.55;
+                        if (m.metalness === undefined || m.metalness === null) m.metalness = 0.05;
+                        // Let the HDRI environment reflect on the surface for realism
+                        m.envMapIntensity = 1.15;
+                        m.needsUpdate = true;
+                    });
                 }
             }
         });
         const box=new THREE.Box3().setFromObject(loadedModel);
         const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
         const scale=2.8/Math.max(size.x,size.y,size.z);
-        loadedModel.scale.setScalar(scale);loadedModel.position.sub(center.multiplyScalar(scale));
+        loadedModel.scale.setScalar(scale);
+        loadedModel.position.sub(center.multiplyScalar(scale));
+        // Drop the model so its base rests on the shadow plane (grounded, not floating)
+        const scaledBox = new THREE.Box3().setFromObject(loadedModel);
+        loadedModel.position.y -= (scaledBox.min.y - (-1.4));
         threeScene.add(loadedModel);
         // addSteamEffect(); // steam removed
         setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
