@@ -95,35 +95,13 @@ function initThreeJS(){
     threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
-    threeRenderer.setClearColor(0xe8e2da,1);
+    threeRenderer.setClearColor(0x0d1318,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure = 0.95; // premium bright, not washed out
+    threeRenderer.toneMappingExposure = 1.05; // dish stays bright against dark bg
     threeScene=new THREE.Scene();
 
-    // ── HDRI ENVIRONMENT REFLECTIONS (premium realism) ──
-    // Builds a soft studio environment so food gets real reflections
-    // (glossy sauce looks wet, drinks look like glass, no plastic look)
-    try {
-        const pmrem = new THREE.PMREMGenerator(threeRenderer);
-        pmrem.compileEquirectangularShader();
-        let envTex;
-        const RoomEnv = THREE.RoomEnvironment || (window.THREE && window.THREE.RoomEnvironment);
-        if (RoomEnv) {
-            envTex = pmrem.fromScene(new RoomEnv(), 0.04).texture;
-        } else {
-            // Fallback: bright soft gradient environment if RoomEnvironment unavailable
-            const c = document.createElement('canvas'); c.width = 64; c.height = 64;
-            const cx = c.getContext('2d');
-            const g = cx.createLinearGradient(0, 0, 0, 64);
-            g.addColorStop(0, '#ffffff'); g.addColorStop(0.5, '#e8e2da'); g.addColorStop(1, '#c8c0b6');
-            cx.fillStyle = g; cx.fillRect(0, 0, 64, 64);
-            const eqTex = new THREE.CanvasTexture(c);
-            eqTex.mapping = THREE.EquirectangularReflectionMapping;
-            envTex = pmrem.fromEquirectangular(eqTex).texture;
-        }
-        threeScene.environment = envTex;
-    } catch (e) { console.warn('Env map setup skipped:', e); }
+    // No environment map — matte natural food look, no shiny reflections
 
 
     // ── PREMIUM STUDIO BACKGROUND ──
@@ -132,25 +110,27 @@ function initThreeJS(){
     bgCanvas.width=512;bgCanvas.height=512;
     const bgCtx=bgCanvas.getContext('2d');
 
-    // Radial gradient: bright soft center, gentle darker edges = studio softbox
-    const grad=bgCtx.createRadialGradient(256,220,40,256,256,400);
-    grad.addColorStop(0,   '#f5f0ea'); // bright warm-white center
-    grad.addColorStop(0.55,'#e2dad8'); // soft neutral
-    grad.addColorStop(1,   '#c4bdb4'); // soft grey edges - subtle depth
+    // ── EYE-CATCHING PREMIUM BACKGROUND ──
+    // Deep rich gradient so food colours pop, with a warm spotlight halo behind the dish
+    const grad=bgCtx.createRadialGradient(256,235,30,256,256,430);
+    grad.addColorStop(0,   '#3a4a54'); // soft slate-teal center - lifts behind the dish
+    grad.addColorStop(0.5, '#1f2a33'); // deep blue-charcoal mid
+    grad.addColorStop(1,   '#0d1318'); // near-black edges - vignette, food is the hero
     bgCtx.fillStyle=grad;
     bgCtx.fillRect(0,0,512,512);
 
-    // Soft top glow like an overhead softbox
-    const topGlow=bgCtx.createRadialGradient(256,40,0,256,40,320);
-    topGlow.addColorStop(0,   'rgba(255,255,255,0.45)');
-    topGlow.addColorStop(1,   'rgba(255,255,255,0)');
-    bgCtx.fillStyle=topGlow;
+    // Warm spotlight halo — like a light aimed at the plate, draws the eye in
+    const halo=bgCtx.createRadialGradient(256,225,10,256,235,230);
+    halo.addColorStop(0,   'rgba(255,214,150,0.30)'); // warm golden glow
+    halo.addColorStop(0.4, 'rgba(255,190,120,0.10)');
+    halo.addColorStop(1,   'rgba(255,190,120,0)');
+    bgCtx.fillStyle=halo;
     bgCtx.fillRect(0,0,512,512);
 
     threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
-    // Very light fog matching bright background - subtle depth, no darkening
-    threeScene.fog=new THREE.FogExp2(0xe8e2da, 0.015);
+    // Subtle dark fog matching background - clean depth behind the dish
+    threeScene.fog=new THREE.FogExp2(0x0d1318, 0.02);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
     threeCamera.position.set(0,0.5,3);
 
@@ -277,14 +257,13 @@ function loadGLBModel(path){
             if(c.isMesh){
                 c.castShadow=true;
                 c.receiveShadow=true;
-                // Improve material quality + enable env reflections
+                // Matte natural food materials — no shine, no plastic look
                 if(c.material){
                     const mats = Array.isArray(c.material) ? c.material : [c.material];
                     mats.forEach(m => {
-                        if (m.roughness === undefined || m.roughness === null) m.roughness = 0.55;
-                        if (m.metalness === undefined || m.metalness === null) m.metalness = 0.05;
-                        // Let the HDRI environment reflect on the surface for realism
-                        m.envMapIntensity = 1.15;
+                        if (m.roughness !== undefined) m.roughness = 1.0;   // fully matte
+                        if (m.metalness !== undefined) m.metalness = 0.0;   // no metal shine
+                        m.envMapIntensity = 0;                              // no reflections
                         m.needsUpdate = true;
                     });
                 }
