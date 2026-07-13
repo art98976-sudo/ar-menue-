@@ -95,7 +95,7 @@ function initThreeJS(){
     threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
-    threeRenderer.setClearColor(0x0d1318,1);
+    threeRenderer.setClearColor(0x120b06,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure = 1.05; // dish stays bright against dark bg
@@ -110,27 +110,27 @@ function initThreeJS(){
     bgCanvas.width=512;bgCanvas.height=512;
     const bgCtx=bgCanvas.getContext('2d');
 
-    // ── EYE-CATCHING PREMIUM BACKGROUND ──
-    // Deep rich gradient so food colours pop, with a warm spotlight halo behind the dish
+    // ── WARM DARK PREMIUM BACKGROUND ──
+    // Cozy warm-dark backdrop, food is the hero, dish stays fully lit on top
     const grad=bgCtx.createRadialGradient(256,235,30,256,256,430);
-    grad.addColorStop(0,   '#3a4a54'); // soft slate-teal center - lifts behind the dish
-    grad.addColorStop(0.5, '#1f2a33'); // deep blue-charcoal mid
-    grad.addColorStop(1,   '#0d1318'); // near-black edges - vignette, food is the hero
+    grad.addColorStop(0,   '#4a3520'); // warm amber-brown center - glow behind dish
+    grad.addColorStop(0.5, '#2a1c10'); // deep warm brown mid
+    grad.addColorStop(1,   '#120b06'); // near-black warm edges - vignette
     bgCtx.fillStyle=grad;
     bgCtx.fillRect(0,0,512,512);
 
-    // Warm spotlight halo — like a light aimed at the plate, draws the eye in
+    // Warm spotlight halo — like a candle-warm light aimed at the plate
     const halo=bgCtx.createRadialGradient(256,225,10,256,235,230);
-    halo.addColorStop(0,   'rgba(255,214,150,0.30)'); // warm golden glow
-    halo.addColorStop(0.4, 'rgba(255,190,120,0.10)');
-    halo.addColorStop(1,   'rgba(255,190,120,0)');
+    halo.addColorStop(0,   'rgba(255,196,120,0.34)'); // warm golden glow
+    halo.addColorStop(0.4, 'rgba(255,170,90,0.12)');
+    halo.addColorStop(1,   'rgba(255,170,90,0)');
     bgCtx.fillStyle=halo;
     bgCtx.fillRect(0,0,512,512);
 
     threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
-    // Subtle dark fog matching background - clean depth behind the dish
-    threeScene.fog=new THREE.FogExp2(0x0d1318, 0.02);
+    // Warm dark fog matching background
+    threeScene.fog=new THREE.FogExp2(0x120b06, 0.02);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
     threeCamera.position.set(0,0.5,3);
 
@@ -143,12 +143,12 @@ function initThreeJS(){
     const hemiLight = new THREE.HemisphereLight(
         0xffffff,  // sky - clean bright white, true colours
         0xe0d8ce,  // ground - light bounce so undersides aren't dark
-        1.4        // even fill, softened
+        1.8        // strong even fill so no corner goes dark on dark bg
     );
     threeScene.add(hemiLight);
 
     // Pure ambient top-up — guarantees a visible floor of light everywhere
-    const ambient = new THREE.AmbientLight(0xffffff, 0.35);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
     threeScene.add(ambient);
 
     // STEP 2 — Key Light (main, front-top-left) — defines form and highlights
@@ -169,19 +169,24 @@ function initThreeJS(){
     threeScene.add(fillLight);
 
     // STEP 4 — Left side light — lights the left edge fully
-    const leftLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const leftLight = new THREE.DirectionalLight(0xffffff, 1.4);
     leftLight.position.set(-6, 2, 0);
     threeScene.add(leftLight);
 
     // STEP 5 — Right side light — lights the right edge fully
-    const rightLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const rightLight = new THREE.DirectionalLight(0xffffff, 1.4);
     rightLight.position.set(6, 2, 0);
     threeScene.add(rightLight);
 
     // STEP 6 — Front fill — lights the face toward the user, no dark front
-    const frontLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
     frontLight.position.set(0, 1, 7);
     threeScene.add(frontLight);
+
+    // Back-bottom fill — catches the rear/underside so no corner hides in dark
+    const backFill = new THREE.DirectionalLight(0xffffff, 1.0);
+    backFill.position.set(0, -1, -5);
+    threeScene.add(backFill);
 
     // STEP 7 — Rim/back light — separates dish from background, premium pop
     const rimLight = new THREE.DirectionalLight(0xfff7ee, 1.2);
