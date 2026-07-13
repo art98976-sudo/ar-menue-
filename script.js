@@ -95,7 +95,7 @@ function initThreeJS(){
     threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
-    threeRenderer.setClearColor(0x120b06,1);
+    threeRenderer.setClearColor(0x070c16,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure = 1.1; // even soft light, food clearly visible
@@ -115,17 +115,17 @@ function initThreeJS(){
     // ══════════════════════════════════════════
     // Base: deep warm vertical gradient (like a dim restaurant wall)
     const base=bgCtx.createLinearGradient(0,0,0,512);
-    base.addColorStop(0,   '#3d2c1a'); // warm top - soft ambient glow
-    base.addColorStop(0.45,'#241812'); // rich espresso mid
-    base.addColorStop(1,   '#0e0906'); // deep warm near-black bottom
+    base.addColorStop(0,   '#1a2a44'); // premium navy top - soft cool glow
+    base.addColorStop(0.45,'#111d33'); // deep midnight blue mid
+    base.addColorStop(1,   '#070c16'); // near-black navy bottom
     bgCtx.fillStyle=base;
     bgCtx.fillRect(0,0,512,512);
 
     // Soft warm spotlight pooled behind the dish (draws the eye, premium focus)
     const spot=bgCtx.createRadialGradient(256,215,10,256,240,300);
-    spot.addColorStop(0,   'rgba(255,198,128,0.28)'); // warm golden core
-    spot.addColorStop(0.45,'rgba(230,150,80,0.10)');
-    spot.addColorStop(1,   'rgba(200,120,60,0)');
+    spot.addColorStop(0,   'rgba(150,190,255,0.26)'); // cool blue-white core
+    spot.addColorStop(0.45,'rgba(90,140,220,0.10)');
+    spot.addColorStop(1,   'rgba(60,100,180,0)');
     bgCtx.fillStyle=spot;
     bgCtx.fillRect(0,0,512,512);
 
@@ -146,7 +146,7 @@ function initThreeJS(){
     threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
     // Warm dark fog matching background
-    threeScene.fog=new THREE.FogExp2(0x0e0906, 0.02);
+    threeScene.fog=new THREE.FogExp2(0x070c16, 0.02);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
     threeCamera.position.set(0,0.5,3);
 
@@ -157,14 +157,14 @@ function initThreeJS(){
     // ══════════════════════════════════════════
 
     // Strong soft ambient base — even light everywhere, no glare
-    const hemiLight = new THREE.HemisphereLight(0xfff6ec, 0x4a3a2c, 2.4);
+    const hemiLight = new THREE.HemisphereLight(0xf2f6ff, 0x2a3346, 2.6);
     threeScene.add(hemiLight);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambient = new THREE.AmbientLight(0xffffff, 1.05);
     threeScene.add(ambient);
 
-    // Gentle key from front-top — very low intensity, just for form (no hot-spot)
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    // Gentle key from front-top — low intensity, just for form (no hot-spot)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.45);
     keyLight.position.set(-2, 5, 5);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
@@ -175,13 +175,24 @@ function initThreeJS(){
     keyLight.shadow.camera.far = 20;
     threeScene.add(keyLight);
 
-    // Soft fill from opposite side — balances, still no glare
-    const fillLight = new THREE.DirectionalLight(0xfff2e6, 0.35);
-    fillLight.position.set(3, 3, 2);
-    threeScene.add(fillLight);
+    // Even soft fill from every side — LOW intensity so no glare,
+    // but together they guarantee every corner is visible when rotating
+    const sides = [
+        [ 5, 2,  2],  // right
+        [-5, 2,  2],  // left
+        [ 0, 2,  6],  // front
+        [ 0, 2, -6],  // back
+        [ 0, 6,  0],  // top
+        [ 0,-3,  0],  // underside lift
+    ];
+    sides.forEach(p => {
+        const d = new THREE.DirectionalLight(0xffffff, 0.3);
+        d.position.set(p[0], p[1], p[2]);
+        threeScene.add(d);
+    });
 
-    // Faint warm rim to lift the dish off the dark background
-    const rimLight = new THREE.DirectionalLight(0xffdcb0, 0.4);
+    // Faint cool rim to lift the dish off the navy background
+    const rimLight = new THREE.DirectionalLight(0xbcd4ff, 0.45);
     rimLight.position.set(0, 3, -5);
     threeScene.add(rimLight);
 
