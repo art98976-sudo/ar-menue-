@@ -104,11 +104,11 @@
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
             <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 30"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 12"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 8"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 26"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 25"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.9"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.5"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.38"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.8"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthUnits: 0.78"></a-gltf-model>
 
             <!-- Steam effect removed -->
 
@@ -337,59 +337,42 @@ AFRAME.registerComponent('ar-anchor', {
 // Ground fix — places model bottom exactly at Y=0 (image surface)
 AFRAME.registerComponent('ground-fix', {
     init: function() {
-        this.el.addEventListener('model-loaded', () => {
-            // Try multiple times to ensure model is ready
-            [300, 600, 1000].forEach(delay => {
-                setTimeout(() => {
-                    const mesh = this.el.getObject3D('mesh');
-                    if (!mesh) return;
-                    mesh.updateMatrixWorld(true);
-                    const box = new THREE.Box3().setFromObject(mesh);
-                    if (box.isEmpty()) return;
-                    const minY = box.min.y;
-                    if (Math.abs(minY) > 0.001) {
-                        this.el.object3D.position.y -= minY;
-                        console.log('Ground fix:', this.el.id, 'shifted by:', (-minY).toFixed(3));
-                    }
-                }, delay);
-            });
-        });
+        // Disabled — grounding is now handled inside real-size to avoid conflict
     }
 });
 
-// REAL-SIZE — scales each dish to its true real-world width and sits it
-// flat on the table. In MindAR, 1 unit = target image width.
-// TARGET_CM = width of your printed target image in centimetres.
-// Change TARGET_CM if you print a different size; everything else auto-adjusts.
-const TARGET_CM = 20; // <-- measure your printed image and update this one number
+// FIT-SIZE — scales each dish to a nice on-screen size (fits the phone frame
+// when scanning, no zoom needed) AND sits it flat on the table in one step.
+// widthUnits = on-screen width relative to the target image (1.0 = same width
+// as the printed target image). Tune per dish for good relative sizes.
 AFRAME.registerComponent('real-size', {
-    schema: { widthCm: { type: 'number', default: 20 } },
+    schema: { widthUnits: { type: 'number', default: 1.0 } },
     init: function () {
-        const setSize = () => {
+        const fit = () => {
             const mesh = this.el.getObject3D('mesh');
             if (!mesh) return;
-            mesh.updateMatrixWorld(true);
-            // Measure current model width in its local units
-            let box = new THREE.Box3().setFromObject(mesh);
+            // Reset scale so measurement is clean each attempt
+            this.el.object3D.scale.setScalar(1);
+            this.el.object3D.position.y = 0;
+            this.el.object3D.updateMatrixWorld(true);
+            let box = new THREE.Box3().setFromObject(this.el.object3D);
             if (box.isEmpty()) return;
             const size = new THREE.Vector3();
             box.getSize(size);
-            const currentWidth = Math.max(size.x, size.z); // footprint width
+            const currentWidth = Math.max(size.x, size.z);
             if (currentWidth <= 0) return;
-            // Desired width in AR units = realCm / targetCm
-            const desiredUnits = this.data.widthCm / TARGET_CM;
-            const factor = desiredUnits / currentWidth;
+            // Scale so the dish footprint = widthUnits (relative to target image)
+            const factor = this.data.widthUnits / currentWidth;
             this.el.object3D.scale.setScalar(factor);
-            // Re-ground: sit base exactly on the table surface (y = 0)
+            // Ground: measure again after scaling, drop base exactly to table (y=0)
             this.el.object3D.updateMatrixWorld(true);
             const grounded = new THREE.Box3().setFromObject(this.el.object3D);
             if (!grounded.isEmpty()) {
-                this.el.object3D.position.y -= grounded.min.y;
+                this.el.object3D.position.y = -grounded.min.y; // base sits on table
             }
-            console.log('Real-size:', this.el.id, 'set to', this.data.widthCm + 'cm', 'factor', factor.toFixed(3));
         };
         this.el.addEventListener('model-loaded', () => {
-            [200, 500, 900, 1400].forEach(d => setTimeout(setSize, d));
+            [150, 400, 800, 1300].forEach(d => setTimeout(fit, d));
         });
     }
 });
