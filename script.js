@@ -98,7 +98,7 @@ function initThreeJS(){
     threeRenderer.setClearColor(0x120b06,1);
     threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure = 1.05; // dish stays bright against dark bg
+    threeRenderer.toneMappingExposure = 1.1; // even soft light, food clearly visible
     threeScene=new THREE.Scene();
 
     // No environment map — matte natural food look, no shiny reflections
@@ -110,93 +110,80 @@ function initThreeJS(){
     bgCanvas.width=512;bgCanvas.height=512;
     const bgCtx=bgCanvas.getContext('2d');
 
-    // ── WARM DARK PREMIUM BACKGROUND ──
-    // Cozy warm-dark backdrop, food is the hero, dish stays fully lit on top
-    const grad=bgCtx.createRadialGradient(256,235,30,256,256,430);
-    grad.addColorStop(0,   '#4a3520'); // warm amber-brown center - glow behind dish
-    grad.addColorStop(0.5, '#2a1c10'); // deep warm brown mid
-    grad.addColorStop(1,   '#120b06'); // near-black warm edges - vignette
-    bgCtx.fillStyle=grad;
+    // ══════════════════════════════════════════
+    // PREMIUM WARM-DARK BACKGROUND (layered, fine-dining feel)
+    // ══════════════════════════════════════════
+    // Base: deep warm vertical gradient (like a dim restaurant wall)
+    const base=bgCtx.createLinearGradient(0,0,0,512);
+    base.addColorStop(0,   '#3d2c1a'); // warm top - soft ambient glow
+    base.addColorStop(0.45,'#241812'); // rich espresso mid
+    base.addColorStop(1,   '#0e0906'); // deep warm near-black bottom
+    bgCtx.fillStyle=base;
     bgCtx.fillRect(0,0,512,512);
 
-    // Warm spotlight halo — like a candle-warm light aimed at the plate
-    const halo=bgCtx.createRadialGradient(256,225,10,256,235,230);
-    halo.addColorStop(0,   'rgba(255,196,120,0.34)'); // warm golden glow
-    halo.addColorStop(0.4, 'rgba(255,170,90,0.12)');
-    halo.addColorStop(1,   'rgba(255,170,90,0)');
-    bgCtx.fillStyle=halo;
+    // Soft warm spotlight pooled behind the dish (draws the eye, premium focus)
+    const spot=bgCtx.createRadialGradient(256,215,10,256,240,300);
+    spot.addColorStop(0,   'rgba(255,198,128,0.28)'); // warm golden core
+    spot.addColorStop(0.45,'rgba(230,150,80,0.10)');
+    spot.addColorStop(1,   'rgba(200,120,60,0)');
+    bgCtx.fillStyle=spot;
+    bgCtx.fillRect(0,0,512,512);
+
+    // Subtle darker "table surface" band at the bottom for grounding depth
+    const tableGrad=bgCtx.createLinearGradient(0,360,0,512);
+    tableGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    tableGrad.addColorStop(1, 'rgba(0,0,0,0.45)');
+    bgCtx.fillStyle=tableGrad;
+    bgCtx.fillRect(0,360,512,152);
+
+    // Gentle vignette on the edges to frame the scene
+    const vig=bgCtx.createRadialGradient(256,256,180,256,256,380);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+    bgCtx.fillStyle=vig;
     bgCtx.fillRect(0,0,512,512);
 
     threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
     // Warm dark fog matching background
-    threeScene.fog=new THREE.FogExp2(0x120b06, 0.02);
+    threeScene.fog=new THREE.FogExp2(0x0e0906, 0.02);
     threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
     threeCamera.position.set(0,0.5,3);
 
     // ══════════════════════════════════════════
-    // PREMIUM STUDIO WRAPAROUND RIG
-    // Lights from every side so no corner of the dish is ever dark
+    // SOFT EVEN LIGHTING — no harsh hot-spots / no shine
+    // Leans on ambient + hemisphere for flat even coverage,
+    // with two gentle directionals for subtle shape only
     // ══════════════════════════════════════════
 
-    // STEP 1 — Environment ambient (bright, even base — kills all dark patches)
-    const hemiLight = new THREE.HemisphereLight(
-        0xffffff,  // sky - clean bright white, true colours
-        0xe0d8ce,  // ground - light bounce so undersides aren't dark
-        1.8        // strong even fill so no corner goes dark on dark bg
-    );
+    // Strong soft ambient base — even light everywhere, no glare
+    const hemiLight = new THREE.HemisphereLight(0xfff6ec, 0x4a3a2c, 2.4);
     threeScene.add(hemiLight);
 
-    // Pure ambient top-up — guarantees a visible floor of light everywhere
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
     threeScene.add(ambient);
 
-    // STEP 2 — Key Light (main, front-top-left) — defines form and highlights
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
-    keyLight.position.set(-3, 6, 5);
+    // Gentle key from front-top — very low intensity, just for form (no hot-spot)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    keyLight.position.set(-2, 5, 5);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
     keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.radius = 10;
+    keyLight.shadow.radius = 12;
     keyLight.shadow.bias = -0.0005;
     keyLight.shadow.camera.near = 0.1;
     keyLight.shadow.camera.far = 20;
     threeScene.add(keyLight);
 
-    // STEP 3 — Fill Light (front-top-right) — softens key shadows
-    const fillLight = new THREE.DirectionalLight(0xffffff, 1.3);
-    fillLight.position.set(4, 4, 3);
+    // Soft fill from opposite side — balances, still no glare
+    const fillLight = new THREE.DirectionalLight(0xfff2e6, 0.35);
+    fillLight.position.set(3, 3, 2);
     threeScene.add(fillLight);
 
-    // STEP 4 — Left side light — lights the left edge fully
-    const leftLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    leftLight.position.set(-6, 2, 0);
-    threeScene.add(leftLight);
-
-    // STEP 5 — Right side light — lights the right edge fully
-    const rightLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    rightLight.position.set(6, 2, 0);
-    threeScene.add(rightLight);
-
-    // STEP 6 — Front fill — lights the face toward the user, no dark front
-    const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    frontLight.position.set(0, 1, 7);
-    threeScene.add(frontLight);
-
-    // Back-bottom fill — catches the rear/underside so no corner hides in dark
-    const backFill = new THREE.DirectionalLight(0xffffff, 1.0);
-    backFill.position.set(0, -1, -5);
-    threeScene.add(backFill);
-
-    // STEP 7 — Rim/back light — separates dish from background, premium pop
-    const rimLight = new THREE.DirectionalLight(0xfff7ee, 1.2);
-    rimLight.position.set(0, 4, -6);
+    // Faint warm rim to lift the dish off the dark background
+    const rimLight = new THREE.DirectionalLight(0xffdcb0, 0.4);
+    rimLight.position.set(0, 3, -5);
     threeScene.add(rimLight);
-
-    // STEP 8 — Top point light — bright highlight on top surfaces (sauce/cheese shine)
-    const topLight = new THREE.PointLight(0xffffff, 1.0, 15);
-    topLight.position.set(0, 6, 1);
-    threeScene.add(topLight);
 
     // STEP 5+6 — Shadow Ground + Contact Shadow
     // Cast shadow plane just beneath the dish so it looks planted
@@ -262,13 +249,15 @@ function loadGLBModel(path){
             if(c.isMesh){
                 c.castShadow=true;
                 c.receiveShadow=true;
-                // Matte natural food materials — no shine, no plastic look
+                // Fully matte natural food — force no shine on every material
                 if(c.material){
                     const mats = Array.isArray(c.material) ? c.material : [c.material];
                     mats.forEach(m => {
-                        if (m.roughness !== undefined) m.roughness = 1.0;   // fully matte
-                        if (m.metalness !== undefined) m.metalness = 0.0;   // no metal shine
-                        m.envMapIntensity = 0;                              // no reflections
+                        m.roughness = 1.0;        // fully matte, no glossy hot-spots
+                        m.metalness = 0.0;        // no metal shine
+                        m.envMapIntensity = 0;    // no reflections
+                        if (m.shininess !== undefined) m.shininess = 0;
+                        if (m.specular && m.specular.setRGB) m.specular.setRGB(0,0,0);
                         m.needsUpdate = true;
                     });
                 }
