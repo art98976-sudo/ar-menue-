@@ -45,7 +45,7 @@
 <!-- AR VIEWER -->
 <div id="viewer-ar">
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 5; warmupTolerance: 5"
-        color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 0.9"
+        color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
@@ -59,12 +59,17 @@
         <!-- STEP 4: Camera slight top-down like sitting at restaurant table -->
         <a-camera position="0 0 0" rotation="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- Warm restaurant lighting -->
-        <a-light type="hemisphere" color="#fff5e0" ground-color="#443322" intensity="1.0"></a-light>
-        <a-light type="directional" color="#FFD8B0" intensity="1.6" position="-3 6 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048" shadow-radius="12" shadow-bias="-0.0005"></a-light>
-        <a-light type="directional" color="#ffe8d5" intensity="0.45" position="4 3 -2"></a-light>
-        <a-light type="directional" color="#fff0e8" intensity="0.6" position="0 4 -6"></a-light>
-        <a-light type="point" color="#ffd8a0" intensity="0.5" position="0 5 1" distance="10"></a-light>
+        <!-- PREMIUM FOOD LIGHTING RIG -->
+        <!-- Bright neutral ambient so colours stay true and food is never dark -->
+        <a-light type="hemisphere" color="#ffffff" ground-color="#807060" intensity="1.4"></a-light>
+        <!-- KEY light: main bright light from front-top, like overhead restaurant spotlight -->
+        <a-light type="directional" color="#ffffff" intensity="2.2" position="-2 6 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048" shadow-radius="10" shadow-bias="-0.0005"></a-light>
+        <!-- FILL light: softens shadows on the opposite side so nothing goes black -->
+        <a-light type="directional" color="#fff8f0" intensity="1.0" position="4 3 -1"></a-light>
+        <!-- RIM/BACK light: outlines the food so it pops off the table -->
+        <a-light type="directional" color="#fff5ea" intensity="1.1" position="0 4 -6"></a-light>
+        <!-- TOP point light: bright highlight on top surfaces (melted cheese, sauce shine) -->
+        <a-light type="point" color="#fffaf0" intensity="0.9" position="0 5 1" distance="12"></a-light>
 
         <a-entity mindar-image-target="targetIndex: 0" ar-anchor>
 
