@@ -104,11 +104,11 @@
             <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
             <!-- This is the proven fix for MindAR floating -->
             <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -1.0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -1.0 0" scale="1.5 1.5 1.5" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -1.0 0" scale="1.2 1.2 1.2" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 -1.0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 -1.0 0" scale="1.8 1.8 1.8" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 30"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 12"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 8"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 26"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" rotation="0 0 0" visible="true" real-size="widthCm: 25"></a-gltf-model>
 
             <!-- Steam effect removed -->
 
@@ -353,6 +353,43 @@ AFRAME.registerComponent('ground-fix', {
                     }
                 }, delay);
             });
+        });
+    }
+});
+
+// REAL-SIZE — scales each dish to its true real-world width and sits it
+// flat on the table. In MindAR, 1 unit = target image width.
+// TARGET_CM = width of your printed target image in centimetres.
+// Change TARGET_CM if you print a different size; everything else auto-adjusts.
+const TARGET_CM = 20; // <-- measure your printed image and update this one number
+AFRAME.registerComponent('real-size', {
+    schema: { widthCm: { type: 'number', default: 20 } },
+    init: function () {
+        const setSize = () => {
+            const mesh = this.el.getObject3D('mesh');
+            if (!mesh) return;
+            mesh.updateMatrixWorld(true);
+            // Measure current model width in its local units
+            let box = new THREE.Box3().setFromObject(mesh);
+            if (box.isEmpty()) return;
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const currentWidth = Math.max(size.x, size.z); // footprint width
+            if (currentWidth <= 0) return;
+            // Desired width in AR units = realCm / targetCm
+            const desiredUnits = this.data.widthCm / TARGET_CM;
+            const factor = desiredUnits / currentWidth;
+            this.el.object3D.scale.setScalar(factor);
+            // Re-ground: sit base exactly on the table surface (y = 0)
+            this.el.object3D.updateMatrixWorld(true);
+            const grounded = new THREE.Box3().setFromObject(this.el.object3D);
+            if (!grounded.isEmpty()) {
+                this.el.object3D.position.y -= grounded.min.y;
+            }
+            console.log('Real-size:', this.el.id, 'set to', this.data.widthCm + 'cm', 'factor', factor.toFixed(3));
+        };
+        this.el.addEventListener('model-loaded', () => {
+            [200, 500, 900, 1400].forEach(d => setTimeout(setSize, d));
         });
     }
 });
