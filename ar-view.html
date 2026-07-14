@@ -2,24 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>AR View</title>
+    <title>AR View — MenuVision</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { overflow:hidden; background:#000; font-family:-apple-system,sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-        #viewer-ar { position:fixed; inset:0; z-index:1; display:block; }
+        html, body {
+            width:100%; height:100%;
+            overflow:hidden; background:#000;
+            font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* ── AR SCENE ── */
+        #viewer-ar {
+            position:fixed; inset:0; z-index:1;
+        }
 
         #viewer-ar video {
             position:fixed!important; top:0!important; left:0!important;
             width:100vw!important; height:100vh!important;
-            object-fit:cover!important; z-index:1!important; display:block!important;
+            object-fit:cover!important; z-index:1!important;
+            display:block!important;
         }
 
         #viewer-ar canvas {
@@ -28,144 +38,194 @@
             z-index:2!important; background:transparent!important;
         }
 
+        /* ── TOP BAR ── */
         #top-bar {
             position:fixed; top:0; left:0; right:0; z-index:9999;
             display:flex; justify-content:space-between; align-items:center;
-            padding:14px 16px;
-            background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);
+            padding:env(safe-area-inset-top, 14px) 16px 14px;
+            padding-top:max(env(safe-area-inset-top), 14px);
+            background:linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, transparent 100%);
         }
 
         #back-btn {
-            background:rgba(0,0,0,0.6); color:white; border:none;
-            padding:8px 16px; border-radius:20px; font-size:14px; cursor:pointer;
+            background:rgba(0,0,0,0.55);
+            color:white; border:1px solid rgba(255,255,255,0.2);
+            padding:8px 18px; border-radius:22px;
+            font-size:14px; font-weight:600; cursor:pointer;
+            backdrop-filter:blur(8px);
         }
 
         #food-title {
-            color:white; font-size:16px; font-weight:bold;
-            text-shadow:0 1px 4px rgba(0,0,0,0.5);
+            color:#fff; font-size:16px; font-weight:700;
+            text-shadow:0 1px 6px rgba(0,0,0,0.6);
+            letter-spacing:0.3px;
         }
 
-        /* Scan overlay */
+        /* ── SCAN OVERLAY ── */
         #scan-overlay {
             position:fixed; inset:0; z-index:9998;
             display:flex; flex-direction:column;
-            align-items:center; justify-content:center; gap:20px;
-            pointer-events:none; transition:opacity 0.5s;
+            align-items:center; justify-content:center; gap:24px;
+            pointer-events:none; transition:opacity 0.4s ease;
         }
-        #scan-overlay.hidden { opacity:0; pointer-events:none; }
+        #scan-overlay.hidden { opacity:0; }
 
-        #scan-box {
-            width:260px; height:180px; position:relative; overflow:hidden;
+        #scan-frame {
+            width:280px; height:200px; position:relative;
         }
 
-        .scan-corner {
-            position:absolute; width:30px; height:30px;
+        .corner {
+            position:absolute; width:28px; height:28px;
             border-color:#d4a574; border-style:solid;
         }
-        .scan-corner.tl { top:0; left:0; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-        .scan-corner.tr { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-        .scan-corner.bl { bottom:0; left:0; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-        .scan-corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+        .corner.tl { top:0; left:0; border-width:3px 0 0 3px; border-radius:5px 0 0 0; }
+        .corner.tr { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 5px 0 0; }
+        .corner.bl { bottom:0; left:0; border-width:0 0 3px 3px; border-radius:0 0 0 5px; }
+        .corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 5px 0; }
 
         #scan-line {
-            position:absolute; left:0; right:0; height:2px;
-            background:linear-gradient(90deg,transparent,#d4a574,transparent);
+            position:absolute; left:4px; right:4px; height:2px;
+            background:linear-gradient(90deg, transparent, #d4a574, transparent);
             animation:scanMove 2s linear infinite;
-            box-shadow:0 0 8px #d4a574;
+            box-shadow:0 0 10px rgba(212,165,116,0.8);
         }
-        @keyframes scanMove { 0%{top:0} 50%{top:calc(100% - 2px)} 100%{top:0} }
+        @keyframes scanMove {
+            0%   { top:0; }
+            50%  { top:calc(100% - 2px); }
+            100% { top:0; }
+        }
 
-        /* Tap to place */
+        #scan-hint {
+            color:#fff; font-size:14px; font-weight:600;
+            background:rgba(0,0,0,0.55);
+            padding:10px 22px; border-radius:24px;
+            letter-spacing:0.2px; text-align:center;
+            backdrop-filter:blur(6px);
+            border:1px solid rgba(212,165,116,0.3);
+        }
+
+        /* ── RETICLE ── */
         #reticle {
-            position:fixed; bottom:35%; left:50%;
+            position:fixed; bottom:32%; left:50%;
             transform:translateX(-50%);
             z-index:9997; display:none;
-            flex-direction:column; align-items:center; gap:12px;
+            flex-direction:column; align-items:center; gap:14px;
             pointer-events:none;
         }
 
         #reticle-ring {
-            width:70px; height:70px;
-            border:3px solid #d4a574; border-radius:50%;
-            position:relative;
-            animation:reticlePulse 1.5s ease-in-out infinite;
-            box-shadow:0 0 20px rgba(212,165,116,0.5);
+            width:76px; height:76px;
+            border:2.5px solid #d4a574;
+            border-radius:50%; position:relative;
+            animation:pulse 1.6s ease-in-out infinite;
+            box-shadow:0 0 22px rgba(212,165,116,0.45);
         }
 
         #reticle-ring::before {
-            content:''; position:absolute; top:50%; left:50%;
+            content:''; position:absolute;
+            top:50%; left:50%;
             transform:translate(-50%,-50%);
-            width:10px; height:10px;
+            width:9px; height:9px;
             background:#d4a574; border-radius:50%;
         }
 
         #reticle-ring::after {
-            content:''; position:absolute; top:50%; left:50%;
+            content:''; position:absolute;
+            top:50%; left:50%;
             transform:translate(-50%,-50%);
-            width:40px; height:40px;
-            border:1px dashed rgba(212,165,116,0.5); border-radius:50%;
+            width:42px; height:42px;
+            border:1px dashed rgba(212,165,116,0.45);
+            border-radius:50%;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform:scale(1);    opacity:1;   }
+            50%       { transform:scale(1.18); opacity:0.65; }
         }
 
         #tap-label {
-            color:white; font-size:13px; font-weight:bold;
+            color:#fff; font-size:13px; font-weight:700;
             background:rgba(0,0,0,0.6);
-            padding:6px 16px; border-radius:20px; letter-spacing:1px;
+            padding:7px 18px; border-radius:22px;
+            letter-spacing:1px;
+            border:1px solid rgba(212,165,116,0.3);
         }
 
-        @keyframes reticlePulse {
-            0%   { transform:scale(1);    opacity:1; }
-            50%  { transform:scale(1.15); opacity:0.7; }
-            100% { transform:scale(1);    opacity:1; }
-        }
-
-        #place-confirm {
-            position:fixed; top:80px; left:50%;
-            transform:translateX(-50%);
-            z-index:9999;
-            background:rgba(44,24,16,0.9); color:#d4a574;
-            padding:10px 20px; border-radius:20px;
-            font-size:14px; font-weight:bold; display:none;
-        }
-
+        /* ── DETECTED POPUP ── */
         #ar-detected {
-            position:fixed; top:80px; left:50%; transform:translateX(-50%);
+            position:fixed; top:90px; left:50%; transform:translateX(-50%);
             z-index:9999;
-            background:linear-gradient(135deg,#2c1810,#4a2c1a);
-            color:#d4a574; padding:14px 28px; border-radius:24px;
-            font-size:16px; font-weight:bold; display:none;
-            flex-direction:column; align-items:center; gap:4px;
-            box-shadow:0 4px 24px rgba(0,0,0,0.4);
+            background:linear-gradient(135deg, rgba(44,24,10,0.95), rgba(80,45,15,0.95));
+            color:#d4a574; padding:14px 28px; border-radius:26px;
+            font-size:15px; font-weight:700; display:none;
+            flex-direction:column; align-items:center; gap:5px;
+            box-shadow:0 6px 28px rgba(0,0,0,0.45);
+            border:1px solid rgba(212,165,116,0.3);
+            backdrop-filter:blur(10px);
         }
 
-        #free-controls {
+        /* ── PLACE CONFIRMATION ── */
+        #place-confirm {
+            position:fixed; top:90px; left:50%; transform:translateX(-50%);
+            z-index:9999;
+            background:rgba(20,20,20,0.85); color:#d4a574;
+            padding:11px 24px; border-radius:22px;
+            font-size:14px; font-weight:700; display:none;
+            white-space:nowrap;
+            border:1px solid rgba(212,165,116,0.25);
+            backdrop-filter:blur(8px);
+        }
+
+        /* ── BOTTOM CONTROLS ── */
+        #bottom-controls {
             position:fixed; bottom:0; left:0; right:0; z-index:9999;
-            background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);
-            padding:16px; display:none;
-            flex-direction:column; align-items:center; gap:10px;
+            background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+            padding:16px 20px max(env(safe-area-inset-bottom), 20px);
+            display:none; flex-direction:column; align-items:center; gap:12px;
         }
 
-        /* Hint text shown after model placed */
-        #hint-text {
-            color:rgba(255,255,255,0.85);
-            font-size:12px; text-align:center;
-            background:rgba(0,0,0,0.5);
-            padding:6px 16px; border-radius:12px;
+        #hint-bar {
+            color:rgba(255,255,255,0.82); font-size:12px;
+            letter-spacing:0.4px; text-align:center;
+            background:rgba(0,0,0,0.45); padding:6px 18px;
+            border-radius:14px;
+        }
+
+        /* ── SIZE BUTTONS ── */
+        #size-controls {
+            display:flex; gap:10px; align-items:center;
+        }
+
+        .size-btn {
+            background:rgba(212,165,116,0.18);
+            color:#d4a574; border:1.5px solid rgba(212,165,116,0.5);
+            padding:9px 20px; border-radius:20px;
+            font-size:14px; font-weight:700; cursor:pointer;
+            backdrop-filter:blur(6px); transition:background 0.15s;
+        }
+        .size-btn:active { background:rgba(212,165,116,0.4); }
+
+        #size-label {
+            color:rgba(255,255,255,0.7); font-size:12px;
+            min-width:44px; text-align:center;
         }
     </style>
 </head>
 <body>
 
+<!-- Top bar -->
 <div id="top-bar">
     <button id="back-btn" onclick="window.history.back()">← Back</button>
     <div id="food-title">Loading...</div>
     <div style="width:70px"></div>
 </div>
 
+<!-- AR Scene -->
 <div id="viewer-ar">
     <a-scene
         mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.00001; filterBeta: 0.00001;"
         color-space="sRGB"
-        renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.2"
+        renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.2; antialias: true"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
@@ -174,31 +234,39 @@
             <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
             <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
+            <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
+            <a-asset-item id="pastaModel"  src="./pasta.glb"></a-asset-item>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- Improved 3-point lighting -->
-        <a-light type="ambient"     color="#ffffff" intensity="0.8"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="2.0" position="1 3 2" cast-shadow="true"></a-light>
-        <a-light type="directional" color="#ffe8d0" intensity="0.4" position="-2 1 -1"></a-light>
+        <!-- Professional 3-point lighting -->
+        <a-light type="ambient"     color="#ffffff" intensity="0.9"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="2.2"
+            position="1 4 2" cast-shadow="true"
+            shadow-camera-near="0.1" shadow-camera-far="10"
+            shadow-map-width="1024" shadow-map-height="1024">
+        </a-light>
+        <a-light type="directional" color="#ffeedd" intensity="0.5" position="-2 2 -1"></a-light>
+        <a-light type="point"       color="#fff5e6" intensity="0.4" position="0 1.5 0.5" distance="4"></a-light>
 
-        <!-- TARGET — models live here while tracking -->
+        <!-- AR target -->
         <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
+
+            <!-- Shadow circle on surface -->
+            <a-circle id="shadow-circle"
+                radius="0.18" rotation="-90 0 0" position="0 0.001 0"
+                material="color:#000; opacity:0.22; transparent:true; shader:flat"
+                visible="false">
             </a-circle>
+
+            <!-- All models hidden at start — scale 0 0 0 -->
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
             <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-        </a-entity>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
 
-        <!-- WORLD ENTITY — model moves here after placed so it stays fixed -->
-        <a-entity id="world-anchor" position="0 0 -1" visible="false">
-            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
-            </a-circle>
-            <a-gltf-model id="placed-model" src="" position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
         </a-entity>
 
     </a-scene>
@@ -206,30 +274,39 @@
 
 <!-- Scan overlay -->
 <div id="scan-overlay">
-    <div id="scan-box">
-        <div class="scan-corner tl"></div>
-        <div class="scan-corner tr"></div>
-        <div class="scan-corner bl"></div>
-        <div class="scan-corner br"></div>
+    <div id="scan-frame">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
         <div id="scan-line"></div>
     </div>
+    <div id="scan-hint">Point camera at menu image</div>
 </div>
 
-<!-- Tap to place -->
+<!-- Tap to place reticle -->
 <div id="reticle">
     <div id="reticle-ring"></div>
     <div id="tap-label">👆 TAP TO PLACE</div>
 </div>
 
-<div id="place-confirm">📍 Food Placed!</div>
-
+<!-- Detected popup -->
 <div id="ar-detected">
-    <div style="font-size:28px">✅</div>
-    <div>Image Detected!</div>
+    <div style="font-size:26px">✅</div>
+    <div>Menu Detected!</div>
 </div>
 
-<div id="free-controls">
-    <div id="hint-text">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+<!-- Place confirmation -->
+<div id="place-confirm">✨ Food placed on table!</div>
+
+<!-- Bottom controls shown after placement -->
+<div id="bottom-controls">
+    <div id="hint-bar">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+    <div id="size-controls">
+        <button class="size-btn" onclick="changeSize(-0.15)">－</button>
+        <div id="size-label">100%</div>
+        <button class="size-btn" onclick="changeSize(0.15)">＋</button>
+    </div>
 </div>
 
 <script>
@@ -239,37 +316,38 @@
     const modelNames = {
         pizza:  'Margherita Pizza 🍕',
         burger: 'Classic Burger 🍔',
-        drink:  'Fresh Lemonade 🥤'
+        drink:  'Fresh Lemonade 🥤',
+        sushi:  'Sushi Platter 🍣',
+        pasta:  'Creamy Pasta 🍝'
     };
 
-    // ── ORIGINAL DISPLAY SIZES — shown when model first appears ──
+    // ── CORRECT SCALES BASED ON ACTUAL MODEL HEIGHTS ──
+    // Each scale makes the model appear as realistic food size on table
+    // GLB files have been fixed so bottom is at Y=0
     const modelScales = {
-        pizza:  2.5,
-        burger: 8.0,   // burger increased — appears at correct size immediately
-        drink:  1.2
-    };
-
-    // GLB src paths
-    const modelSrc = {
-        pizza:  './pizza.glb',
-        burger: './burger.glb',
-        drink:  './drink.glb'
+        pizza:  0.006,   // pizza GLB is 41 units tall — needs tiny scale
+        burger: 2.5,     // burger GLB is 0.095 units tall — needs large scale
+        drink:  0.05,    // drink GLB is 4.8 units tall
+        sushi:  1.4,     // sushi GLB is 0.156 units tall
+        pasta:  0.45,    // pasta GLB is 0.547 units tall
     };
 
     const modelIds = {
         pizza:  'ar-pizza',
         burger: 'ar-burger',
-        drink:  'ar-drink'
+        drink:  'ar-drink',
+        sushi:  'ar-sushi',
+        pasta:  'ar-pasta',
     };
 
-    const MODEL_Y = 0;   // keeps model on surface — not floating
+    document.getElementById('food-title').innerText = modelNames[modelId] || modelId;
 
-    document.getElementById('food-title').innerText = modelNames[modelId];
-
-    let arScale  = modelScales[modelId];
-    let rotY     = 0;
-    let detected = false;
-    let placed   = false;
+    let arScale   = modelScales[modelId] || 1.0;
+    let baseScale = arScale;
+    let sizePct   = 100;
+    let rotY      = 0;
+    let detected  = false;
+    let placed    = false;
 
     // ── Fix video white screen ──
     function fixVideo() {
@@ -280,9 +358,7 @@
             c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';
         });
     }
-    setInterval(() => {
-        if (document.getElementById('viewer-ar').style.display !== 'none') fixVideo();
-    }, 500);
+    setInterval(fixVideo, 400);
 
     // ── MindAR events ──
     setTimeout(() => {
@@ -296,85 +372,72 @@
     function onDetected() {
         if (detected) return;
         detected = true;
-
         document.getElementById('scan-overlay').classList.add('hidden');
 
-        // Show detected popup briefly
         const det = document.getElementById('ar-detected');
         det.style.display = 'flex';
-        setTimeout(() => { det.style.display = 'none'; }, 1500);
+        setTimeout(() => { det.style.display = 'none'; }, 1800);
 
-        // Show tap to place reticle
         if (!placed) {
             document.getElementById('reticle').style.display = 'flex';
         }
     }
 
     function onLost() {
-        // Once placed — model stays in world space — does NOT disappear
         if (!placed) {
             detected = false;
             document.getElementById('scan-overlay').classList.remove('hidden');
             document.getElementById('reticle').style.display = 'none';
         }
-        // If already placed — do nothing — model stays on table
+        // If already placed model stays visible — does not disappear
     }
 
     function tapToPlace() {
         if (!detected || placed) return;
         placed = true;
 
-        // Hide reticle
         document.getElementById('reticle').style.display = 'none';
 
-        // Get world position of the AR target at the moment of tap
-        const arTargetEl = document.getElementById('ar-target');
-        const worldAnchor = document.getElementById('world-anchor');
-        const placedModel = document.getElementById('placed-model');
+        // Show model at correct size — Y = 0 because GLB bottom is fixed at 0
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) {
+            el.setAttribute('position', '0 0 0');
+            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
+            el.setAttribute('rotation', '-90 0 0');
+        }
 
-        // Set the placed model src to correct food
-        placedModel.setAttribute('src', modelSrc[modelId]);
+        // Show shadow
+        document.getElementById('shadow-circle').setAttribute('visible', 'true');
 
-        // Get current world position from target
-        const obj = arTargetEl.object3D;
-        const pos  = new THREE.Vector3();
-        const quat = new THREE.Quaternion();
-        const scl  = new THREE.Vector3();
-        obj.matrixWorld.decompose(pos, quat, scl);
-
-        // Move world anchor to that position
-        worldAnchor.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-        worldAnchor.setAttribute('visible', 'true');
-
-        // Show model at correct original size immediately
-        placedModel.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-        placedModel.setAttribute('position', `0 ${MODEL_Y} 0`);
-        placedModel.setAttribute('rotation', '-90 0 0');
-
-        // Hide tracking model
-        const trackEl = document.getElementById(modelIds[modelId]);
-        if (trackEl) trackEl.setAttribute('scale', '0 0 0');
-
-        // Show controls
-        document.getElementById('free-controls').style.display = 'flex';
+        // Show bottom controls
+        document.getElementById('bottom-controls').style.display = 'flex';
 
         // Show confirmation
-        const confirm = document.getElementById('place-confirm');
-        confirm.style.display = 'block';
-        setTimeout(() => { confirm.style.display = 'none'; }, 2000);
+        const c = document.getElementById('place-confirm');
+        c.style.display = 'block';
+        setTimeout(() => { c.style.display = 'none'; }, 2200);
     }
 
-    // Tap screen to place
+    // Size buttons
+    function changeSize(delta) {
+        sizePct = Math.max(30, Math.min(300, sizePct + Math.round(delta * 100)));
+        arScale = baseScale * (sizePct / 100);
+        document.getElementById('size-label').innerText = sizePct + '%';
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+    }
+
+    // Tap to place
     document.addEventListener('click', function(e) {
-        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (e.target.closest('#bottom-controls') || e.target.closest('#top-bar')) return;
         if (detected && !placed) tapToPlace();
     });
 
-    // ── Touch controls on placed model — rotate and zoom ──
+    // ── Touch controls ──
     let lastX = null, lastY = null, lastPinch = null;
 
     document.addEventListener('touchstart', e => {
-        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (e.target.closest('#bottom-controls') || e.target.closest('#top-bar')) return;
         if (!placed) { tapToPlace(); return; }
         if (e.touches.length === 1) {
             lastX = e.touches[0].clientX;
@@ -390,32 +453,31 @@
     }, { passive: true });
 
     document.addEventListener('touchmove', e => {
-        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (e.target.closest('#bottom-controls') || e.target.closest('#top-bar')) return;
         if (!placed) return;
 
-        // Control the placed model — not the tracking one
-        const el = document.getElementById('placed-model');
+        const el = document.getElementById(modelIds[modelId]);
         if (!el) return;
 
         if (e.touches.length === 1 && lastX !== null) {
-            // Drag to rotate horizontally only
             const dx = e.touches[0].clientX - lastX;
-            rotY += dx * 1.0;
+            rotY += dx * 0.8;
             el.setAttribute('rotation', `-90 ${rotY} 0`);
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            el.setAttribute('position', '0 0 0');
             lastX = e.touches[0].clientX;
             lastY = e.touches[0].clientY;
 
         } else if (e.touches.length === 2 && lastPinch !== null) {
-            // Pinch to zoom
             const nd = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
             const delta = (nd - lastPinch) / lastPinch;
-            arScale = Math.max(0.1, Math.min(25, arScale * (1 + delta * 0.8)));
-            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            arScale = Math.max(baseScale * 0.3, Math.min(baseScale * 3, arScale * (1 + delta * 0.7)));
+            sizePct = Math.round((arScale / baseScale) * 100);
+            document.getElementById('size-label').innerText = sizePct + '%';
+            el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+            el.setAttribute('position', '0 0 0');
             lastPinch = nd;
         }
     }, { passive: true });
