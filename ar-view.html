@@ -44,7 +44,10 @@
             padding:8px 16px; border-radius:20px; font-size:14px; cursor:pointer;
         }
 
-        #food-title { color:white; font-size:16px; font-weight:bold; text-shadow:0 1px 4px rgba(0,0,0,0.5); }
+        #food-title {
+            color:white; font-size:16px; font-weight:bold;
+            text-shadow:0 1px 4px rgba(0,0,0,0.5);
+        }
 
         /* Scan overlay */
         #scan-overlay {
@@ -56,11 +59,6 @@
         }
 
         #scan-overlay.hidden { opacity:0; pointer-events:none; }
-
-        #scan-top-text {
-            color:white; font-size:15px; font-weight:bold;
-            background:rgba(0,0,0,0.6); padding:10px 20px; border-radius:20px;
-        }
 
         #scan-box {
             width:260px; height:180px; position:relative; overflow:hidden;
@@ -85,91 +83,62 @@
 
         /* Tap to place reticle */
         #reticle {
-            position: fixed;
-            bottom: 35%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9997;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            pointer-events: none;
+            position:fixed; bottom:35%; left:50%;
+            transform:translateX(-50%);
+            z-index:9997; display:none;
+            flex-direction:column; align-items:center; gap:12px;
+            pointer-events:none;
         }
 
         #reticle-ring {
-            width: 70px;
-            height: 70px;
-            border: 3px solid #d4a574;
-            border-radius: 50%;
-            position: relative;
-            animation: reticlePulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(212,165,116,0.5);
+            width:70px; height:70px;
+            border:3px solid #d4a574; border-radius:50%;
+            position:relative;
+            animation:reticlePulse 1.5s ease-in-out infinite;
+            box-shadow:0 0 20px rgba(212,165,116,0.5);
         }
 
         #reticle-ring::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 10px; height: 10px;
-            background: #d4a574;
-            border-radius: 50%;
+            content:''; position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%);
+            width:10px; height:10px;
+            background:#d4a574; border-radius:50%;
         }
 
         #reticle-ring::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px; height: 40px;
-            border: 1px dashed rgba(212,165,116,0.5);
-            border-radius: 50%;
+            content:''; position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%);
+            width:40px; height:40px;
+            border:1px dashed rgba(212,165,116,0.5); border-radius:50%;
         }
 
         #tap-label {
-            color: white;
-            font-size: 13px;
-            font-weight: bold;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 16px;
-            border-radius: 20px;
-            letter-spacing: 1px;
+            color:white; font-size:13px; font-weight:bold;
+            background:rgba(0,0,0,0.6);
+            padding:6px 16px; border-radius:20px; letter-spacing:1px;
         }
 
         @keyframes reticlePulse {
-            0%   { transform: scale(1);   opacity: 1; }
-            50%  { transform: scale(1.15); opacity: 0.7; }
-            100% { transform: scale(1);   opacity: 1; }
+            0%   { transform:scale(1);    opacity:1; }
+            50%  { transform:scale(1.15); opacity:0.7; }
+            100% { transform:scale(1);    opacity:1; }
         }
 
         /* Placed confirmation */
         #place-confirm {
-            position: fixed;
-            top: 80px; left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            background: rgba(44,24,16,0.9);
-            color: #d4a574;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            display: none;
-        }
-
-        #scan-tips {
-            display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
-        }
-        .scan-tip {
-            background:rgba(0,0,0,0.5); color:white;
-            font-size:11px; padding:5px 12px; border-radius:12px;
+            position:fixed; top:80px; left:50%;
+            transform:translateX(-50%);
+            z-index:9999;
+            background:rgba(44,24,16,0.9); color:#d4a574;
+            padding:10px 20px; border-radius:20px;
+            font-size:14px; font-weight:bold; display:none;
         }
 
         /* Detected popup */
         #ar-detected {
             position:fixed; top:80px; left:50%; transform:translateX(-50%);
-            z-index:9999; background:linear-gradient(135deg,#2c1810,#4a2c1a);
+            z-index:9999;
+            background:linear-gradient(135deg,#2c1810,#4a2c1a);
             color:#d4a574; padding:14px 28px; border-radius:24px;
             font-size:16px; font-weight:bold; display:none;
             flex-direction:column; align-items:center; gap:4px;
@@ -182,10 +151,6 @@
             background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);
             padding:16px; display:none;
             flex-direction:column; align-items:center; gap:10px;
-        }
-
-        #hint-bar {
-            color:rgba(255,255,255,0.8); font-size:12px; text-align:center;
         }
 
         #scan-again-btn {
@@ -205,32 +170,82 @@
 
 <!-- MindAR Scene -->
 <div id="viewer-ar">
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.001"
+    <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.001;"
         color-space="sRGB"
-        renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.0"
+        renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.2"
         vr-mode-ui="enabled: false"
         device-orientation-permission-ui="enabled: false"
         loading-screen="enabled: false">
+
         <a-assets timeout="120000">
             <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
             <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
         </a-assets>
+
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <!-- Natural restaurant lighting -->
-        <a-light type="ambient" color="#fff8f0" intensity="1.2"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="1.8" position="3 8 5" cast-shadow="true"></a-light>
-        <a-light type="directional" color="#ffe8d0" intensity="0.8" position="-4 4 -3"></a-light>
-        <a-light type="directional" color="#ffd0a0" intensity="0.6" position="0 3 -5"></a-light>
-        <a-light type="point" color="#ffcc88" intensity="0.8" position="0 2 2" distance="8"></a-light>
+
+        <!-- ── IMPROVED LIGHTING ── -->
+        <!-- Soft ambient so shadows are not too dark -->
+        <a-light type="ambient"
+            color="#ffffff"
+            intensity="0.8">
+        </a-light>
+
+        <!-- Main key light from top right — gives depth and shape to food -->
+        <a-light type="directional"
+            color="#ffffff"
+            intensity="2.0"
+            position="1 3 2"
+            cast-shadow="true">
+        </a-light>
+
+        <!-- Warm fill light from left — mimics restaurant warm lighting -->
+        <a-light type="directional"
+            color="#ffe8d0"
+            intensity="0.4"
+            position="-2 1 -1">
+        </a-light>
+
         <a-entity mindar-image-target="targetIndex: 0">
-            <!-- Shadow plane on ground level -->
-            <a-circle radius="0.3" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.25; transparent:true; shader:flat">
+
+            <!-- Shadow circle under food — makes it look grounded -->
+            <a-circle
+                radius="0.35"
+                rotation="-90 0 0"
+                position="0 0.001 0"
+                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
             </a-circle>
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="1 1 1" rotation="-90 0 0" visible="true"></a-gltf-model>
+
+            <!-- ── MODELS — position Y set to -0.1 to sit on surface not float ── -->
+            <a-gltf-model
+                id="ar-pizza"
+                src="#pizzaModel"
+                position="0 -0.1 0"
+                scale="1 1 1"
+                rotation="-90 0 0"
+                visible="true">
+            </a-gltf-model>
+
+            <a-gltf-model
+                id="ar-burger"
+                src="#burgerModel"
+                position="0 -0.1 0"
+                scale="1 1 1"
+                rotation="-90 0 0"
+                visible="true">
+            </a-gltf-model>
+
+            <a-gltf-model
+                id="ar-drink"
+                src="#drinkModel"
+                position="0 -0.1 0"
+                scale="1 1 1"
+                rotation="-90 0 0"
+                visible="true">
+            </a-gltf-model>
+
         </a-entity>
     </a-scene>
 </div>
@@ -261,169 +276,191 @@
     <div>Image Detected!</div>
 </div>
 
-<!-- Free placement controls -->
+<!-- Free controls -->
 <div id="free-controls"></div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const modelId = params.get('model') || 'pizza';
-const modelNames = { pizza:'Margherita Pizza 🍕', burger:'Classic Burger 🍔', drink:'Fresh Lemonade 🥤' };
+    const params  = new URLSearchParams(window.location.search);
+    const modelId = params.get('model') || 'pizza';
 
-// ── BURGER SIZE INCREASED FROM 0.4 TO 2.0 ──
-const modelScales = { pizza:2.5, burger:5.0, drink:1.2 };
+    const modelNames = {
+        pizza:  'Margherita Pizza 🍕',
+        burger: 'Classic Burger 🍔',
+        drink:  'Fresh Lemonade 🥤'
+    };
 
-const modelIds = { pizza:'ar-pizza', burger:'ar-burger', drink:'ar-drink' };
+    // ── BURGER SIZE INCREASED TO 5.0 ──
+    const modelScales = {
+        pizza:  2.5,
+        burger: 5.0,
+        drink:  1.2
+    };
 
-document.getElementById('food-title').innerText = modelNames[modelId];
+    const modelIds = {
+        pizza:  'ar-pizza',
+        burger: 'ar-burger',
+        drink:  'ar-drink'
+    };
 
-let arScale = modelScales[modelId];
-let rotY = 0, rotX = 0;
-let detected = false;
+    // ── MODEL SITS ON SURFACE — Y position fixed at -0.1 ──
+    const MODEL_Y = -0.1;
 
-// Fix video white screen
-function fixVideo() {
-    document.querySelectorAll('video').forEach(v => {
-        v.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;';
-    });
-    document.querySelectorAll('#viewer-ar canvas').forEach(c => {
-        c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';
-    });
-}
-setInterval(() => { if(document.getElementById('viewer-ar').style.display !== 'none') fixVideo(); }, 500);
+    document.getElementById('food-title').innerText = modelNames[modelId];
 
-// Hide all models first
-Object.keys(modelIds).forEach(key => {
-    const el = document.getElementById(modelIds[key]);
-    if (el) el.setAttribute('scale', '0 0 0');
-});
+    let arScale = modelScales[modelId];
+    let rotY    = 0;
+    let detected = false;
+    let placed   = false;
 
-// Set correct model scale after load
-setTimeout(() => {
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) {
-        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        el.setAttribute('rotation', '-90 0 0');
+    // ── Fix video white screen ──
+    function fixVideo() {
+        document.querySelectorAll('video').forEach(v => {
+            v.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;';
+        });
+        document.querySelectorAll('#viewer-ar canvas').forEach(c => {
+            c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';
+        });
     }
-}, 500);
+    setInterval(() => {
+        if (document.getElementById('viewer-ar').style.display !== 'none') fixVideo();
+    }, 500);
 
-// MindAR detection events
-setTimeout(() => {
-    const target = document.querySelector('[mindar-image-target]');
-    if (target) {
-        target.addEventListener('targetFound', onDetected);
-        target.addEventListener('targetLost', onLost);
+    // ── Hide all models first ──
+    Object.keys(modelIds).forEach(key => {
+        const el = document.getElementById(modelIds[key]);
+        if (el) el.setAttribute('scale', '0 0 0');
+    });
+
+    // ── Set correct model after load ──
+    setTimeout(() => {
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) {
+            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
+            el.setAttribute('rotation', '-90 0 0');
+            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+        }
+    }, 500);
+
+    // ── MindAR detection events ──
+    setTimeout(() => {
+        const target = document.querySelector('[mindar-image-target]');
+        if (target) {
+            target.addEventListener('targetFound', onDetected);
+            target.addEventListener('targetLost',  onLost);
+        }
+    }, 1000);
+
+    function onDetected() {
+        if (detected) return;
+        detected = true;
+
+        document.getElementById('scan-overlay').classList.add('hidden');
+
+        const det = document.getElementById('ar-detected');
+        det.style.display = 'flex';
+        setTimeout(() => { det.style.display = 'none'; }, 1500);
+
+        document.getElementById('reticle').style.display = 'flex';
+
+        // Hide model until tapped
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) el.setAttribute('scale', '0 0 0');
     }
-}, 1000);
 
-let placed = false;
+    function onLost() {
+        if (!placed) {
+            detected = false;
+            document.getElementById('scan-overlay').classList.remove('hidden');
+            document.getElementById('reticle').style.display = 'none';
+        }
+    }
 
-function onDetected() {
-    if (detected) return;
-    detected = true;
+    function tapToPlace() {
+        if (!detected || placed) return;
+        placed = true;
 
-    document.getElementById('scan-overlay').classList.add('hidden');
-
-    const det = document.getElementById('ar-detected');
-    det.style.display = 'flex';
-    setTimeout(() => { det.style.display = 'none'; }, 1500);
-
-    document.getElementById('reticle').style.display = 'flex';
-
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) el.setAttribute('scale', '0 0 0');
-}
-
-function onLost() {
-    if (!placed) {
-        detected = false;
-        document.getElementById('scan-overlay').classList.remove('hidden');
         document.getElementById('reticle').style.display = 'none';
+
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) {
+            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
+            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            el.setAttribute('rotation', '-90 0 0');
+        }
+
+        document.getElementById('free-controls').style.display = 'flex';
+
+        const confirm = document.getElementById('place-confirm');
+        confirm.style.display = 'block';
+        setTimeout(() => { confirm.style.display = 'none'; }, 2000);
     }
-}
 
-function tapToPlace() {
-    if (!detected || placed) return;
-    placed = true;
+    // ── Tap on screen to place ──
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (detected && !placed) tapToPlace();
+    });
 
-    document.getElementById('reticle').style.display = 'none';
-
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) {
-        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        el.setAttribute('position', '0 0 0');
-        el.setAttribute('rotation', '-90 0 0');
+    function scanAgain() {
+        detected = false;
+        placed   = false;
+        document.getElementById('scan-overlay').classList.remove('hidden');
+        document.getElementById('free-controls').style.display = 'none';
+        document.getElementById('reticle').style.display = 'none';
+        const el = document.getElementById(modelIds[modelId]);
+        if (el) el.setAttribute('scale', '0 0 0');
     }
 
-    document.getElementById('free-controls').style.display = 'flex';
+    // ── Touch controls — rotate and zoom ──
+    let lastX = null, lastY = null, lastPinch = null;
 
-    const confirm = document.getElementById('place-confirm');
-    confirm.style.display = 'block';
-    setTimeout(() => { confirm.style.display = 'none'; }, 2000);
-}
+    document.addEventListener('touchstart', e => {
+        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (!placed) { tapToPlace(); return; }
+        if (e.touches.length === 1) {
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
+            lastPinch = null;
+        } else if (e.touches.length === 2) {
+            lastPinch = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            lastX = null; lastY = null;
+        }
+    }, { passive: true });
 
-// Tap on screen to place
-document.addEventListener('click', function(e) {
-    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-    if (detected && !placed) tapToPlace();
-});
+    document.addEventListener('touchmove', e => {
+        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        const el = document.getElementById(modelIds[modelId]);
+        if (!el) return;
 
-function scanAgain() {
-    detected = false;
-    placed = false;
-    document.getElementById('scan-overlay').classList.remove('hidden');
-    document.getElementById('free-controls').style.display = 'none';
-    document.getElementById('reticle').style.display = 'none';
-    const el = document.getElementById(modelIds[modelId]);
-    if (el) el.setAttribute('scale', '0 0 0');
-}
+        if (e.touches.length === 1 && lastX !== null) {
+            // Horizontal drag = rotate around Y axis only
+            const dx = e.touches[0].clientX - lastX;
+            rotY += dx * 1.0;
+            el.setAttribute('rotation', `-90 ${rotY} 0`);
+            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
 
-// Touch controls — rotate and zoom
-let lastX = null, lastY = null, lastPinch = null;
+        } else if (e.touches.length === 2 && lastPinch !== null) {
+            // Pinch to zoom
+            const nd = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const delta = (nd - lastPinch) / lastPinch;
+            arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
+            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
+            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            lastPinch = nd;
+        }
+    }, { passive: true });
 
-document.addEventListener('touchstart', e => {
-    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-    if (!placed) { tapToPlace(); return; }
-    if (e.touches.length === 1) {
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-        lastPinch = null;
-    } else if (e.touches.length === 2) {
-        lastPinch = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-        );
-        lastX = null; lastY = null;
-    }
-}, { passive: true });
-
-document.addEventListener('touchmove', e => {
-    if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-    const el = document.getElementById(modelIds[modelId]);
-    if (!el) return;
-
-    if (e.touches.length === 1 && lastX !== null) {
-        const dx = e.touches[0].clientX - lastX;
-        rotY += dx * 1.0;
-        el.setAttribute('rotation', `-90 ${rotY} 0`);
-        el.setAttribute('position', '0 0 0');
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-    } else if (e.touches.length === 2 && lastPinch !== null) {
-        const nd = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-        );
-        const delta = (nd - lastPinch) / lastPinch;
-        arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
-        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
-        el.setAttribute('position', '0 0 0');
-        lastPinch = nd;
-    }
-}, { passive: true });
-
-document.addEventListener('touchend', () => {
-    lastX = null; lastY = null; lastPinch = null;
-});
+    document.addEventListener('touchend', () => {
+        lastX = null; lastY = null; lastPinch = null;
+    });
 </script>
 </body>
 </html>
