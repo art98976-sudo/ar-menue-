@@ -54,38 +54,40 @@
         }
         #scan-overlay.hidden { opacity:0; pointer-events:none; }
 
-        #scan-box {
-            width:260px; height:180px; position:relative; overflow:hidden;
+        /* Crosshair in centre of screen */
+        #crosshair {
+            width:60px; height:60px; position:relative;
         }
-
-        .scan-corner {
-            position:absolute; width:30px; height:30px;
-            border-color:#d4a574; border-style:solid;
-        }
-        .scan-corner.tl { top:0; left:0; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-        .scan-corner.tr { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-        .scan-corner.bl { bottom:0; left:0; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-        .scan-corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-
-        #scan-line {
-            position:absolute; left:0; right:0; height:2px;
-            background:linear-gradient(90deg,transparent,#d4a574,transparent);
-            animation:scanMove 2s linear infinite;
+        #crosshair::before {
+            content:'';
+            position:absolute; top:50%; left:0; right:0; height:2px;
+            background:#d4a574; transform:translateY(-50%);
             box-shadow:0 0 8px #d4a574;
         }
-        @keyframes scanMove { 0%{top:0} 50%{top:calc(100% - 2px)} 100%{top:0} }
+        #crosshair::after {
+            content:'';
+            position:absolute; left:50%; top:0; bottom:0; width:2px;
+            background:#d4a574; transform:translateX(-50%);
+            box-shadow:0 0 8px #d4a574;
+        }
 
-        /* Tap to place */
+        #scan-text {
+            color:white; font-size:15px; font-weight:bold;
+            background:rgba(0,0,0,0.6); padding:10px 20px; border-radius:20px;
+            text-align:center;
+        }
+
+        /* Reticle on table surface */
         #reticle {
             position:fixed; bottom:35%; left:50%;
             transform:translateX(-50%);
-            z-index:9997; display:none;
+            z-index:9997; display:flex;
             flex-direction:column; align-items:center; gap:12px;
             pointer-events:none;
         }
 
         #reticle-ring {
-            width:70px; height:70px;
+            width:80px; height:80px;
             border:3px solid #d4a574; border-radius:50%;
             position:relative;
             animation:reticlePulse 1.5s ease-in-out infinite;
@@ -99,22 +101,15 @@
             background:#d4a574; border-radius:50%;
         }
 
-        #reticle-ring::after {
-            content:''; position:absolute; top:50%; left:50%;
-            transform:translate(-50%,-50%);
-            width:40px; height:40px;
-            border:1px dashed rgba(212,165,116,0.5); border-radius:50%;
-        }
-
         #tap-label {
-            color:white; font-size:13px; font-weight:bold;
-            background:rgba(0,0,0,0.6);
-            padding:6px 16px; border-radius:20px; letter-spacing:1px;
+            color:white; font-size:14px; font-weight:bold;
+            background:rgba(0,0,0,0.7);
+            padding:8px 20px; border-radius:20px; letter-spacing:1px;
         }
 
         @keyframes reticlePulse {
             0%   { transform:scale(1);    opacity:1; }
-            50%  { transform:scale(1.15); opacity:0.7; }
+            50%  { transform:scale(1.2);  opacity:0.7; }
             100% { transform:scale(1);    opacity:1; }
         }
 
@@ -123,18 +118,8 @@
             transform:translateX(-50%);
             z-index:9999;
             background:rgba(44,24,16,0.9); color:#d4a574;
-            padding:10px 20px; border-radius:20px;
-            font-size:14px; font-weight:bold; display:none;
-        }
-
-        #ar-detected {
-            position:fixed; top:80px; left:50%; transform:translateX(-50%);
-            z-index:9999;
-            background:linear-gradient(135deg,#2c1810,#4a2c1a);
-            color:#d4a574; padding:14px 28px; border-radius:24px;
-            font-size:16px; font-weight:bold; display:none;
-            flex-direction:column; align-items:center; gap:4px;
-            box-shadow:0 4px 24px rgba(0,0,0,0.4);
+            padding:12px 24px; border-radius:20px;
+            font-size:15px; font-weight:bold; display:none;
         }
 
         #free-controls {
@@ -144,12 +129,15 @@
             flex-direction:column; align-items:center; gap:10px;
         }
 
-        /* Hint text shown after model placed */
         #hint-text {
-            color:rgba(255,255,255,0.85);
-            font-size:12px; text-align:center;
-            background:rgba(0,0,0,0.5);
-            padding:6px 16px; border-radius:12px;
+            color:rgba(255,255,255,0.85); font-size:12px; text-align:center;
+            background:rgba(0,0,0,0.5); padding:6px 16px; border-radius:12px;
+        }
+
+        #reset-btn {
+            background:rgba(212,165,116,0.9); color:white; border:none;
+            padding:10px 24px; border-radius:20px;
+            font-size:14px; font-weight:bold; cursor:pointer;
         }
     </style>
 </head>
@@ -161,6 +149,7 @@
     <div style="width:70px"></div>
 </div>
 
+<!-- MindAR Scene — still used for camera -->
 <div id="viewer-ar">
     <a-scene
         mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.00001; filterBeta: 0.00001;"
@@ -176,60 +165,61 @@
             <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
         </a-assets>
 
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-camera id="main-camera" position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- Improved 3-point lighting -->
+        <!-- Improved lighting -->
         <a-light type="ambient"     color="#ffffff" intensity="0.8"></a-light>
         <a-light type="directional" color="#ffffff" intensity="2.0" position="1 3 2" cast-shadow="true"></a-light>
         <a-light type="directional" color="#ffe8d0" intensity="0.4" position="-2 1 -1"></a-light>
 
-        <!-- TARGET — models live here while tracking -->
-        <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
-            </a-circle>
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -5.0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -5.0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -5.0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+        <!-- MindAR target — still needed for camera init -->
+        <a-entity mindar-image-target="targetIndex: 0">
         </a-entity>
 
-        <!-- WORLD ENTITY — model moves here after placed so it stays fixed -->
-        <a-entity id="world-anchor" position="0 0 -1" visible="false">
-            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
+        <!-- Food model placed in world space — fixed on table -->
+        <a-entity id="food-container" position="0 0 -1" visible="false">
+
+            <!-- Shadow under food -->
+            <a-circle
+                radius="0.4"
+                rotation="-90 0 0"
+                position="0 0.001 0"
+                material="color:#000000; opacity:0.25; transparent:true; shader:flat">
             </a-circle>
-            <a-gltf-model id="placed-model" src="" position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+
+            <!-- The food model -->
+            <a-gltf-model
+                id="placed-food"
+                src=""
+                position="0 0 0"
+                scale="0 0 0"
+                rotation="-90 0 0">
+            </a-gltf-model>
+
         </a-entity>
 
     </a-scene>
 </div>
 
-<!-- Scan overlay -->
+<!-- Point at table overlay -->
 <div id="scan-overlay">
-    <div id="scan-box">
-        <div class="scan-corner tl"></div>
-        <div class="scan-corner tr"></div>
-        <div class="scan-corner bl"></div>
-        <div class="scan-corner br"></div>
-        <div id="scan-line"></div>
-    </div>
+    <div id="crosshair"></div>
+    <div id="scan-text">Point camera at your table then tap to place food</div>
 </div>
 
-<!-- Tap to place -->
+<!-- Reticle -->
 <div id="reticle">
     <div id="reticle-ring"></div>
-    <div id="tap-label">👆 TAP TO PLACE</div>
+    <div id="tap-label">👆 TAP TO PLACE ON TABLE</div>
 </div>
 
-<div id="place-confirm">📍 Food Placed!</div>
+<!-- Place confirmation -->
+<div id="place-confirm">🍽️ Food placed on table!</div>
 
-<div id="ar-detected">
-    <div style="font-size:28px">✅</div>
-    <div>Image Detected!</div>
-</div>
-
+<!-- Controls after placement -->
 <div id="free-controls">
     <div id="hint-text">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+    <button id="reset-btn" onclick="resetPlacement()">📷 Place Again</button>
 </div>
 
 <script>
@@ -242,36 +232,26 @@
         drink:  'Fresh Lemonade 🥤'
     };
 
-    // ── ORIGINAL DISPLAY SIZES — shown when model first appears ──
+    // Original display sizes — appears at correct size immediately
     const modelScales = {
         pizza:  2.5,
-        burger: 8.0,   // burger increased — appears at correct size immediately
+        burger: 8.0,
         drink:  1.2
     };
 
-    // GLB src paths
     const modelSrc = {
-        pizza:  './pizza.glb',
-        burger: './burger.glb',
-        drink:  './drink.glb'
+        pizza:  '#pizzaModel',
+        burger: '#burgerModel',
+        drink:  '#drinkModel'
     };
-
-    const modelIds = {
-        pizza:  'ar-pizza',
-        burger: 'ar-burger',
-        drink:  'ar-drink'
-    };
-
-    const MODEL_Y = -5.0;   // keeps model on surface — not floating
 
     document.getElementById('food-title').innerText = modelNames[modelId];
 
-    let arScale  = modelScales[modelId];
-    let rotY     = 0;
-    let detected = false;
-    let placed   = false;
+    let arScale = modelScales[modelId];
+    let rotY    = 0;
+    let placed  = false;
 
-    // ── Fix video white screen ──
+    // Fix video white screen
     function fixVideo() {
         document.querySelectorAll('video').forEach(v => {
             v.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;';
@@ -280,80 +260,36 @@
             c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';
         });
     }
-    setInterval(() => {
-        if (document.getElementById('viewer-ar').style.display !== 'none') fixVideo();
-    }, 500);
+    setInterval(fixVideo, 500);
 
-    // ── MindAR events ──
-    setTimeout(() => {
-        const target = document.querySelector('[mindar-image-target]');
-        if (target) {
-            target.addEventListener('targetFound', onDetected);
-            target.addEventListener('targetLost',  onLost);
-        }
-    }, 1000);
-
-    function onDetected() {
-        if (detected) return;
-        detected = true;
-
-        document.getElementById('scan-overlay').classList.add('hidden');
-
-        // Show detected popup briefly
-        const det = document.getElementById('ar-detected');
-        det.style.display = 'flex';
-        setTimeout(() => { det.style.display = 'none'; }, 1500);
-
-        // Show tap to place reticle
-        if (!placed) {
-            document.getElementById('reticle').style.display = 'flex';
-        }
-    }
-
-    function onLost() {
-        // Once placed — model stays in world space — does NOT disappear
-        if (!placed) {
-            detected = false;
-            document.getElementById('scan-overlay').classList.remove('hidden');
-            document.getElementById('reticle').style.display = 'none';
-        }
-        // If already placed — do nothing — model stays on table
-    }
-
-    function tapToPlace() {
-        if (!detected || placed) return;
+    // Place model on tap
+    function placeModel(e) {
+        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
+        if (placed) return;
         placed = true;
 
-        // Hide reticle
+        // Hide overlay
+        document.getElementById('scan-overlay').classList.add('hidden');
         document.getElementById('reticle').style.display = 'none';
 
-        // Get world position of the AR target at the moment of tap
-        const arTargetEl = document.getElementById('ar-target');
-        const worldAnchor = document.getElementById('world-anchor');
-        const placedModel = document.getElementById('placed-model');
+        // Get camera and place model 0.6m in front and 0.4m below camera
+        const camera = document.getElementById('main-camera');
+        const camPos = camera.getAttribute('position');
+        const camRot = camera.getAttribute('rotation');
 
-        // Set the placed model src to correct food
-        placedModel.setAttribute('src', modelSrc[modelId]);
+        // Place food container in front of camera on table level
+        const container = document.getElementById('food-container');
+        container.setAttribute('position', `0 -0.4 -0.6`);
+        container.setAttribute('visible', 'true');
 
-        // Get current world position from target
-        const obj = arTargetEl.object3D;
-        const pos  = new THREE.Vector3();
-        const quat = new THREE.Quaternion();
-        const scl  = new THREE.Vector3();
-        obj.matrixWorld.decompose(pos, quat, scl);
+        // Set model source and show at correct size
+        const foodModel = document.getElementById('placed-food');
+        foodModel.setAttribute('src', modelSrc[modelId]);
 
-        // Move world anchor to that position
-        worldAnchor.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-        worldAnchor.setAttribute('visible', 'true');
-
-        // Show model at correct original size immediately
-        placedModel.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-        placedModel.setAttribute('position', `0 ${MODEL_Y} 0`);
-        placedModel.setAttribute('rotation', '-90 0 0');
-
-        // Hide tracking model
-        const trackEl = document.getElementById(modelIds[modelId]);
-        if (trackEl) trackEl.setAttribute('scale', '0 0 0');
+        // Show at full size immediately — no growing animation
+        foodModel.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
+        foodModel.setAttribute('position', '0 0 0');
+        foodModel.setAttribute('rotation', '-90 0 0');
 
         // Show controls
         document.getElementById('free-controls').style.display = 'flex';
@@ -364,18 +300,26 @@
         setTimeout(() => { confirm.style.display = 'none'; }, 2000);
     }
 
-    // Tap screen to place
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-        if (detected && !placed) tapToPlace();
-    });
+    function resetPlacement() {
+        placed = false;
+        document.getElementById('scan-overlay').classList.remove('hidden');
+        document.getElementById('reticle').style.display = 'flex';
+        document.getElementById('free-controls').style.display = 'none';
+        document.getElementById('food-container').setAttribute('visible', 'false');
+        const foodModel = document.getElementById('placed-food');
+        foodModel.setAttribute('scale', '0 0 0');
+        rotY = 0;
+    }
 
-    // ── Touch controls on placed model — rotate and zoom ──
+    // Tap to place
+    document.addEventListener('click', placeModel);
+
+    // Touch controls — rotate and zoom
     let lastX = null, lastY = null, lastPinch = null;
 
     document.addEventListener('touchstart', e => {
         if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-        if (!placed) { tapToPlace(); return; }
+        if (!placed) { placeModel(e); return; }
         if (e.touches.length === 1) {
             lastX = e.touches[0].clientX;
             lastY = e.touches[0].clientY;
@@ -393,29 +337,24 @@
         if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
         if (!placed) return;
 
-        // Control the placed model — not the tracking one
-        const el = document.getElementById('placed-model');
+        const el = document.getElementById('placed-food');
         if (!el) return;
 
         if (e.touches.length === 1 && lastX !== null) {
-            // Drag to rotate horizontally only
             const dx = e.touches[0].clientX - lastX;
             rotY += dx * 1.0;
             el.setAttribute('rotation', `-90 ${rotY} 0`);
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
             lastX = e.touches[0].clientX;
             lastY = e.touches[0].clientY;
 
         } else if (e.touches.length === 2 && lastPinch !== null) {
-            // Pinch to zoom
             const nd = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
             const delta = (nd - lastPinch) / lastPinch;
             arScale = Math.max(0.1, Math.min(25, arScale * (1 + delta * 0.8)));
-            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
+            el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`);
             lastPinch = nd;
         }
     }, { passive: true });
