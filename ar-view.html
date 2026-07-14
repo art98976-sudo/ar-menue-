@@ -261,11 +261,11 @@
             </a-circle>
 
             <!-- All models hidden at start — scale 0 0 0 -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0"></a-gltf-model>
 
         </a-entity>
 
@@ -403,7 +403,7 @@
         if (el) {
             el.setAttribute('position', '0 0 0');
             el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-            el.setAttribute('rotation', '-90 0 0');
+            el.setAttribute('rotation', '0 0 0');
         }
 
         // Show shadow
@@ -462,7 +462,7 @@
         if (e.touches.length === 1 && lastX !== null) {
             const dx = e.touches[0].clientX - lastX;
             rotY += dx * 0.8;
-            el.setAttribute('rotation', `-90 ${rotY} 0`);
+            el.setAttribute("rotation", `0 ${rotY} 0`);
             el.setAttribute('position', '0 0 0');
             lastX = e.touches[0].clientX;
             lastY = e.touches[0].clientY;
