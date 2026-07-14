@@ -14,10 +14,7 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { overflow:hidden; background:#000; font-family:-apple-system,sans-serif; }
 
-        #viewer-ar {
-            position:fixed; inset:0; z-index:1;
-            display:block;
-        }
+        #viewer-ar { position:fixed; inset:0; z-index:1; display:block; }
 
         #viewer-ar video {
             position:fixed!important; top:0!important; left:0!important;
@@ -31,7 +28,6 @@
             z-index:2!important; background:transparent!important;
         }
 
-        /* UI */
         #top-bar {
             position:fixed; top:0; left:0; right:0; z-index:9999;
             display:flex; justify-content:space-between; align-items:center;
@@ -54,10 +50,8 @@
             position:fixed; inset:0; z-index:9998;
             display:flex; flex-direction:column;
             align-items:center; justify-content:center; gap:20px;
-            pointer-events:none;
-            transition:opacity 0.5s;
+            pointer-events:none; transition:opacity 0.5s;
         }
-
         #scan-overlay.hidden { opacity:0; pointer-events:none; }
 
         #scan-box {
@@ -81,7 +75,7 @@
         }
         @keyframes scanMove { 0%{top:0} 50%{top:calc(100% - 2px)} 100%{top:0} }
 
-        /* Tap to place reticle */
+        /* Tap to place */
         #reticle {
             position:fixed; bottom:35%; left:50%;
             transform:translateX(-50%);
@@ -124,7 +118,6 @@
             100% { transform:scale(1);    opacity:1; }
         }
 
-        /* Placed confirmation */
         #place-confirm {
             position:fixed; top:80px; left:50%;
             transform:translateX(-50%);
@@ -134,7 +127,6 @@
             font-size:14px; font-weight:bold; display:none;
         }
 
-        /* Detected popup */
         #ar-detected {
             position:fixed; top:80px; left:50%; transform:translateX(-50%);
             z-index:9999;
@@ -145,7 +137,6 @@
             box-shadow:0 4px 24px rgba(0,0,0,0.4);
         }
 
-        /* Free mode controls */
         #free-controls {
             position:fixed; bottom:0; left:0; right:0; z-index:9999;
             background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);
@@ -153,10 +144,12 @@
             flex-direction:column; align-items:center; gap:10px;
         }
 
-        #scan-again-btn {
-            background:rgba(212,165,116,0.9); color:white; border:none;
-            padding:10px 24px; border-radius:20px;
-            font-size:14px; font-weight:bold; cursor:pointer;
+        /* Hint text shown after model placed */
+        #hint-text {
+            color:rgba(255,255,255,0.85);
+            font-size:12px; text-align:center;
+            background:rgba(0,0,0,0.5);
+            padding:6px 16px; border-radius:12px;
         }
     </style>
 </head>
@@ -168,10 +161,9 @@
     <div style="width:70px"></div>
 </div>
 
-<!-- MindAR Scene -->
 <div id="viewer-ar">
     <a-scene
-        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.001;"
+        mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.0001;"
         color-space="sRGB"
         renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.2"
         vr-mode-ui="enabled: false"
@@ -186,67 +178,29 @@
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- ── IMPROVED LIGHTING ── -->
-        <!-- Soft ambient so shadows are not too dark -->
-        <a-light type="ambient"
-            color="#ffffff"
-            intensity="0.8">
-        </a-light>
+        <!-- Improved 3-point lighting -->
+        <a-light type="ambient"     color="#ffffff" intensity="0.8"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="2.0" position="1 3 2" cast-shadow="true"></a-light>
+        <a-light type="directional" color="#ffe8d0" intensity="0.4" position="-2 1 -1"></a-light>
 
-        <!-- Main key light from top right — gives depth and shape to food -->
-        <a-light type="directional"
-            color="#ffffff"
-            intensity="2.0"
-            position="1 3 2"
-            cast-shadow="true">
-        </a-light>
-
-        <!-- Warm fill light from left — mimics restaurant warm lighting -->
-        <a-light type="directional"
-            color="#ffe8d0"
-            intensity="0.4"
-            position="-2 1 -1">
-        </a-light>
-
-        <a-entity mindar-image-target="targetIndex: 0">
-
-            <!-- Shadow circle under food — makes it look grounded -->
-            <a-circle
-                radius="0.35"
-                rotation="-90 0 0"
-                position="0 0.001 0"
+        <!-- TARGET — models live here while tracking -->
+        <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
                 material="color:#000000; opacity:0.2; transparent:true; shader:flat">
             </a-circle>
-
-            <!-- ── MODELS — position Y set to -0.1 to sit on surface not float ── -->
-            <a-gltf-model
-                id="ar-pizza"
-                src="#pizzaModel"
-                position="0 -0.1 0"
-                scale="1 1 1"
-                rotation="-90 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <a-gltf-model
-                id="ar-burger"
-                src="#burgerModel"
-                position="0 -0.1 0"
-                scale="1 1 1"
-                rotation="-90 0 0"
-                visible="true">
-            </a-gltf-model>
-
-            <a-gltf-model
-                id="ar-drink"
-                src="#drinkModel"
-                position="0 -0.1 0"
-                scale="1 1 1"
-                rotation="-90 0 0"
-                visible="true">
-            </a-gltf-model>
-
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
         </a-entity>
+
+        <!-- WORLD ENTITY — model moves here after placed so it stays fixed -->
+        <a-entity id="world-anchor" position="0 0 -1" visible="false">
+            <a-circle radius="0.35" rotation="-90 0 0" position="0 0.001 0"
+                material="color:#000000; opacity:0.2; transparent:true; shader:flat">
+            </a-circle>
+            <a-gltf-model id="placed-model" src="" position="0 -0.1 0" scale="0 0 0" rotation="-90 0 0"></a-gltf-model>
+        </a-entity>
+
     </a-scene>
 </div>
 
@@ -261,23 +215,22 @@
     </div>
 </div>
 
-<!-- Tap to place reticle -->
+<!-- Tap to place -->
 <div id="reticle">
     <div id="reticle-ring"></div>
     <div id="tap-label">👆 TAP TO PLACE</div>
 </div>
 
-<!-- Place confirmation -->
 <div id="place-confirm">📍 Food Placed!</div>
 
-<!-- Detected popup -->
 <div id="ar-detected">
     <div style="font-size:28px">✅</div>
     <div>Image Detected!</div>
 </div>
 
-<!-- Free controls -->
-<div id="free-controls"></div>
+<div id="free-controls">
+    <div id="hint-text">☝️ Drag to rotate &nbsp;·&nbsp; 🤏 Pinch to zoom</div>
+</div>
 
 <script>
     const params  = new URLSearchParams(window.location.search);
@@ -289,11 +242,18 @@
         drink:  'Fresh Lemonade 🥤'
     };
 
-    // ── BURGER SIZE INCREASED TO 5.0 ──
+    // ── ORIGINAL DISPLAY SIZES — shown when model first appears ──
     const modelScales = {
         pizza:  2.5,
-        burger: 5.0,
+        burger: 8.0,   // burger increased — appears at correct size immediately
         drink:  1.2
+    };
+
+    // GLB src paths
+    const modelSrc = {
+        pizza:  './pizza.glb',
+        burger: './burger.glb',
+        drink:  './drink.glb'
     };
 
     const modelIds = {
@@ -302,13 +262,12 @@
         drink:  'ar-drink'
     };
 
-    // ── MODEL SITS ON SURFACE — Y position fixed at -0.1 ──
-    const MODEL_Y = -0.1;
+    const MODEL_Y = -0.1;   // keeps model on surface — not floating
 
     document.getElementById('food-title').innerText = modelNames[modelId];
 
-    let arScale = modelScales[modelId];
-    let rotY    = 0;
+    let arScale  = modelScales[modelId];
+    let rotY     = 0;
     let detected = false;
     let placed   = false;
 
@@ -325,23 +284,7 @@
         if (document.getElementById('viewer-ar').style.display !== 'none') fixVideo();
     }, 500);
 
-    // ── Hide all models first ──
-    Object.keys(modelIds).forEach(key => {
-        const el = document.getElementById(modelIds[key]);
-        if (el) el.setAttribute('scale', '0 0 0');
-    });
-
-    // ── Set correct model after load ──
-    setTimeout(() => {
-        const el = document.getElementById(modelIds[modelId]);
-        if (el) {
-            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-            el.setAttribute('rotation', '-90 0 0');
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
-        }
-    }, 500);
-
-    // ── MindAR detection events ──
+    // ── MindAR events ──
     setTimeout(() => {
         const target = document.querySelector('[mindar-image-target]');
         if (target) {
@@ -356,62 +299,78 @@
 
         document.getElementById('scan-overlay').classList.add('hidden');
 
+        // Show detected popup briefly
         const det = document.getElementById('ar-detected');
         det.style.display = 'flex';
         setTimeout(() => { det.style.display = 'none'; }, 1500);
 
-        document.getElementById('reticle').style.display = 'flex';
-
-        // Hide model until tapped
-        const el = document.getElementById(modelIds[modelId]);
-        if (el) el.setAttribute('scale', '0 0 0');
+        // Show tap to place reticle
+        if (!placed) {
+            document.getElementById('reticle').style.display = 'flex';
+        }
     }
 
     function onLost() {
+        // Once placed — model stays in world space — does NOT disappear
         if (!placed) {
             detected = false;
             document.getElementById('scan-overlay').classList.remove('hidden');
             document.getElementById('reticle').style.display = 'none';
         }
+        // If already placed — do nothing — model stays on table
     }
 
     function tapToPlace() {
         if (!detected || placed) return;
         placed = true;
 
+        // Hide reticle
         document.getElementById('reticle').style.display = 'none';
 
-        const el = document.getElementById(modelIds[modelId]);
-        if (el) {
-            el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
-            el.setAttribute('position', `0 ${MODEL_Y} 0`);
-            el.setAttribute('rotation', '-90 0 0');
-        }
+        // Get world position of the AR target at the moment of tap
+        const arTargetEl = document.getElementById('ar-target');
+        const worldAnchor = document.getElementById('world-anchor');
+        const placedModel = document.getElementById('placed-model');
 
+        // Set the placed model src to correct food
+        placedModel.setAttribute('src', modelSrc[modelId]);
+
+        // Get current world position from target
+        const obj = arTargetEl.object3D;
+        const pos  = new THREE.Vector3();
+        const quat = new THREE.Quaternion();
+        const scl  = new THREE.Vector3();
+        obj.matrixWorld.decompose(pos, quat, scl);
+
+        // Move world anchor to that position
+        worldAnchor.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+        worldAnchor.setAttribute('visible', 'true');
+
+        // Show model at correct original size immediately
+        placedModel.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
+        placedModel.setAttribute('position', `0 ${MODEL_Y} 0`);
+        placedModel.setAttribute('rotation', '-90 0 0');
+
+        // Hide tracking model
+        const trackEl = document.getElementById(modelIds[modelId]);
+        if (trackEl) trackEl.setAttribute('scale', '0 0 0');
+
+        // Show controls
         document.getElementById('free-controls').style.display = 'flex';
 
+        // Show confirmation
         const confirm = document.getElementById('place-confirm');
         confirm.style.display = 'block';
         setTimeout(() => { confirm.style.display = 'none'; }, 2000);
     }
 
-    // ── Tap on screen to place ──
+    // Tap screen to place
     document.addEventListener('click', function(e) {
         if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
         if (detected && !placed) tapToPlace();
     });
 
-    function scanAgain() {
-        detected = false;
-        placed   = false;
-        document.getElementById('scan-overlay').classList.remove('hidden');
-        document.getElementById('free-controls').style.display = 'none';
-        document.getElementById('reticle').style.display = 'none';
-        const el = document.getElementById(modelIds[modelId]);
-        if (el) el.setAttribute('scale', '0 0 0');
-    }
-
-    // ── Touch controls — rotate and zoom ──
+    // ── Touch controls on placed model — rotate and zoom ──
     let lastX = null, lastY = null, lastPinch = null;
 
     document.addEventListener('touchstart', e => {
@@ -432,11 +391,14 @@
 
     document.addEventListener('touchmove', e => {
         if (e.target.closest('#free-controls') || e.target.closest('#top-bar')) return;
-        const el = document.getElementById(modelIds[modelId]);
+        if (!placed) return;
+
+        // Control the placed model — not the tracking one
+        const el = document.getElementById('placed-model');
         if (!el) return;
 
         if (e.touches.length === 1 && lastX !== null) {
-            // Horizontal drag = rotate around Y axis only
+            // Drag to rotate horizontally only
             const dx = e.touches[0].clientX - lastX;
             rotY += dx * 1.0;
             el.setAttribute('rotation', `-90 ${rotY} 0`);
@@ -451,7 +413,7 @@
                 e.touches[0].clientY - e.touches[1].clientY
             );
             const delta = (nd - lastPinch) / lastPinch;
-            arScale = Math.max(0.01, Math.min(20, arScale * (1 + delta * 0.8)));
+            arScale = Math.max(0.1, Math.min(25, arScale * (1 + delta * 0.8)));
             el.setAttribute('scale',    `${arScale} ${arScale} ${arScale}`);
             el.setAttribute('position', `0 ${MODEL_Y} 0`);
             lastPinch = nd;
