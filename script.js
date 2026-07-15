@@ -1,4 +1,3 @@
-
 // ════════════════════════════════════════════════════════════
 // AR SCENE TEMPLATE — Every dish has fixed rules
 // Like AR Code app — consistent across all food items
@@ -545,16 +544,22 @@ document.addEventListener('touchmove',e=>{
 },{passive:true});
 document.addEventListener('touchend',()=>{arLastX=null;arLastY=null;arLastPinch=null;});
 
-// ── Height adjustment for AR model ──
-let arYOffset = -0.5;
+// ── Height adjustment for AR model — nudges along Z (the correct
+// "off the surface" axis) ON TOP OF the automatic grounding, instead of
+// replacing it. The old version here reset position to "0 <value> 0" on
+// every tap — that's the Y axis, and it also fully overwrote whatever Z
+// the auto-grounding had just calculated, which is why the model kept
+// floating even after the grounding fix: a single tap on Up/Down (or the
+// stale -0.5 default) put it right back to un-grounded.
+let arZNudge = 0;
 
 function adjustHeight(delta) {
-    arYOffset += delta;
+    arZNudge += delta;
     if (!currentModel) return;
     const el = document.getElementById(menuData[currentModel].arId);
     if (el) {
-        el.setAttribute('position', `0 ${arYOffset.toFixed(2)} 0`);
-        console.log('Y offset:', arYOffset.toFixed(2));
+        groundModelOnSurface(el, -arZNudge);
+        console.log('Z nudge:', arZNudge.toFixed(2));
     }
 }
 
@@ -562,7 +567,7 @@ function adjustHeight(delta) {
 const _origOpenAR = openAR;
 openAR = function(id) {
     _origOpenAR(id);
-    arYOffset = -0.5;
+    arZNudge = 0;
     setTimeout(() => {
         document.getElementById('height-controls').style.display = 'flex';
     }, 500);
