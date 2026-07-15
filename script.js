@@ -1,3 +1,4 @@
+
 // ════════════════════════════════════════════════════════════
 // AR SCENE TEMPLATE — Every dish has fixed rules
 // Like AR Code app — consistent across all food items
@@ -401,10 +402,9 @@ function openAR(id){
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
         arEl2.setAttribute('rotation', AR_ROTATION[id] || '0 0 0');
         arEl2.setAttribute('position', '0 0 0');
-        // Ground it once the model + rotation/scale above have actually
-        // applied (a couple of animation frames later is enough).
-        setTimeout(() => groundModelOnSurface(arEl2), 100);
-        setTimeout(() => groundModelOnSurface(arEl2), 400);
+        // Final grounding offset confirmed by live testing: -5
+        setTimeout(() => groundModelOnSurface(arEl2, 5), 100);
+        setTimeout(() => groundModelOnSurface(arEl2, 5), 400);
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect
@@ -435,7 +435,7 @@ function onFound(){
             el.setAttribute('scale', `${s} ${s} ${s}`);
             el.setAttribute('rotation', AR_ROTATION[currentModel] || '0 0 0');
             el.setAttribute('position', '0 0 0');
-            groundModelOnSurface(el); // ground on the correct axis (Z), not a guessed Y offset
+            groundModelOnSurface(el, 5); // confirmed final offset: -5
         }
     }
 }
@@ -544,43 +544,11 @@ document.addEventListener('touchmove',e=>{
 },{passive:true});
 document.addEventListener('touchend',()=>{arLastX=null;arLastY=null;arLastPinch=null;});
 
-// ── Height adjustment for AR model — nudges along Z (the correct
-// "off the surface" axis) ON TOP OF the automatic grounding, instead of
-// replacing it. The old version here reset position to "0 <value> 0" on
-// every tap — that's the Y axis, and it also fully overwrote whatever Z
-// the auto-grounding had just calculated, which is why the model kept
-// floating even after the grounding fix: a single tap on Up/Down (or the
-// stale -0.5 default) put it right back to un-grounded.
-let arZNudge = 0;
-
-function adjustHeight(delta) {
-    arZNudge += delta;
-    if (!currentModel) return;
-    const el = document.getElementById(menuData[currentModel].arId);
-    if (el) {
-        groundModelOnSurface(el, -arZNudge);
-        const label = document.getElementById('height-value');
-        if (label) label.innerText = arZNudge.toFixed(2);
-        console.log('Z nudge:', arZNudge.toFixed(2));
-    }
-}
-
-// Show height controls when AR opens
-const _origOpenAR = openAR;
-openAR = function(id) {
-    _origOpenAR(id);
-    arZNudge = 0;
-    setTimeout(() => {
-        document.getElementById('height-controls').style.display = 'flex';
-        const label = document.getElementById('height-value');
-        if (label) label.innerText = '0.00';
-    }, 500);
-};
-
-const _origCloseViewer = closeViewer;
+// Height buttons removed — final grounding offset (-5) is now baked
+// permanently into openAR()/onFound() above.
+const _origCloseViewer2 = closeViewer;
 closeViewer = function() {
-    _origCloseViewer();
-    document.getElementById('height-controls').style.display = 'none';
+    _origCloseViewer2();
 };
 
 // ── Steam Effect for 3D Viewer ──
