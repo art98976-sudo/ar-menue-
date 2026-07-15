@@ -559,6 +559,8 @@ function adjustHeight(delta) {
     const el = document.getElementById(menuData[currentModel].arId);
     if (el) {
         groundModelOnSurface(el, -arZNudge);
+        const label = document.getElementById('height-value');
+        if (label) label.innerText = arZNudge.toFixed(2);
         console.log('Z nudge:', arZNudge.toFixed(2));
     }
 }
@@ -570,6 +572,8 @@ openAR = function(id) {
     arZNudge = 0;
     setTimeout(() => {
         document.getElementById('height-controls').style.display = 'flex';
+        const label = document.getElementById('height-value');
+        if (label) label.innerText = '0.00';
     }, 500);
 };
 
