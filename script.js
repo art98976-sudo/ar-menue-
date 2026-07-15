@@ -56,7 +56,7 @@ const AR_TEMPLATE = {
 // automatically (no more guessed scale numbers).
 //
 // >>> MEASURE your printed menu card's width edge-to-edge and set this: <<<
-const TARGET_CM = 20; // <-- change to your printed menu's actual width in cm
+const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (lowering this makes everything render bigger)
 
 // Real-world width of each dish, in cm (matches the size labels already
 // shown in the menu UI — adjust if you want a different dish width).
@@ -151,7 +151,13 @@ function groundModelOnSurface(el, extra) {
     obj.position.copy(originalPosition);
 
     if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
     const minZ = box.min.z;
+    // Centre the model over the target (X/Y) — several of the GLB meshes
+    // aren't centred at their own local origin, which is what pushed the
+    // food off to one side instead of sitting in the middle of the image.
+    obj.position.x = originalPosition.x - center.x;
+    obj.position.y = originalPosition.y - center.y;
     obj.position.z = originalPosition.z - (minZ + (extra || 0));
 }
 
