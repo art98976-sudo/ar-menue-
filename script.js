@@ -95,7 +95,10 @@ function getRealScale(el, desiredCm) {
     if (box.isEmpty()) return null;
     const size = new THREE.Vector3();
     box.getSize(size);
-    const footprint = Math.max(size.x, size.y); // on-table extent, post-rotation
+    // Use the widest dimension across ALL axes. Measuring only x/y gave the
+    // wrong number for models whose rotation (-90 on X) swapped their axes —
+    // that's why burger and sushi came out far too small.
+    const footprint = Math.max(size.x, size.y, size.z);
     if (footprint <= 0) return null;
 
     const desiredUnits = desiredCm / TARGET_CM;
@@ -462,6 +465,9 @@ function openAR(id){
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
         arEl2.setAttribute('rotation', AR_ROTATION[id] || '0 0 0');
         arEl2.setAttribute('position', '0 0 0');
+        // Scale first, THEN centre+ground — in one pass. Running these as two
+        // separate timers meant each measured a state the other had just
+        // changed, which is what threw off both the centring and the size.
         setTimeout(() => {
             const real = getRealScale(arEl2, REAL_SIZE_CM[id]);
             if (real) {
@@ -470,8 +476,7 @@ function openAR(id){
             }
             // Final grounding offset confirmed by live testing: -5
             groundModelOnSurface(arEl2, 5);
-        }, 100);
-        setTimeout(() => groundModelOnSurface(arEl2, 5), 400);
+        }, 300);
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect
