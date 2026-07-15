@@ -45,7 +45,7 @@
 
 <!-- AR VIEWER -->
 <div id="viewer-ar">
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 5; warmupTolerance: 5"
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0005; filterBeta: 0.1; missTolerance: 5; warmupTolerance: 5"
         gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
         color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
         vr-mode-ui="enabled: false"
@@ -73,7 +73,7 @@
         <!-- TOP point light: bright highlight on top surfaces (melted cheese, sauce shine) -->
         <a-light type="point" color="#fffaf0" intensity="0.9" position="0 5 1" distance="12"></a-light>
 
-        <a-entity mindar-image-target="targetIndex: 0" ar-anchor>
+        <a-entity mindar-image-target="targetIndex: 0">
 
             <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
             <!-- Outer soft shadow -->
@@ -128,13 +128,8 @@
     </div>
 
     <!-- Height adjustment buttons -->
-    <div id="height-controls" style="display:none!important; flex-direction:column; align-items:center; gap:6px;">
-        <div id="height-value" style="color:#fff; font-size:13px; font-weight:700; background:rgba(0,0,0,0.6); padding:4px 14px; border-radius:14px;">0.00</div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="adjustHeight(0.05)">⬆️ Up</button>
-            <button onclick="adjustHeight(-0.05)">⬇️ Down</button>
-        </div>
-    </div>
+    <!-- Height controls removed — grounding offset is now fixed at -5 -->
+    <div id="height-controls" style="display:none!important"></div>
 </div>
 
 <!-- BOTTOM BAR -->
@@ -302,42 +297,10 @@
 </div>
 
 <script>
-// ANCHOR SYSTEM — locks model position after first detection
-// Camera movement does NOT affect it — no shaking, no drifting
-AFRAME.registerComponent('ar-anchor', {
-    init: function() {
-        // The models (children) are scaled and grounded by the real-size
-        // component. This anchor only keeps the target parent steady so the
-        // dish doesn't drift or shake once the image is detected.
-        let anchored = false;
-        let anchorPos = null;
+// ar-anchor removed — it froze x/z permanently after first detection,
+// which caused drift once the phone moved. MindAR's own filter (tightened
+// above) now handles stability instead.
 
-        this.el.sceneEl.addEventListener('targetFound', () => {
-            if (!anchored) {
-                anchorPos = {
-                    x: this.el.object3D.position.x,
-                    y: this.el.object3D.position.y,
-                    z: this.el.object3D.position.z
-                };
-                anchored = true;
-            }
-        });
-
-        this.tick = function() {
-            if (anchored && anchorPos) {
-                this.el.object3D.position.x = anchorPos.x;
-                this.el.object3D.position.z = anchorPos.z;
-            }
-        };
-    }
-});
-
-// NOTE: the old "ground-fix" and "real-size" a-frame components that used to
-// live here have been removed. Both auto-adjusted a model's position on
-// model-loaded/targetFound at the same time script.js's openAR()/onFound()
-// were doing their own placement — two systems fighting for the same
-// transform is what caused the inconsistent floating. Placement is now
-// handled in one place: script.js (see groundModelOnSurface).
 </script>
 <script src="script.js"></script>
 </body>
