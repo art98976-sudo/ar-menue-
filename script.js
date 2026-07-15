@@ -1,4 +1,3 @@
-
 // ════════════════════════════════════════════════════════════
 // AR SCENE TEMPLATE — Every dish has fixed rules
 // Like AR Code app — consistent across all food items
