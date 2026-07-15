@@ -49,6 +49,60 @@ const AR_TEMPLATE = {
     },
 };
 
+// ════════════════════════════════════════════════════════════
+// Per-model rotation — the 5 GLB files were exported with different
+// up-axis conventions (checked by measuring each mesh's bounding box):
+//   pizza / sushi / drink -> already Z-up (no rotation needed)
+//   burger / pasta        -> Y-up (need -90 on X to match)
+// Applying the same "-90 0 0" to every model (the old behaviour) is why
+// pizza looked wrong while burger looked right, or vice versa.
+// ════════════════════════════════════════════════════════════
+const AR_ROTATION = {
+    pizza:  '0 0 0',
+    sushi:  '0 0 0',
+    drink:  '0 0 0',
+    burger: '-90 0 0',
+    pasta:  '-90 0 0',
+};
+
+// Grounds a placed AR model so its lowest point sits exactly on the image
+// surface (the MindAR target's local Z=0 plane), regardless of the model's
+// own geometry or the current tracked pose.
+//
+// Why the old approach floated: it measured the bounding box with
+// THREE.Box3().setFromObject(obj), which returns the box in *world* space —
+// i.e. it already includes whatever pose MindAR has currently assigned to
+// the tracked target. Mixing that world-space measurement with a *local*
+// position.y adjustment (and adjusting the wrong axis — Y instead of Z) is
+// why the model drifted / floated inconsistently.
+//
+// This version temporarily moves the model to the scene root (identity
+// transform) before measuring, so the box reflects only the model's own
+// rotation + scale, then restores it — then grounds on Z, which is the
+// correct "off the surface" axis once AR_ROTATION has been applied.
+function groundModelOnSurface(el, extra) {
+    const THREE = getThree();
+    if (!THREE || !el) return;
+    const obj = el.object3D;
+    const mesh = el.getObject3D('mesh');
+    if (!obj || !mesh) return;
+
+    const scene = el.sceneEl.object3D;
+    const parent = obj.parent;
+    const originalPosition = obj.position.clone();
+
+    scene.add(obj);              // reparent to scene root (identity transform)
+    obj.position.copy(originalPosition);
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    parent.add(obj);             // put it back under the AR target
+    obj.position.copy(originalPosition);
+
+    if (box.isEmpty()) return;
+    const minZ = box.min.z;
+    obj.position.z = originalPosition.z - (minZ + (extra || 0));
+}
+
 // Apply AR template to a model
 function applyARTemplate(modelId) {
     const el = document.getElementById(menuData[modelId].arId);
@@ -346,8 +400,12 @@ function openAR(id){
     const arEl2 = document.getElementById(menuData[id].arId);
     if (arEl2) {
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
-        arEl2.setAttribute('rotation', '-90 0 0');
-        arEl2.setAttribute('position', '0 0 0.05'); // Step 5: slightly toward user
+        arEl2.setAttribute('rotation', AR_ROTATION[id] || '0 0 0');
+        arEl2.setAttribute('position', '0 0 0');
+        // Ground it once the model + rotation/scale above have actually
+        // applied (a couple of animation frames later is enough).
+        setTimeout(() => groundModelOnSurface(arEl2), 100);
+        setTimeout(() => groundModelOnSurface(arEl2), 400);
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect
@@ -375,9 +433,10 @@ function onFound(){
         const el = document.getElementById(menuData[currentModel].arId);
         if(el){
             const s = menuData[currentModel].arScale;
-            el.setAttribute('position', '0 -0.5 0'); // push down to touch surface
             el.setAttribute('scale', `${s} ${s} ${s}`);
-            el.setAttribute('rotation', '-90 0 0');
+            el.setAttribute('rotation', AR_ROTATION[currentModel] || '0 0 0');
+            el.setAttribute('position', '0 0 0');
+            groundModelOnSurface(el); // ground on the correct axis (Z), not a guessed Y offset
         }
     }
 }

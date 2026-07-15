@@ -87,29 +87,24 @@
                 material="color:#000000; opacity:0.35; transparent:true; shader:flat">
             </a-ellipse>
 
-            <!-- STEP 1: In front of user, slightly below center — like waiter placed it -->
-            <!-- STEP 2: Y=0 bottom touches table — ZERO gap, no floating -->
-            <!-- STEP 3: Scale 1.0 = real plate size — no zoom needed -->
-            <!-- rotation -90 0 180 = flat on table facing user -->
-            <!-- Z=0.15 = slightly closer to user edge of table -->
-
-            <!-- Real food sizes + pushed down to touch surface -->
-            <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
-            <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
-            <!-- Pushed down -0.5 to stick on image surface -->
             <!-- Shadow -->
             <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0"
                 material="color:#000; opacity:0.3; transparent:true; shader:flat">
             </a-circle>
 
-            <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
-            <!-- This is the proven fix for MindAR floating -->
-            <!-- ground-fix auto-calculates bottom and places on surface -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="2.5 2.5 2.5" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="2.0 2.0 2.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="3.0 3.0 3.0" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="2.8 2.8 2.8" rotation="0 0 0" visible="true" ground-fix></a-gltf-model>
+            <!-- Rotation/position/scale are now set live by script.js (openAR /
+                 groundModelOnSurface), per model — because the 5 GLB files were
+                 exported with different up-axis conventions: pizza/sushi/drink
+                 are Z-up already, burger/pasta are Y-up. The old "ground-fix"
+                 component that used to sit on these tags has been removed: it
+                 ran on the same model-loaded/targetFound events as script.js's
+                 own placement code and the two were overwriting each other —
+                 that race was the real cause of the floating/inconsistent look. -->
+            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
+            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
 
             <!-- Steam effect removed -->
 
@@ -334,93 +329,12 @@ AFRAME.registerComponent('ar-anchor', {
     }
 });
 
-// Ground fix — places model bottom exactly at Y=0 (image surface)
-AFRAME.registerComponent('ground-fix', {
-    schema: { extra: { type: 'number', default: 0 } }, // fine-tune nudge if needed
-    init: function() {
-        this.done = false;
-        this.tries = 0;
-        const groundIt = () => {
-            if (this.done) return;
-            const obj = this.el.object3D;
-            const mesh = this.el.getObject3D('mesh');
-            if (!mesh) return retry();
-            obj.updateMatrixWorld(true);
-            const box = new THREE.Box3().setFromObject(obj);
-            if (box.isEmpty()) return retry();
-            // Push the model down so its lowest point sits exactly on the
-            // image surface (y=0). This grounds any model regardless of height.
-            const minY = box.min.y;
-            obj.position.y -= (minY + this.data.extra);
-            this.done = true; // success, lock it
-        };
-        const retry = () => {
-            this.tries++;
-            if (this.tries < 40) setTimeout(groundIt, 200); // keep trying ~8s
-        };
-        this.el.addEventListener('model-loaded', () => { this.tries = 0; this.done = false; groundIt(); });
-        this.el.sceneEl.addEventListener('targetFound', () => {
-            if (!this.done) { this.tries = 0; groundIt(); }
-        });
-    }
-});
-
-// REAL-SIZE — shows each dish at its true real-world size AND sits it flat
-// on the menu with no float. Size is measured relative to the printed target.
-//
-// >>> TARGET_CM = the width of your PRINTED target image in centimetres. <<<
-// Measure your printed image edge-to-edge and set this number. Everything
-// else then appears at correct real-world size automatically.
-const TARGET_CM = 20; // <-- CHANGE THIS to your printed image width in cm
-AFRAME.registerComponent('real-size', {
-    schema: {
-        cm:   { type: 'number', default: 20 },  // real dish width in cm
-        drop: { type: 'number', default: 0 }    // manual nudge DOWN if it floats
-    },
-    init: function () {
-        const fit = () => {
-            const obj = this.el.object3D;
-            const mesh = this.el.getObject3D('mesh');
-            if (!mesh) return;
-            // Reset transform for a clean measurement each attempt
-            obj.scale.setScalar(1);
-            obj.position.set(0, 0, 0);
-            obj.updateMatrixWorld(true);
-            let box = new THREE.Box3().setFromObject(obj);
-            if (box.isEmpty()) return;
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            // In MindAR the target image lies in the X-Y plane facing the camera.
-            // Screen-fit uses the on-image footprint = X (width) and Y (height).
-            const footprint = Math.max(size.x, size.y);
-            if (footprint <= 0) return;
-            // Real-world size: desired width in AR units = dishCm / targetCm
-            // (in MindAR, 1 unit = the printed target image's width)
-            const desiredUnits = this.data.cm / TARGET_CM;
-            const factor = desiredUnits / footprint;
-            obj.scale.setScalar(factor);
-            // Ground the dish onto the menu surface.
-            // Only the vertical (Y) is adjusted so the model's base rests exactly
-            // on the surface. Z is kept at 0 so it stays ON the image plane and
-            // does NOT lift toward the camera (that lift was the floating).
-            obj.updateMatrixWorld(true);
-            const b = new THREE.Box3().setFromObject(obj);
-            if (!b.isEmpty()) {
-                // base sits on the surface, minus a manual nudge if you set 'drop'
-                obj.position.y = -b.min.y - this.data.drop;
-                obj.position.z = 0;        // stay flat on the menu, no lift
-            }
-        };
-        this.el.addEventListener('model-loaded', () => {
-            [150, 400, 800, 1300, 2000].forEach(d => setTimeout(fit, d));
-        });
-        // Keep it grounded even if the target re-detects or the model settles late:
-        // re-fit whenever the image is found again.
-        this.el.sceneEl.addEventListener('targetFound', () => {
-            [100, 400, 800].forEach(d => setTimeout(fit, d));
-        });
-    }
-});
+// NOTE: the old "ground-fix" and "real-size" a-frame components that used to
+// live here have been removed. Both auto-adjusted a model's position on
+// model-loaded/targetFound at the same time script.js's openAR()/onFound()
+// were doing their own placement — two systems fighting for the same
+// transform is what caused the inconsistent floating. Placement is now
+// handled in one place: script.js (see groundModelOnSurface).
 </script>
 <script src="script.js"></script>
 </body>
