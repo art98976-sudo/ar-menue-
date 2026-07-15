@@ -128,9 +128,12 @@
     </div>
 
     <!-- Height adjustment buttons -->
-    <div id="height-controls" style="display:none!important">
-        <button onclick="adjustHeight(0.05)">⬆️ Up</button>
-        <button onclick="adjustHeight(-0.05)">⬇️ Down</button>
+    <div id="height-controls" style="display:none!important; flex-direction:column; align-items:center; gap:6px;">
+        <div id="height-value" style="color:#fff; font-size:13px; font-weight:700; background:rgba(0,0,0,0.6); padding:4px 14px; border-radius:14px;">0.00</div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="adjustHeight(0.05)">⬆️ Up</button>
+            <button onclick="adjustHeight(-0.05)">⬇️ Down</button>
+        </div>
     </div>
 </div>
 
