@@ -62,10 +62,10 @@ const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (l
 // shown in the menu UI — adjust if you want a different dish width).
 const REAL_SIZE_CM = {
     pizza:  30,   // 12 inch
-    burger: 13,   // 5 inch
-    drink:  7,    // cup diameter
-    pasta:  20,   // bowl width
-    sushi:  20,   // platter width
+    burger: 22,   // bumped up — 13cm (true burger width) rendered too small in AR
+    drink:  10,   // cup diameter, bumped slightly to match
+    pasta:  22,   // bowl width
+    sushi:  30,   // bumped up — platter was rendering too small
 };
 
 // Measures a model's own on-table footprint (isolated from the AR target's
@@ -95,10 +95,12 @@ function getRealScale(el, desiredCm) {
     if (box.isEmpty()) return null;
     const size = new THREE.Vector3();
     box.getSize(size);
-    // Use the widest dimension across ALL axes. Measuring only x/y gave the
-    // wrong number for models whose rotation (-90 on X) swapped their axes —
-    // that's why burger and sushi came out far too small.
-    const footprint = Math.max(size.x, size.y, size.z);
+    // Footprint = the model's extent ON the paper. After AR_ROTATION, X and Y
+    // are the two on-paper axes and Z is height off the surface.
+    // (An earlier version used max(x,y,z) — that was wrong: for a tall model
+    // it measured HEIGHT as the width, divided by too large a number, and made
+    // burger/sushi come out smaller rather than bigger.)
+    const footprint = Math.max(size.x, size.y);
     if (footprint <= 0) return null;
 
     const desiredUnits = desiredCm / TARGET_CM;
@@ -471,7 +473,8 @@ function openAR(id){
         setTimeout(() => {
             const real = getRealScale(arEl2, REAL_SIZE_CM[id]);
             if (real) {
-                arScale = real; // keep pinch-zoom's baseline in sync
+                arRealScale = real;  // pinch limits are relative to this
+                arScale = real;      // keep pinch-zoom's baseline in sync
                 arEl2.setAttribute('scale', `${real} ${real} ${real}`);
             }
             // Final grounding offset confirmed by live testing: -5
@@ -506,6 +509,7 @@ function onFound(){
             el.setAttribute('rotation', AR_ROTATION[currentModel] || '0 0 0');
             el.setAttribute('position', '0 0 0');
             const real = getRealScale(el, REAL_SIZE_CM[currentModel]) || menuData[currentModel].arScale;
+            arRealScale = real;
             arScale = real;
             el.setAttribute('scale', `${real} ${real} ${real}`);
             groundModelOnSurface(el, 5); // confirmed final offset: -5
@@ -592,6 +596,7 @@ let arLastX=null,arLastY=null,arLastPinch=null;
 function getArEl(){return currentModel?document.getElementById(menuData[currentModel].arId):null;}
 function pd(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
 const arMaxScale=6.0; // bigger zoom limit
+let arRealScale=null; // the computed real-world scale for the current model; pinch clamps are relative to this
 document.addEventListener('touchstart',e=>{
     if(viewerMode!=='ar')return;
     if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
@@ -610,8 +615,14 @@ document.addEventListener('touchmove',e=>{
         el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
         arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
     }else if(e.touches.length===2&&arLastPinch!==null){
-        const nd=pd(e.touches);arScale=Math.max(0.05,Math.min(4,arScale+(nd-arLastPinch)*0.008));
-        arScale=Math.max(0.05,Math.min(arMaxScale,arScale+(nd-arLastPinch)*0.015));
+        // There used to be TWO lines here both adjusting arScale — the pinch
+        // delta got applied twice, and the lower clamp was 0.05 (about 2% of
+        // real size), which is why the pizza collapsed to almost nothing.
+        // Limits are now relative to the model's real-world scale: you can
+        // shrink to half real size, or grow to 3x.
+        const base = arRealScale || 1;
+        const nd = pd(e.touches);
+        arScale = Math.max(base*0.5, Math.min(base*3, arScale+(nd-arLastPinch)*0.015));
         el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);arLastPinch=nd;
     }
 },{passive:true});
