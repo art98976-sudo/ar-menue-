@@ -86,22 +86,24 @@
              thing being shaken. -->
         <a-entity id="ar-stage" smooth-follow="target: #ar-target">
 
-            <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
-            <!-- Outer soft shadow -->
-            <a-ellipse radiusX="0.30" radiusY="0.24"
-                rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.15; transparent:true; shader:flat">
-            </a-ellipse>
-            <!-- Inner stronger shadow -->
-            <a-ellipse radiusX="0.20" radiusY="0.16"
-                rotation="-90 0 0" position="0 0.002 0"
-                material="color:#000000; opacity:0.35; transparent:true; shader:flat">
-            </a-ellipse>
-
-            <!-- Shadow -->
-            <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000; opacity:0.3; transparent:true; shader:flat">
-            </a-circle>
+            <!-- Shadows live in their own entity so script.js can move them
+                 with the dish. They used to be rotated -90 on X, which is the
+                 Y-up convention — in the target's Z-up space that renders them
+                 standing vertically (edge-on, effectively invisible) instead of
+                 lying flat. Flat on the card plane means no rotation at all,
+                 just lifted a hair along Z so they don't z-fight the surface. -->
+            <a-entity id="ar-shadow" position="0 0 0">
+                <!-- Outer soft shadow -->
+                <a-ellipse radiusX="0.30" radiusY="0.24"
+                    rotation="0 0 0" position="0 0 0.001"
+                    material="color:#000000; opacity:0.15; transparent:true; shader:flat">
+                </a-ellipse>
+                <!-- Inner stronger shadow -->
+                <a-ellipse radiusX="0.20" radiusY="0.16"
+                    rotation="0 0 0" position="0 0 0.002"
+                    material="color:#000000; opacity:0.35; transparent:true; shader:flat">
+                </a-ellipse>
+            </a-entity>
 
             <!-- Rotation/position/scale are set live by script.js (openAR /
                  groundModelOnSurface), per model — the 5 GLB files were exported
