@@ -159,9 +159,14 @@ const AR_ROTATION = {
 // looks like a plate set down beside the menu, which is what actually happens
 // on a table.
 //
-// If the dish ends up on the wrong side (toward the customer instead of away),
-// flip this to -1. It's the only value you should ever need to change here.
-const AR_OFFSET_DIR = 1;        // 1 or -1 — which way along the card the dish sits
+// Which way along the card the dish sits. Set to -1 from live testing on a
+// real table: at +1 the dish came out on the customer's side.
+const AR_OFFSET_DIR = -1;
+
+// How far out to push. 1.0 = the dish fully clears the card. 0.5 = it sits
+// half over the card, half past it — the card stays visible enough to track
+// while the dish still reads as belonging to it.
+const AR_OFFSET_FACTOR = 0.5;
 
 // Your printed card's shape: height ÷ width. 1.414 is A-series paper (A5/A6).
 // If your card is square, use 1. If it's a wide strip, use something like 0.6.
@@ -196,7 +201,7 @@ function groundModelOnSurface(el, extra) {
     // Clearance is computed from THIS model's own measured depth, so a big
     // pizza pushes out further than a small drink automatically — no
     // hand-tuning five numbers.
-    const offsetY = AR_OFFSET_DIR * ((CARD_ASPECT / 2) + (size.y / 2) + AR_OFFSET_GAP);
+    const offsetY = AR_OFFSET_DIR * AR_OFFSET_FACTOR * ((CARD_ASPECT / 2) + (size.y / 2) + AR_OFFSET_GAP);
 
     // X: centred on the card. Several GLB meshes aren't centred at their own
     // local origin, which is what pushed the food off to one side.
