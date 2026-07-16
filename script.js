@@ -163,11 +163,10 @@ const AR_ROTATION = {
 // real table: at +1 the dish came out on the customer's side.
 const AR_OFFSET_DIR = -1;
 
-// How far out to push, away from the customer. 1.0 = the dish fully clears the
-// card. 0.5 = half over the card. Raised from 0.5 to 1.1 after live testing:
-// at 0.5 the dish still sat too close to the customer's side.
-// If it now sits too far away, lower this. If still too close, raise it.
-const AR_OFFSET_FACTOR = 1.1;
+// How far out to push, away from the customer. 0 = dead centre on the card.
+// 0.5 = half over the card. 1.0 = fully clears it.
+// Set to 0 per testing: the dish is wanted in the middle of the image.
+const AR_OFFSET_FACTOR = 0;
 
 // Your printed card's shape: height ÷ width. 1.414 is A-series paper (A5/A6).
 // If your card is square, use 1. If it's a wide strip, use something like 0.6.
