@@ -332,9 +332,9 @@ AFRAME.registerComponent('smooth-follow', {
         // With less smoothing doing the work, the dead zone carries more of it.
         // Anything under these thresholds is treated as tracking noise and
         // ignored completely — a still phone gives a genuinely still dish.
-        // Widened from 0.0025 / 0.006 to compensate for the lower tau.
-        posDeadZone: { type: 'number', default: 0.005 },
-        rotDeadZone: { type: 'number', default: 0.012 }
+        // Widened again after live testing still showed slight shake at rest.
+        posDeadZone: { type: 'number', default: 0.009 },
+        rotDeadZone: { type: 'number', default: 0.02 }
     },
     init: function () {
         const THREE = AFRAME.THREE;
