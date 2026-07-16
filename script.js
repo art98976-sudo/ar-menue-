@@ -60,12 +60,24 @@ const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (l
 
 // Real-world width of each dish, in cm (matches the size labels already
 // shown in the menu UI — adjust if you want a different dish width).
+// True real-world width of each dish in cm — these MATCH the size labels
+// already shown in the menu UI, so what the badge claims and what AR renders
+// are the same thing:
+//   pizza  "12 inch"    -> 30.5 cm
+//   burger "5 inch"     -> 12.7 cm
+//   drink  "350 ml"     -> ~8.5 cm cup diameter
+//   pasta  "300g"       -> ~22 cm bowl
+//   sushi  "5 pieces"   -> ~25 cm platter
+// NOTE: at true scale a burger IS less than half a pizza's width — that's
+// physically correct, not a bug. If everything reads too small on screen,
+// the master control is TARGET_CM above (and printing a bigger target),
+// not inflating individual dishes.
 const REAL_SIZE_CM = {
-    pizza:  30,   // 12 inch
-    burger: 22,   // bumped up — 13cm (true burger width) rendered too small in AR
-    drink:  10,   // cup diameter, bumped slightly to match
-    pasta:  22,   // bowl width
-    sushi:  30,   // bumped up — platter was rendering too small
+    pizza:  30.5,  // 12 inch
+    burger: 12.7,  // 5 inch
+    drink:  8.5,   // 350ml cup diameter
+    pasta:  22,    // bowl width
+    sushi:  25,    // 5-piece platter
 };
 
 // Measures a model's own on-table footprint (isolated from the AR target's
