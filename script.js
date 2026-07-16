@@ -1,3 +1,4 @@
+
 // ════════════════════════════════════════════════════════════
 // AR SCENE TEMPLATE — Every dish has fixed rules
 // Like AR Code app — consistent across all food items
@@ -56,16 +57,16 @@ const AR_TEMPLATE = {
 // automatically (no more guessed scale numbers).
 //
 // >>> MEASURE your printed menu card's width edge-to-edge and set this: <<<
-const TARGET_CM = 20; // <-- change to your printed menu's actual width in cm
+const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (lowering this makes everything render bigger)
 
 // Real-world width of each dish, in cm (matches the size labels already
 // shown in the menu UI — adjust if you want a different dish width).
 const REAL_SIZE_CM = {
     pizza:  30,   // 12 inch
-    burger: 13,   // 5 inch
-    drink:  7,    // cup diameter
-    pasta:  20,   // bowl width
-    sushi:  20,   // platter width
+    burger: 22,   // bumped up — 13cm (true burger width) rendered too small in AR
+    drink:  10,   // cup diameter, bumped slightly to match
+    pasta:  22,   // bowl width
+    sushi:  30,   // bumped up — platter was rendering too small
 };
 
 // Measures a model's own on-table footprint (isolated from the AR target's
@@ -95,7 +96,12 @@ function getRealScale(el, desiredCm) {
     if (box.isEmpty()) return null;
     const size = new THREE.Vector3();
     box.getSize(size);
-    const footprint = Math.max(size.x, size.y); // on-table extent, post-rotation
+    // Footprint = the model's extent ON the paper. After AR_ROTATION, X and Y
+    // are the two on-paper axes and Z is height off the surface.
+    // (An earlier version used max(x,y,z) — that was wrong: for a tall model
+    // it measured HEIGHT as the width, divided by too large a number, and made
+    // burger/sushi come out smaller rather than bigger.)
+    const footprint = Math.max(size.x, size.y);
     if (footprint <= 0) return null;
 
     const desiredUnits = desiredCm / TARGET_CM;
@@ -151,7 +157,13 @@ function groundModelOnSurface(el, extra) {
     obj.position.copy(originalPosition);
 
     if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
     const minZ = box.min.z;
+    // Centre the model over the target (X/Y) — several of the GLB meshes
+    // aren't centred at their own local origin, which is what pushed the
+    // food off to one side instead of sitting in the middle of the image.
+    obj.position.x = originalPosition.x - center.x;
+    obj.position.y = originalPosition.y - center.y;
     obj.position.z = originalPosition.z - (minZ + (extra || 0));
 }
 
@@ -456,16 +468,19 @@ function openAR(id){
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
         arEl2.setAttribute('rotation', AR_ROTATION[id] || '0 0 0');
         arEl2.setAttribute('position', '0 0 0');
+        // Scale first, THEN centre+ground — in one pass. Running these as two
+        // separate timers meant each measured a state the other had just
+        // changed, which is what threw off both the centring and the size.
         setTimeout(() => {
             const real = getRealScale(arEl2, REAL_SIZE_CM[id]);
             if (real) {
-                arScale = real; // keep pinch-zoom's baseline in sync
+                arRealScale = real;  // pinch limits are relative to this
+                arScale = real;      // keep pinch-zoom's baseline in sync
                 arEl2.setAttribute('scale', `${real} ${real} ${real}`);
             }
             // Final grounding offset confirmed by live testing: -5
             groundModelOnSurface(arEl2, 5);
-        }, 100);
-        setTimeout(() => groundModelOnSurface(arEl2, 5), 400);
+        }, 300);
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect
@@ -495,6 +510,7 @@ function onFound(){
             el.setAttribute('rotation', AR_ROTATION[currentModel] || '0 0 0');
             el.setAttribute('position', '0 0 0');
             const real = getRealScale(el, REAL_SIZE_CM[currentModel]) || menuData[currentModel].arScale;
+            arRealScale = real;
             arScale = real;
             el.setAttribute('scale', `${real} ${real} ${real}`);
             groundModelOnSurface(el, 5); // confirmed final offset: -5
@@ -581,6 +597,7 @@ let arLastX=null,arLastY=null,arLastPinch=null;
 function getArEl(){return currentModel?document.getElementById(menuData[currentModel].arId):null;}
 function pd(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
 const arMaxScale=6.0; // bigger zoom limit
+let arRealScale=null; // the computed real-world scale for the current model; pinch clamps are relative to this
 document.addEventListener('touchstart',e=>{
     if(viewerMode!=='ar')return;
     if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
@@ -599,8 +616,14 @@ document.addEventListener('touchmove',e=>{
         el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
         arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
     }else if(e.touches.length===2&&arLastPinch!==null){
-        const nd=pd(e.touches);arScale=Math.max(0.05,Math.min(4,arScale+(nd-arLastPinch)*0.008));
-        arScale=Math.max(0.05,Math.min(arMaxScale,arScale+(nd-arLastPinch)*0.015));
+        // There used to be TWO lines here both adjusting arScale — the pinch
+        // delta got applied twice, and the lower clamp was 0.05 (about 2% of
+        // real size), which is why the pizza collapsed to almost nothing.
+        // Limits are now relative to the model's real-world scale: you can
+        // shrink to half real size, or grow to 3x.
+        const base = arRealScale || 1;
+        const nd = pd(e.touches);
+        arScale = Math.max(base*0.5, Math.min(base*3, arScale+(nd-arLastPinch)*0.015));
         el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);arLastPinch=nd;
     }
 },{passive:true});
