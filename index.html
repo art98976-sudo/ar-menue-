@@ -323,12 +323,18 @@
 AFRAME.registerComponent('smooth-follow', {
     schema: {
         target:      { type: 'selector' },
-        // Response time in ms. Higher = steadier, but more lag on fast moves.
-        tau:         { type: 'number', default: 130 },
-        // Ignore position noise smaller than this (in target-width units).
-        posDeadZone: { type: 'number', default: 0.0025 },
-        // Ignore rotation noise smaller than this (radians; ~0.35 degrees).
-        rotDeadZone: { type: 'number', default: 0.006 }
+        // Response time in ms. This is the "stuck to the paper" dial.
+        // Low = the dish tracks the card tightly (feels nailed down) but lets
+        // more tracking noise through. High = glassy smooth but the dish swims
+        // behind the card when you move the phone. 45ms tracks tight enough to
+        // read as stuck, while still shaving the worst of the noise.
+        tau:         { type: 'number', default: 45 },
+        // With less smoothing doing the work, the dead zone carries more of it.
+        // Anything under these thresholds is treated as tracking noise and
+        // ignored completely — a still phone gives a genuinely still dish.
+        // Widened from 0.0025 / 0.006 to compensate for the lower tau.
+        posDeadZone: { type: 'number', default: 0.005 },
+        rotDeadZone: { type: 'number', default: 0.012 }
     },
     init: function () {
         const THREE = AFRAME.THREE;
