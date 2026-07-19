@@ -45,7 +45,7 @@
 
 <!-- AR VIEWER -->
 <div id="viewer-ar">
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0005; filterBeta: 0.1; missTolerance: 5; warmupTolerance: 5"
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.00005; filterBeta: 0.1; missTolerance: 15; warmupTolerance: 5"
         gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
         color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 1.15"
         vr-mode-ui="enabled: false"
@@ -73,41 +73,47 @@
         <!-- TOP point light: bright highlight on top surfaces (melted cheese, sauce shine) -->
         <a-light type="point" color="#fffaf0" intensity="0.9" position="0 5 1" distance="12"></a-light>
 
-        <a-entity mindar-image-target="targetIndex: 0">
+        <!-- The tracked target is now EMPTY. It only carries MindAR's raw pose,
+             which is re-estimated from the camera every frame and is inherently
+             jittery. Nothing is rendered here directly — that raw jitter would
+             be visible. -->
+        <a-entity id="ar-target" mindar-image-target="targetIndex: 0"></a-entity>
 
-            <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
-            <!-- Outer soft shadow -->
-            <a-ellipse radiusX="0.30" radiusY="0.24"
-                rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000000; opacity:0.15; transparent:true; shader:flat">
-            </a-ellipse>
-            <!-- Inner stronger shadow -->
-            <a-ellipse radiusX="0.20" radiusY="0.16"
-                rotation="-90 0 0" position="0 0.002 0"
-                material="color:#000000; opacity:0.35; transparent:true; shader:flat">
-            </a-ellipse>
+        <!-- The visible content lives here instead, as a scene-level entity that
+             FOLLOWS the tracked target through a smoothing filter (see the
+             smooth-follow component below). This is the only way to actually
+             damp the shake: you cannot smooth a pose while sitting inside the
+             thing being shaken. -->
+        <a-entity id="ar-stage" smooth-follow="target: #ar-target">
 
-            <!-- Shadow -->
-            <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0"
-                material="color:#000; opacity:0.3; transparent:true; shader:flat">
-            </a-circle>
+            <!-- Shadows live in their own entity so script.js can move them
+                 with the dish. They used to be rotated -90 on X, which is the
+                 Y-up convention — in the target's Z-up space that renders them
+                 standing vertically (edge-on, effectively invisible) instead of
+                 lying flat. Flat on the card plane means no rotation at all,
+                 just lifted a hair along Z so they don't z-fight the surface. -->
+            <a-entity id="ar-shadow" position="0 0 0">
+                <!-- Outer soft shadow -->
+                <a-ellipse radiusX="0.30" radiusY="0.24"
+                    rotation="0 0 0" position="0 0 0.001"
+                    material="color:#000000; opacity:0.15; transparent:true; shader:flat">
+                </a-ellipse>
+                <!-- Inner stronger shadow -->
+                <a-ellipse radiusX="0.20" radiusY="0.16"
+                    rotation="0 0 0" position="0 0 0.002"
+                    material="color:#000000; opacity:0.35; transparent:true; shader:flat">
+                </a-ellipse>
+            </a-entity>
 
-            <!-- Rotation/position/scale are now set live by script.js (openAR /
-                 groundModelOnSurface), per model — because the 5 GLB files were
-                 exported with different up-axis conventions: pizza/sushi/drink
-                 are Z-up already, burger/pasta are Y-up. The old "ground-fix"
-                 component that used to sit on these tags has been removed: it
-                 ran on the same model-loaded/targetFound events as script.js's
-                 own placement code and the two were overwriting each other —
-                 that race was the real cause of the floating/inconsistent look. -->
+            <!-- Rotation/position/scale are set live by script.js (openAR /
+                 groundModelOnSurface), per model — the 5 GLB files were exported
+                 with different up-axis conventions: pizza/sushi/drink are Z-up
+                 already, burger/pasta are Y-up. -->
             <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
             <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-
-            <!-- Steam effect removed -->
-
 
         </a-entity>
     </a-scene>
@@ -297,11 +303,90 @@
 </div>
 
 <script>
-// ar-anchor removed — it froze x/z permanently after first detection,
-// which caused drift once the phone moved. MindAR's own filter (tightened
-// above) now handles stability instead.
+// ════════════════════════════════════════════════════════════════
+// SMOOTH-FOLLOW — the actual shake fix.
+//
+// Why earlier attempts couldn't work: MindAR re-estimates the target's pose
+// from the camera image every single frame, and that estimate always carries
+// noise (a millimetre here, a fraction of a degree there). Anything parented
+// INSIDE the target entity inherits that noise directly — no filter setting
+// damps it from within, because it's the parent itself that's moving.
+//
+// So: the target entity is now empty and only carries the raw pose. This
+// component reads that pose each frame and eases the visible stage toward it
+// instead of snapping to it:
+//   - exponential smoothing on position (frame-rate independent)
+//   - spherical interpolation (slerp) on rotation
+//   - a dead zone: movement below a threshold is ignored entirely, so a still
+//     phone gives a genuinely still model instead of micro-wobble
+// ════════════════════════════════════════════════════════════════
+AFRAME.registerComponent('smooth-follow', {
+    schema: {
+        target:      { type: 'selector' },
+        // Response time in ms. This is the "stuck to the paper" dial.
+        // Low = the dish tracks the card tightly (feels nailed down) but lets
+        // more tracking noise through. High = glassy smooth but the dish swims
+        // behind the card when you move the phone. 45ms tracks tight enough to
+        // read as stuck, while still shaving the worst of the noise.
+        tau:         { type: 'number', default: 45 },
+        // With less smoothing doing the work, the dead zone carries more of it.
+        // Anything under these thresholds is treated as tracking noise and
+        // ignored completely — a still phone gives a genuinely still dish.
+        // Widened again after live testing still showed slight shake at rest.
+        posDeadZone: { type: 'number', default: 0.009 },
+        rotDeadZone: { type: 'number', default: 0.02 }
+    },
+    init: function () {
+        const THREE = AFRAME.THREE;
+        this.rawPos   = new THREE.Vector3();
+        this.rawQuat  = new THREE.Quaternion();
+        this.rawScale = new THREE.Vector3();
+        this.heldPos  = new THREE.Vector3();
+        this.heldQuat = new THREE.Quaternion();
+        this.primed   = false;
+
+        // On re-detection, snap to the new pose rather than gliding to it
+        // across the screen from wherever it was last seen.
+        this.el.sceneEl.addEventListener('targetLost', () => { this.primed = false; });
+    },
+    tick: function (time, dt) {
+        const targetEl = this.data.target;
+        if (!targetEl || !dt) return;
+        const src = targetEl.object3D;
+        const dst = this.el.object3D;
+
+        // Mirror the target's visibility — no target found, nothing shown.
+        dst.visible = src.visible;
+        if (!src.visible) { this.primed = false; return; }
+
+        src.updateMatrixWorld(true);
+        src.matrixWorld.decompose(this.rawPos, this.rawQuat, this.rawScale);
+
+        if (!this.primed) {
+            this.heldPos.copy(this.rawPos);      // first frame: adopt exactly
+            this.heldQuat.copy(this.rawQuat);
+            this.primed = true;
+        } else {
+            // Dead zone: if the new estimate is within noise range of what's
+            // already on screen, hold perfectly still. This is what makes it
+            // read as "stuck to the paper" instead of quietly vibrating.
+            const moved  = this.heldPos.distanceTo(this.rawPos);
+            const turned = this.heldQuat.angleTo(this.rawQuat);
+            if (moved >= this.data.posDeadZone || turned >= this.data.rotDeadZone) {
+                // Frame-rate independent smoothing: same steadiness at 30 or 60fps.
+                const alpha = 1 - Math.exp(-dt / this.data.tau);
+                this.heldPos.lerp(this.rawPos, alpha);
+                this.heldQuat.slerp(this.rawQuat, alpha);
+            }
+        }
+
+        dst.position.copy(this.heldPos);
+        dst.quaternion.copy(this.heldQuat);
+        dst.scale.copy(this.rawScale);
+    }
+});
 
 </script>
-<script src="script.js"></script>
+<script src="script.js?v=11"></script>
 </body>
 </html>
