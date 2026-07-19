@@ -1,4 +1,3 @@
-
 // ════════════════════════════════════════════════════════════
 // AR SCENE TEMPLATE — Every dish has fixed rules
 // Like AR Code app — consistent across all food items
@@ -61,12 +60,24 @@ const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (l
 
 // Real-world width of each dish, in cm (matches the size labels already
 // shown in the menu UI — adjust if you want a different dish width).
+// True real-world width of each dish in cm — these MATCH the size labels
+// already shown in the menu UI, so what the badge claims and what AR renders
+// are the same thing:
+//   pizza  "12 inch"    -> 30.5 cm
+//   burger "5 inch"     -> 12.7 cm
+//   drink  "350 ml"     -> ~8.5 cm cup diameter
+//   pasta  "300g"       -> ~22 cm bowl
+//   sushi  "5 pieces"   -> ~25 cm platter
+// NOTE: at true scale a burger IS less than half a pizza's width — that's
+// physically correct, not a bug. If everything reads too small on screen,
+// the master control is TARGET_CM above (and printing a bigger target),
+// not inflating individual dishes.
 const REAL_SIZE_CM = {
-    pizza:  30,   // 12 inch
-    burger: 22,   // bumped up — 13cm (true burger width) rendered too small in AR
-    drink:  10,   // cup diameter, bumped slightly to match
-    pasta:  22,   // bowl width
-    sushi:  30,   // bumped up — platter was rendering too small
+    pizza:  30.5,  // 12 inch
+    burger: 12.7,  // 5 inch
+    drink:  8.5,   // 350ml cup diameter
+    pasta:  22,    // bowl width
+    sushi:  25,    // 5-piece platter
 };
 
 // Measures a model's own on-table footprint (isolated from the AR target's
@@ -138,6 +149,32 @@ const AR_ROTATION = {
 // transform) before measuring, so the box reflects only the model's own
 // rotation + scale, then restores it — then grounds on Z, which is the
 // correct "off the surface" axis once AR_ROTATION has been applied.
+// ════════════════════════════════════════════════════════════
+// PLACEMENT — where the dish sits relative to the printed card.
+//
+// A dish centred on the card covers the very image MindAR is tracking. The
+// camera then can't see the target it's locked onto, the pose estimate gets
+// noisy, and that shows up as shake. So the dish is offset to sit just past
+// one edge of the card — the card stays readable, tracking stays fed, and it
+// looks like a plate set down beside the menu, which is what actually happens
+// on a table.
+//
+// Which way along the card the dish sits. Set to -1 from live testing on a
+// real table: at +1 the dish came out on the customer's side.
+const AR_OFFSET_DIR = -1;
+
+// How far out to push, away from the customer. 0 = dead centre on the card.
+// 0.5 = half over the card. 1.0 = fully clears it.
+// Set to 0 per testing: the dish is wanted in the middle of the image.
+const AR_OFFSET_FACTOR = 0;
+
+// Your printed card's shape: height ÷ width. 1.414 is A-series paper (A5/A6).
+// If your card is square, use 1. If it's a wide strip, use something like 0.6.
+const CARD_ASPECT = 1.414;
+
+// Extra breathing room between card edge and dish edge, in target widths.
+const AR_OFFSET_GAP = 0.06;
+
 function groundModelOnSurface(el, extra) {
     const THREE = getThree();
     if (!THREE || !el) return;
@@ -158,13 +195,30 @@ function groundModelOnSurface(el, extra) {
 
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
-    const minZ = box.min.z;
-    // Centre the model over the target (X/Y) — several of the GLB meshes
-    // aren't centred at their own local origin, which is what pushed the
-    // food off to one side instead of sitting in the middle of the image.
+    const size   = box.getSize(new THREE.Vector3());
+    const minZ   = box.min.z;
+
+    // Clearance is computed from THIS model's own measured depth, so a big
+    // pizza pushes out further than a small drink automatically — no
+    // hand-tuning five numbers.
+    const offsetY = AR_OFFSET_DIR * AR_OFFSET_FACTOR * ((CARD_ASPECT / 2) + (size.y / 2) + AR_OFFSET_GAP);
+
+    // X: centred on the card. Several GLB meshes aren't centred at their own
+    // local origin, which is what pushed the food off to one side.
     obj.position.x = originalPosition.x - center.x;
-    obj.position.y = originalPosition.y - center.y;
+    obj.position.y = originalPosition.y - center.y + offsetY;
     obj.position.z = originalPosition.z - (minZ + (extra || 0));
+
+    // Keep the contact shadow under the dish. Without this it stays stranded
+    // at the card's centre while the dish sits off to one side — which reads
+    // as floating, exactly the illusion the shadow exists to kill. It's also
+    // sized to the dish, so a big pizza gets a big shadow.
+    const shadow = document.getElementById('ar-shadow');
+    if (shadow && shadow.object3D) {
+        shadow.object3D.position.set(obj.position.x, obj.position.y, 0);
+        const spread = Math.max(size.x, size.y) / 0.6; // ellipse is ~0.6 wide at scale 1
+        shadow.object3D.scale.set(spread, spread, 1);
+    }
 }
 
 // Apply AR template to a model
