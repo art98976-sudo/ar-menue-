@@ -532,8 +532,11 @@ function openAR(id){
                 arScale = real;      // keep pinch-zoom's baseline in sync
                 arEl2.setAttribute('scale', `${real} ${real} ${real}`);
             }
-            // Final grounding offset confirmed by live testing: -5
-            groundModelOnSurface(arEl2, 5);
+            // Grounding offset was 5, which at TARGET_CM=10 buried the model
+            // 50cm below the table surface (1 unit = 10cm). That's what made
+            // it look half-invisible / clipped. minZ already sits the model
+            // flush on the surface, so no extra offset is needed.
+            groundModelOnSurface(arEl2, 0);
         }, 300);
     }
 
@@ -567,7 +570,7 @@ function onFound(){
             arRealScale = real;
             arScale = real;
             el.setAttribute('scale', `${real} ${real} ${real}`);
-            groundModelOnSurface(el, 5); // confirmed final offset: -5
+            groundModelOnSurface(el, 0); // was 5 — buried the model 50cm below the surface
         }
     }
 }
