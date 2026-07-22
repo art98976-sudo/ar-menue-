@@ -134,8 +134,14 @@
     </div>
 
     <!-- Height adjustment buttons -->
-    <!-- Height controls removed — grounding offset is now fixed at -5 -->
-    <div id="height-controls" style="display:none!important"></div>
+    <!-- TEMPORARY: re-enabled so the correct grounding offset can be found
+         live, on the real table, instead of guessing blind again. Remove
+         once the right number is confirmed and baked into AR_EXTRA_OFFSET. -->
+    <div id="height-controls" style="position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:12px;align-items:center;background:rgba(0,0,0,0.6);padding:8px 14px;border-radius:24px;">
+        <button onclick="adjustHeight(-0.5)" style="width:44px;height:44px;border-radius:50%;border:none;background:#fff;font-size:20px;">▼</button>
+        <div id="height-readout" style="color:#fff;font-size:15px;min-width:48px;text-align:center;">0.0</div>
+        <button onclick="adjustHeight(0.5)" style="width:44px;height:44px;border-radius:50%;border:none;background:#fff;font-size:20px;">▲</button>
+    </div>
 </div>
 
 <!-- BOTTOM BAR -->
