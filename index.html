@@ -134,14 +134,9 @@
     </div>
 
     <!-- Height adjustment buttons -->
-    <!-- TEMPORARY: re-enabled so the correct grounding offset can be found
-         live, on the real table, instead of guessing blind again. Remove
-         once the right number is confirmed and baked into AR_EXTRA_OFFSET. -->
-    <div id="height-controls" style="position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:999;display:flex;gap:12px;align-items:center;background:rgba(0,0,0,0.6);padding:8px 14px;border-radius:24px;">
-        <button onclick="adjustHeight(-0.5)" style="width:44px;height:44px;border-radius:50%;border:none;background:#fff;font-size:20px;">▼</button>
-        <div id="height-readout" style="color:#fff;font-size:15px;min-width:48px;text-align:center;">0.0</div>
-        <button onclick="adjustHeight(0.5)" style="width:44px;height:44px;border-radius:50%;border:none;background:#fff;font-size:20px;">▲</button>
-    </div>
+    <!-- Removed — grounding offset confirmed by live testing on the real
+         table and permanently baked in at 3.0 in script.js -->
+    <div id="height-controls" style="display:none!important"></div>
 </div>
 
 <!-- BOTTOM BAR -->
@@ -330,17 +325,18 @@ AFRAME.registerComponent('smooth-follow', {
     schema: {
         target:      { type: 'selector' },
         // Response time in ms. This is the "stuck to the paper" dial.
-        // Low = the dish tracks the card tightly (feels nailed down) but lets
-        // more tracking noise through. High = glassy smooth but the dish swims
-        // behind the card when you move the phone. 45ms tracks tight enough to
-        // read as stuck, while still shaving the worst of the noise.
-        tau:         { type: 'number', default: 45 },
-        // With less smoothing doing the work, the dead zone carries more of it.
-        // Anything under these thresholds is treated as tracking noise and
-        // ignored completely — a still phone gives a genuinely still dish.
-        // Widened again after live testing still showed slight shake at rest.
-        posDeadZone: { type: 'number', default: 0.009 },
-        rotDeadZone: { type: 'number', default: 0.02 }
+        // Raised from 45 to 90 — trades a touch of extra lag when the phone
+        // moves fast for a noticeably steadier model when the phone (and
+        // model) are held still, which is what "still shaking" complaints
+        // are actually about.
+        tau:         { type: 'number', default: 90 },
+        // Widened further — at rest, tiny camera-pose noise between frames
+        // was still sneaking past the old thresholds and reading as a
+        // faint shake. These are deliberately generous: real intentional
+        // phone movement is far larger than this and still passes through
+        // immediately.
+        posDeadZone: { type: 'number', default: 0.018 },
+        rotDeadZone: { type: 'number', default: 0.04 }
     },
     init: function () {
         const THREE = AFRAME.THREE;

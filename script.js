@@ -134,18 +134,10 @@ const AR_ROTATION = {
     pasta:  '-90 0 0',
 };
 
-// TEMPORARY calibration dial — was a hardcoded 0 (which overshot, floating
-// the model above the surface per live testing on the real table). Adjust
-// live with the Up/Down buttons until the dish sits flush, then tell me the
-// final number so it gets baked in permanently and these controls removed.
-let AR_EXTRA_OFFSET = 0;
-function adjustHeight(delta) {
-    AR_EXTRA_OFFSET += delta;
-    const readout = document.getElementById('height-readout');
-    if (readout) readout.innerText = AR_EXTRA_OFFSET.toFixed(1);
-    const el = currentModel && document.getElementById(menuData[currentModel].arId);
-    if (el) groundModelOnSurface(el, AR_EXTRA_OFFSET);
-}
+// Grounding offset confirmed by live testing on the real table: 3.0
+// (previous hardcoded values of 5 buried the model 50cm below the surface;
+// 0 overshot and floated it above the surface — 3.0 sits it flush).
+const AR_EXTRA_OFFSET = 3.0;
 // surface (the MindAR target's local Z=0 plane), regardless of the model's
 // own geometry or the current tracked pose.
 //
@@ -543,8 +535,7 @@ function openAR(id){
                 arScale = real;      // keep pinch-zoom's baseline in sync
                 arEl2.setAttribute('scale', `${real} ${real} ${real}`);
             }
-            // Uses the live-adjustable AR_EXTRA_OFFSET (see calibration dial
-            // above) instead of a hardcoded guess.
+            // Uses the confirmed, permanent grounding offset (3.0).
             groundModelOnSurface(arEl2, AR_EXTRA_OFFSET);
         }, 300);
     }
@@ -579,7 +570,7 @@ function onFound(){
             arRealScale = real;
             arScale = real;
             el.setAttribute('scale', `${real} ${real} ${real}`);
-            groundModelOnSurface(el, AR_EXTRA_OFFSET); // live-adjustable, see calibration dial
+            groundModelOnSurface(el, AR_EXTRA_OFFSET); // confirmed permanent offset
         }
     }
 }
