@@ -170,8 +170,9 @@ const AR_OFFSET_DIR = -1;
 
 // How far out to push, away from the customer. 0 = dead centre on the card.
 // 0.5 = half over the card. 1.0 = fully clears it.
-// Set to 0 per testing: the dish is wanted in the middle of the image.
-const AR_OFFSET_FACTOR = 0;
+// Set to 0.5 per live testing: the dish should sit half on the printed
+// card and half past it, on the side away from the customer.
+const AR_OFFSET_FACTOR = 0.5;
 
 // Your printed card's shape: height ÷ width. 1.414 is A-series paper (A5/A6).
 // If your card is square, use 1. If it's a wide strip, use something like 0.6.
