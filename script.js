@@ -122,16 +122,18 @@ function getRealScale(el, desiredCm) {
 // Per-model rotation — the 5 GLB files were exported with different
 // up-axis conventions (checked by measuring each mesh's bounding box):
 //   pizza / sushi / drink -> already Z-up (no rotation needed)
-//   burger / pasta        -> Y-up (need -90 on X to match)
-// Applying the same "-90 0 0" to every model (the old behaviour) is why
-// pizza looked wrong while burger looked right, or vice versa.
+//   burger / pasta        -> Y-up (need +90 on X to match)
+// A -90 rotation on X maps the model's Y-up to NEGATIVE Z, the opposite of
+// pizza's convention — that sign error is what pushed the burger toward the
+// viewer instead of grounding flush on the table. +90 maps Y-up to
+// POSITIVE Z, matching pizza, sushi and drink correctly.
 // ════════════════════════════════════════════════════════════
 const AR_ROTATION = {
     pizza:  '0 0 0',
     sushi:  '0 0 0',
     drink:  '0 0 0',
-    burger: '-90 0 0',
-    pasta:  '-90 0 0',
+    burger: '90 0 0',
+    pasta:  '90 0 0',
 };
 
 // Grounding offset confirmed by live testing on the real table: 3.0
