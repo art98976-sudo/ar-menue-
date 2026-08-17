@@ -53,9 +53,10 @@
         ar-scale="fixed"
         camera-controls
         touch-action="pan-y"
-        shadow-intensity="1.1"
-        shadow-softness="0.9"
-        exposure="0.95"
+        shadow-intensity="0.5"
+        shadow-softness="1"
+        exposure="0.7"
+        tone-mapping="neutral"
         environment-image="neutral"
         camera-orbit="0deg 72deg 105%"
         alt="Dish preview">
@@ -335,11 +336,20 @@ AFRAME.registerComponent('smooth-follow', {
 </script>
 <script src="script.js?v=11"></script>
 
+<div id="ar-wait"><div class="spin"></div><div>Opening camera…</div></div>
+
 <!-- ═══ TABLE DETECTION — added, nothing above this line was changed ═══ -->
 <style>
 #viewer-ar model-viewer{position:fixed!important;inset:0!important;
   width:100vw!important;height:100vh!important;z-index:2!important;
   background:#0f0e0d!important}
+#ar-wait{position:fixed;inset:0;z-index:70;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  background:#0f0e0d;color:#f0ebe4;font-size:15px;font-weight:600}
+#ar-wait .spin{width:34px;height:34px;border:3px solid #3a3330;
+  border-top-color:#ff6b35;border-radius:50%;animation:arspin .8s linear infinite}
+@keyframes arspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#ar-wait .spin{animation:none}}
 #ar-launch{position:fixed;left:50%;transform:translateX(-50%);bottom:290px;
   z-index:60;padding:14px 24px;border:none;border-radius:100px;
   background:#ff6b35!important;color:#fff!important;font-size:15px;font-weight:700;
@@ -353,8 +363,6 @@ AFRAME.registerComponent('smooth-follow', {
 /* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
 window.openAR = function (id) {
   var mv = document.getElementById('ar-mv');
-  mv.src = id + '.glb';
-  mv.setAttribute('ios-src', id + '.usdz');
   mv.dataset.dish = id;
 
   var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
@@ -362,10 +370,30 @@ window.openAR = function (id) {
   var a = document.getElementById('viewer-ar'); if (a) a.style.display = 'block';
   var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
 
-  /* keep the bottom detail card in sync if script.js exposes a filler */
   ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
     if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
   });
+
+  var wait = document.getElementById('ar-wait');
+  var fired = false;
+  function launch() {
+    if (fired) return;
+    fired = true;
+    if (wait) wait.style.display = 'none';
+    if (mv.canActivateAR) mv.activateAR();
+  }
+
+  var already = mv.getAttribute('src') === id + '.glb';
+  mv.setAttribute('ios-src', id + '.usdz');
+  if (!already) mv.setAttribute('src', id + '.glb');
+
+  /* iOS Quick Look only needs the .usdz, so it can fire straight away.
+     Android Scene Viewer needs the .glb parsed first. */
+  if (mv.canActivateAR && (already || mv.loaded)) { launch(); return; }
+
+  if (wait) wait.style.display = 'flex';
+  mv.addEventListener('load', launch, { once: true });
+  setTimeout(launch, 6000);   // never leave them stuck on a spinner
 };
 
 (function(){
