@@ -361,39 +361,68 @@ AFRAME.registerComponent('smooth-follow', {
 
 <script>
 /* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
+
+/* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
+   contains a loaded <img>. Building it up front avoids that prompt. */
+(function () {
+  var a = document.createElement('a');
+  a.setAttribute('rel', 'ar');
+  a.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
+  var img = document.createElement('img');
+  img.width = 1; img.height = 1;
+  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  a.appendChild(img);
+  document.body.appendChild(a);
+  window.__arLink = a;
+})();
+
 window.openAR = function (id) {
+  var base  = location.href.replace(/[^/]*$/, '');
+  var glb   = base + id + '.glb';
+  var usdz  = base + id + '.usdz';
+
+  var ua    = navigator.userAgent;
+  var iOS   = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/.test(ua);
+
+  /* ---- iPhone: Quick Look, fires instantly, no model load needed ---- */
+  if (iOS) {
+    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {   // Chrome/Firefox/Edge on iOS
+      alert('Open this page in Safari to use AR \u2014 Apple only allows the camera view from Safari.');
+      return;
+    }
+    /* allowsContentScaling=0 locks true size so the dish can't be pinched bigger */
+    window.__arLink.href = usdz + '#allowsContentScaling=0';
+    window.__arLink.click();
+    return;
+  }
+
+  /* ---- Android: Scene Viewer straight through, ar_only, real size ---- */
+  if (android) {
+    location.href = 'intent://arvr.google.com/scene-viewer/1.0?file='
+      + encodeURIComponent(glb)
+      + '&mode=ar_only&resizable=false&title=' + encodeURIComponent(id)
+      + '#Intent;scheme=https;package=com.google.ar.core;'
+      + 'action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end;';
+    return;
+  }
+
+  /* ---- Desktop: no camera, so show the spin preview instead ---- */
   var mv = document.getElementById('ar-mv');
   mv.dataset.dish = id;
+  mv.setAttribute('ios-src', usdz);
+  if (mv.getAttribute('src') !== id + '.glb') mv.setAttribute('src', id + '.glb');
 
   var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
   var v = document.getElementById('viewer-3d'); if (v) v.style.display = 'none';
-  var a = document.getElementById('viewer-ar'); if (a) a.style.display = 'block';
+  var w = document.getElementById('viewer-ar'); if (w) w.style.display = 'block';
   var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
 
   ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
     if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
   });
-
-  var wait = document.getElementById('ar-wait');
-  var fired = false;
-  function launch() {
-    if (fired) return;
-    fired = true;
-    if (wait) wait.style.display = 'none';
-    if (mv.canActivateAR) mv.activateAR();
-  }
-
-  var already = mv.getAttribute('src') === id + '.glb';
-  mv.setAttribute('ios-src', id + '.usdz');
-  if (!already) mv.setAttribute('src', id + '.glb');
-
-  /* iOS Quick Look only needs the .usdz, so it can fire straight away.
-     Android Scene Viewer needs the .glb parsed first. */
-  if (mv.canActivateAR && (already || mv.loaded)) { launch(); return; }
-
-  if (wait) wait.style.display = 'flex';
-  mv.addEventListener('load', launch, { once: true });
-  setTimeout(launch, 6000);   // never leave them stuck on a spinner
 };
 
 (function(){
