@@ -389,8 +389,16 @@ window.openAR = function (id) {
 
   /* ---- iPhone: Quick Look, fires instantly, no model load needed ---- */
   if (iOS) {
-    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {   // Chrome/Firefox/Edge on iOS
-      alert('Open this page in Safari to use AR \u2014 Apple only allows the camera view from Safari.');
+    /* Apple only allows AR Quick Look from Safari. Chrome/Edge/Firefox on iOS
+       honour the x-safari- prefix, so bounce the page across automatically. */
+    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {
+      var target = location.href.split('#')[0];
+      var jumped = false;
+      var t = setTimeout(function () {
+        if (!jumped) alert('Please open this page in Safari to view dishes on your table.');
+      }, 1200);
+      window.addEventListener('pagehide', function () { jumped = true; clearTimeout(t); });
+      location.href = 'x-safari-' + target;
       return;
     }
     /* allowsContentScaling=0 locks true size so the dish can't be pinched bigger */
