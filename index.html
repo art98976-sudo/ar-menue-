@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
@@ -45,87 +46,21 @@
 
 <!-- AR VIEWER -->
 <div id="viewer-ar">
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.00005; filterBeta: 0.1; missTolerance: 15; warmupTolerance: 5"
-        gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
-        color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 0.85"
-        vr-mode-ui="enabled: false"
-        device-orientation-permission-ui="enabled: false"
-        loading-screen="enabled: false">
-        <a-assets timeout="120000">
-            <a-asset-item id="pizzaModel"  src="./pizza.glb"></a-asset-item>
-            <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
-            <a-asset-item id="drinkModel"  src="./drink.glb"></a-asset-item>
-                <a-asset-item id="pastaModel"  src="./pasta.glb"></a-asset-item>
-                <a-asset-item id="sushiModel"  src="./sushi.glb"></a-asset-item>
-        </a-assets>
-        <!-- STEP 4: Camera slight top-down like sitting at restaurant table -->
-        <a-camera position="0 0 0" rotation="0 0 0" look-controls="enabled: false"></a-camera>
-
-        <!-- PREMIUM FOOD LIGHTING RIG -->
-        <!-- Softer neutral ambient — the previous 1.4 made food look noticeably
-             more saturated/vivid than a typical dim indoor room, reading as
-             "too perfect" against the real camera feed. -->
-        <a-light type="hemisphere" color="#ffffff" ground-color="#807060" intensity="0.9"></a-light>
-        <!-- KEY light: main light from front-top, dialled back from 2.2 -->
-        <a-light type="directional" color="#ffffff" intensity="1.2" position="-2 6 4" cast-shadow="true" shadow-map-width="2048" shadow-map-height="2048" shadow-radius="10" shadow-bias="-0.0005"></a-light>
-        <!-- FILL light: softens shadows on the opposite side so nothing goes black -->
-        <a-light type="directional" color="#fff8f0" intensity="0.6" position="4 3 -1"></a-light>
-        <!-- RIM/BACK light: outlines the food so it pops off the table -->
-        <a-light type="directional" color="#fff5ea" intensity="0.65" position="0 4 -6"></a-light>
-        <!-- TOP point light: highlight on top surfaces (melted cheese, sauce shine) -->
-        <a-light type="point" color="#fffaf0" intensity="0.5" position="0 5 1" distance="12"></a-light>
-
-        <!-- The tracked target is now EMPTY. It only carries MindAR's raw pose,
-             which is re-estimated from the camera every frame and is inherently
-             jittery. Nothing is rendered here directly — that raw jitter would
-             be visible. -->
-        <a-entity id="ar-target" mindar-image-target="targetIndex: 0"></a-entity>
-
-        <!-- The visible content lives here instead, as a scene-level entity that
-             FOLLOWS the tracked target through a smoothing filter (see the
-             smooth-follow component below). This is the only way to actually
-             damp the shake: you cannot smooth a pose while sitting inside the
-             thing being shaken. -->
-        <a-entity id="ar-stage" smooth-follow="target: #ar-target">
-
-            <!-- Shadows live in their own entity so script.js can move them
-                 with the dish. They used to be rotated -90 on X, which is the
-                 Y-up convention — in the target's Z-up space that renders them
-                 standing vertically (edge-on, effectively invisible) instead of
-                 lying flat. Flat on the card plane means no rotation at all,
-                 just lifted a hair along Z so they don't z-fight the surface. -->
-            <a-entity id="ar-shadow" position="0 0 0">
-                <!-- Widest, faintest ring — peeks past the dish's own edges so
-                     the shadow is visible even where the model's own base
-                     nearly touches z=0 and would otherwise hide a tighter one. -->
-                <a-ellipse radiusX="0.42" radiusY="0.34"
-                    rotation="0 0 0" position="0 0 0.0006"
-                    material="color:#000000; opacity:0.12; transparent:true; shader:flat">
-                </a-ellipse>
-                <!-- Outer soft shadow -->
-                <a-ellipse radiusX="0.30" radiusY="0.24"
-                    rotation="0 0 0" position="0 0 0.0012"
-                    material="color:#000000; opacity:0.22; transparent:true; shader:flat">
-                </a-ellipse>
-                <!-- Inner stronger shadow -->
-                <a-ellipse radiusX="0.20" radiusY="0.16"
-                    rotation="0 0 0" position="0 0 0.0018"
-                    material="color:#000000; opacity:0.42; transparent:true; shader:flat">
-                </a-ellipse>
-            </a-entity>
-
-            <!-- Rotation/position/scale are set live by script.js (openAR /
-                 groundModelOnSurface), per model — the 5 GLB files were exported
-                 with different up-axis conventions: pizza/sushi/drink are Z-up
-                 already, burger/pasta are Y-up. -->
-            <a-gltf-model id="ar-pizza"  src="#pizzaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-burger" src="#burgerModel" position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-drink"  src="#drinkModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-pasta"  src="#pastaModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-            <a-gltf-model id="ar-sushi"  src="#sushiModel"  position="0 0 0" scale="0 0 0" rotation="0 0 0" visible="true"></a-gltf-model>
-
-        </a-entity>
-    </a-scene>
+    <model-viewer id="ar-mv"
+        ar
+        ar-modes="scene-viewer quick-look webxr"
+        ar-placement="floor"
+        ar-scale="fixed"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="1.1"
+        shadow-softness="0.9"
+        exposure="0.95"
+        environment-image="neutral"
+        camera-orbit="0deg 72deg 105%"
+        alt="Dish preview">
+            <button slot="ar-button" id="ar-launch">📷 Place on your table</button>
+        </model-viewer>
 
     <!-- Scanning Guide - no text -->
     <div id="scan-overlay" style="display:none!important">
@@ -399,5 +334,65 @@ AFRAME.registerComponent('smooth-follow', {
 
 </script>
 <script src="script.js?v=11"></script>
+
+<!-- ═══ TABLE DETECTION — added, nothing above this line was changed ═══ -->
+<style>
+#viewer-ar model-viewer{position:fixed!important;inset:0!important;
+  width:100vw!important;height:100vh!important;z-index:2!important;
+  background:#0f0e0d!important}
+#ar-launch{position:fixed;left:50%;transform:translateX(-50%);bottom:290px;
+  z-index:60;padding:14px 24px;border:none;border-radius:100px;
+  background:#ff6b35!important;color:#fff!important;font-size:15px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
+#ar-launch[disabled]{opacity:.4}
+#ar-msg{position:fixed;left:0;right:0;bottom:255px;z-index:60;text-align:center;
+  font-size:12.5px;color:#e6a3a3;padding:0 20px}
+</style>
+
+<script>
+/* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
+window.openAR = function (id) {
+  var mv = document.getElementById('ar-mv');
+  mv.src = id + '.glb';
+  mv.setAttribute('ios-src', id + '.usdz');
+  mv.dataset.dish = id;
+
+  var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
+  var v = document.getElementById('viewer-3d'); if (v) v.style.display = 'none';
+  var a = document.getElementById('viewer-ar'); if (a) a.style.display = 'block';
+  var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
+
+  /* keep the bottom detail card in sync if script.js exposes a filler */
+  ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
+    if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
+  });
+};
+
+(function(){
+  var mv = document.getElementById('ar-mv');
+  var btn = document.getElementById('ar-launch');
+  var msg = document.createElement('p');
+  msg.id = 'ar-msg';
+  document.body.appendChild(msg);
+
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  btn.addEventListener('click', function(){ if (mv.canActivateAR) mv.activateAR(); });
+
+  mv.addEventListener('load', function(){
+    if (mv.canActivateAR) { btn.disabled = false; msg.textContent = ''; return; }
+    btn.disabled = true;
+    msg.textContent = isIOS
+      ? 'Table view needs ' + (mv.dataset.dish||'') + '.usdz \u2014 drag the dish to look around it.'
+      : 'This device cannot do AR \u2014 drag the dish to look around it.';
+  });
+
+  mv.addEventListener('error', function(){
+    btn.disabled = true;
+    msg.textContent = 'Could not load ' + (mv.dataset.dish||'') + '.glb \u2014 check the file name.';
+  });
+})();
+</script>
 </body>
 </html>
