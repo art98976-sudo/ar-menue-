@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Cafe Menu</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
+    <script>
+    window.addEventListener('load', function() {
+        if (window.AFRAME && window.AFRAME.THREE) {
+            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
+            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
+            if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
+        }
+    });
+    </script>
+</head>
+<body>
+
+<button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
+
+<div id="ar-topbar" style="display:none!important">
+    <div id="ar-food-name">Pizza</div>
+    <div id="ar-food-price">£8.99</div>
+</div>
+
+<!-- 3D VIEWER -->
+<div id="viewer-3d">
+    <canvas id="three-canvas"></canvas>
+    <div id="ar-loading">
+        <div class="loading-icon">🍕</div>
+        <div class="loading-text">Loading 3D Model...</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-percent" id="progress-percent">0%</div>
+    </div>
+</div>
+
+<!-- AR VIEWER -->
+<div id="viewer-ar">
+    <model-viewer id="ar-mv"
+        ar
+        ar-modes="scene-viewer quick-look webxr"
+        ar-placement="floor"
+        ar-scale="fixed"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="0"
+        shadow-softness="1"
+        exposure="1.25"
+        tone-mapping="neutral"
+        environment-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAIAAAD4YuoOAAAAIElEQVR42mPcs2cPAy0BEwONwagFoxaMWjBqwagF1AAAvqsCVKW+mPUAAAAASUVORK5CYII="
+        camera-orbit="0deg 72deg 105%"
+        alt="Dish preview">
+            <button slot="ar-button" id="ar-launch">📷 Place on your table</button>
+        </model-viewer>
+
+    <!-- Scanning Guide - no text -->
+    <div id="scan-overlay" style="display:none!important">
+        <div id="scan-box">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div id="scan-line"></div>
+        </div>
+    </div>
+    <div id="ar-detected" style="display:none!important">
+        <div id="ar-detected-icon">✅</div>
+        <div id="ar-detected-text">Image Detected!</div>
+    </div>
+
+    <!-- Height adjustment buttons -->
+    <!-- Removed — grounding offset confirmed by live testing on the real
+         table and permanently baked in at 3.0 in script.js -->
+    <div id="height-controls" style="display:none!important"></div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="ar-bottombar">
+    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
+    <div id="ar-detail-card">
+        <div id="ar-detail-top">
+            <div id="ar-detail-name">Margherita Pizza</div>
+            <div id="ar-detail-price">£8.99</div>
+        </div>
+        <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
+        <div id="ar-cal-row">
+            <div class="cal-badge">🔥 320 kcal</div>
+            <div class="cal-badge">⏱️ 15 min</div>
+            <div class="cal-badge">⭐ 4.8</div>
+        </div>
+        <div id="ar-size-row">
+            <div class="size-badge">📏 12 inch</div>
+            <div class="size-badge">👥 2-3 people</div>
+            <div class="size-badge">⚖️ 400g</div>
+        </div>
+        <div id="ar-qty-row">
+            <div id="ar-qty-label">Quantity</div>
+            <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
+            <div id="ar-qty-num">1</div>
+            <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
+        </div>
+        <div id="ar-action-row">
+            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
+            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+            <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
+        </div>
+    </div>
+</div>
+
+<!-- MENU PAGE -->
+<div id="menu-page">
+    <div id="header">
+        <div class="cafe-label">Est. 2024</div>
+        <h1>The Cozy Cup</h1>
+        <p>Fresh ingredients · Made with love</p>
+        <div class="ar-badge">📱 View in 3D or AR</div>
+    </div>
+    <div class="section-title">Our Menu</div>
+    <div id="grid">
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
+                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Margherita Pizza</div>
+                <div class="card-desc">Tomato, mozzarella, fresh basil</div>
+                <div class="card-size">📏 12 inch · 👥 2-3 people</div>
+                <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">£8.99</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Classic Burger</div>
+                <div class="card-desc">Beef patty, cheese, lettuce</div>
+                <div class="card-size">📏 5 inch · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">£11.99</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
+                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Fresh Lemonade</div>
+                <div class="card-desc">Cold pressed, mint, lime</div>
+                <div class="card-size">📏 350 ml · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">£4.99</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
+                <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Creamy Pasta</div>
+                <div class="card-desc">Herbs, garlic and parmesan</div>
+                <div class="card-size">📏 300g · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 480 kcal</div><div class="card-price">£9.99</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('pasta')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('pasta')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
+                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Sushi Platter</div>
+                <div class="card-desc">Premium rolls with wasabi</div>
+                <div class="card-size">📏 5 pieces · 👥 1 person</div>
+                <div class="card-meta"><div class="card-cal">🔥 310 kcal</div><div class="card-price">£13.99</div></div>
+                <div class="card-btns">
+                    <button class="card-3d-btn" onclick="open3D('sushi')">👁 3D</button>
+                    <button class="card-ar-btn" onclick="openAR('sushi')">📷 AR</button>
+                    <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cart-bar">
+    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">£0</div></div>
+    <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+</div>
+
+<div id="bottom-nav">
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
+    <div class="nav-item"><div class="nav-icon">📋</div>Orders</div>
+    <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+</div>
+
+<div id="cart-page">
+    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>🛒 Your Cart</h2></div>
+    <div id="cart-items"></div>
+    <div id="empty-cart"><div class="empty-icon">🛒</div><div>Your cart is empty</div><small>Add items from the menu</small></div>
+    <div id="cart-summary">
+        <div class="summary-row"><span id="summary-subtotal">£0</span></div>
+        <div class="summary-row"><span id="summary-tax">£0</span></div>
+        <div class="summary-row total"><span id="summary-total">£0</span></div>
+        <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
+    </div>
+</div>
+
+<div id="order-success">
+    <div class="success-icon">🎉</div>
+    <h2>Order Placed!</h2>
+    <p>Your order has been received.<br>We'll have it ready soon.</p>
+    <div class="order-id" id="order-id-text">Order #0000</div>
+    <button onclick="backToMenu()">Back to Menu</button>
+</div>
+
+<div id="toast">
+    <div class="toast-icon" id="toast-icon">✅</div>
+    <div class="toast-msg" id="toast-msg">Added!</div>
+    <div class="toast-sub" id="toast-sub"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// SMOOTH-FOLLOW — the actual shake fix.
+//
+// Why earlier attempts couldn't work: MindAR re-estimates the target's pose
+// from the camera image every single frame, and that estimate always carries
+// noise (a millimetre here, a fraction of a degree there). Anything parented
+// INSIDE the target entity inherits that noise directly — no filter setting
+// damps it from within, because it's the parent itself that's moving.
+//
+// So: the target entity is now empty and only carries the raw pose. This
+// component reads that pose each frame and eases the visible stage toward it
+// instead of snapping to it:
+//   - exponential smoothing on position (frame-rate independent)
+//   - spherical interpolation (slerp) on rotation
+//   - a dead zone: movement below a threshold is ignored entirely, so a still
+//     phone gives a genuinely still model instead of micro-wobble
+// ════════════════════════════════════════════════════════════════
+AFRAME.registerComponent('smooth-follow', {
+    schema: {
+        target:      { type: 'selector' },
+        // Response time in ms. This is the "stuck to the paper" dial.
+        // Raised from 45 to 90 — trades a touch of extra lag when the phone
+        // moves fast for a noticeably steadier model when the phone (and
+        // model) are held still, which is what "still shaking" complaints
+        // are actually about.
+        tau:         { type: 'number', default: 90 },
+        // Widened further — at rest, tiny camera-pose noise between frames
+        // was still sneaking past the old thresholds and reading as a
+        // faint shake. These are deliberately generous: real intentional
+        // phone movement is far larger than this and still passes through
+        // immediately.
+        posDeadZone: { type: 'number', default: 0.018 },
+        rotDeadZone: { type: 'number', default: 0.04 }
+    },
+    init: function () {
+        const THREE = AFRAME.THREE;
+        this.rawPos   = new THREE.Vector3();
+        this.rawQuat  = new THREE.Quaternion();
+        this.rawScale = new THREE.Vector3();
+        this.heldPos  = new THREE.Vector3();
+        this.heldQuat = new THREE.Quaternion();
+        this.primed   = false;
+
+        // On re-detection, snap to the new pose rather than gliding to it
+        // across the screen from wherever it was last seen.
+        this.el.sceneEl.addEventListener('targetLost', () => { this.primed = false; });
+    },
+    tick: function (time, dt) {
+        const targetEl = this.data.target;
+        if (!targetEl || !dt) return;
+        const src = targetEl.object3D;
+        const dst = this.el.object3D;
+
+        // Mirror the target's visibility — no target found, nothing shown.
+        dst.visible = src.visible;
+        if (!src.visible) { this.primed = false; return; }
+
+        src.updateMatrixWorld(true);
+        src.matrixWorld.decompose(this.rawPos, this.rawQuat, this.rawScale);
+
+        if (!this.primed) {
+            this.heldPos.copy(this.rawPos);      // first frame: adopt exactly
+            this.heldQuat.copy(this.rawQuat);
+            this.primed = true;
+        } else {
+            // Dead zone: if the new estimate is within noise range of what's
+            // already on screen, hold perfectly still. This is what makes it
+            // read as "stuck to the paper" instead of quietly vibrating.
+            const moved  = this.heldPos.distanceTo(this.rawPos);
+            const turned = this.heldQuat.angleTo(this.rawQuat);
+            if (moved >= this.data.posDeadZone || turned >= this.data.rotDeadZone) {
+                // Frame-rate independent smoothing: same steadiness at 30 or 60fps.
+                const alpha = 1 - Math.exp(-dt / this.data.tau);
+                this.heldPos.lerp(this.rawPos, alpha);
+                this.heldQuat.slerp(this.rawQuat, alpha);
+            }
+        }
+
+        dst.position.copy(this.heldPos);
+        dst.quaternion.copy(this.heldQuat);
+        dst.scale.copy(this.rawScale);
+    }
+});
+
+</script>
+<script src="script.js?v=11"></script>
+
+<div id="ar-wait"><div class="spin"></div><div>Opening camera…</div></div>
+
+<!-- ═══ TABLE DETECTION — added, nothing above this line was changed ═══ -->
+<style>
+/* force a solid black stage - beats any cached stylesheet */
+html, body,
+#ar-page, #viewer-ar, #viewer-3d, #three-canvas,
+#viewer-ar model-viewer, #viewer-ar model-viewer::part(default-progress-bar){
+  background:#000!important; background-image:none!important;
+}
+#viewer-ar model-viewer{position:fixed!important;inset:0!important;
+  width:100vw!important;height:100vh!important;z-index:2!important;
+  background:#0f0e0d!important}
+#ar-wait{position:fixed;inset:0;z-index:70;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  background:#0f0e0d;color:#f0ebe4;font-size:15px;font-weight:600}
+#ar-wait .spin{width:34px;height:34px;border:3px solid #3a3330;
+  border-top-color:#ff6b35;border-radius:50%;animation:arspin .8s linear infinite}
+@keyframes arspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#ar-wait .spin{animation:none}}
+#ar-launch{position:fixed;left:50%;transform:translateX(-50%);bottom:290px;
+  z-index:60;padding:14px 24px;border:none;border-radius:100px;
+  background:#ff6b35!important;color:#fff!important;font-size:15px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
+#ar-launch[disabled]{opacity:.4}
+#ar-msg{position:fixed;left:0;right:0;bottom:255px;z-index:60;text-align:center;
+  font-size:12.5px;color:#e6a3a3;padding:0 20px}
+</style>
+
+<script>
+/* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
+
+/* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
+   contains a loaded <img>. Building it up front avoids that prompt. */
+(function () {
+  var a = document.createElement('a');
+  a.setAttribute('rel', 'ar');
+  a.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
+  var img = document.createElement('img');
+  img.width = 1; img.height = 1;
+  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  a.appendChild(img);
+  document.body.appendChild(a);
+  window.__arLink = a;
+})();
+
+window.openAR = function (id) {
+  var base  = location.href.replace(/[^/]*$/, '');
+  var V     = '?v=23';   // bump this number whenever you replace a model file
+  var glb   = base + id + '.glb'  + V;
+  var usdz  = base + id + '.usdz' + V;
+
+  var ua    = navigator.userAgent;
+  var iOS   = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/.test(ua);
+
+  /* ---- iPhone: Quick Look, fires instantly, no model load needed ---- */
+  if (iOS) {
+    /* Apple only allows AR Quick Look from Safari. Chrome/Edge/Firefox on iOS
+       honour the x-safari- prefix, so bounce the page across automatically. */
+    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {
+      var target = location.href.split('#')[0];
+      var jumped = false;
+      var t = setTimeout(function () {
+        if (!jumped) alert('Please open this page in Safari to view dishes on your table.');
+      }, 1200);
+      window.addEventListener('pagehide', function () { jumped = true; clearTimeout(t); });
+      location.href = 'x-safari-' + target;
+      return;
+    }
+    /* allowsContentScaling=0 locks true size so the dish can't be pinched bigger */
+    window.__arLink.href = usdz + '#allowsContentScaling=0';
+    window.__arLink.click();
+    return;
+  }
+
+  /* ---- Android: Scene Viewer straight through, ar_only, real size ---- */
+  if (android) {
+    location.href = 'intent://arvr.google.com/scene-viewer/1.0?file='
+      + encodeURIComponent(glb)
+      + '&mode=ar_only&resizable=false&title=' + encodeURIComponent(id)
+      + '#Intent;scheme=https;package=com.google.ar.core;'
+      + 'action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end;';
+    return;
+  }
+
+  /* ---- Desktop: no camera, so show the spin preview instead ---- */
+  var mv = document.getElementById('ar-mv');
+  mv.dataset.dish = id;
+  mv.setAttribute('ios-src', usdz);
+  if (mv.getAttribute('src') !== id + '.glb') mv.setAttribute('src', id + '.glb');
+
+  var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
+  var v = document.getElementById('viewer-3d'); if (v) v.style.display = 'none';
+  var w = document.getElementById('viewer-ar'); if (w) w.style.display = 'block';
+  var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
+
+  ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
+    if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
+  });
+};
+
+(function(){
+  var mv = document.getElementById('ar-mv');
+  var btn = document.getElementById('ar-launch');
+  var msg = document.createElement('p');
+  msg.id = 'ar-msg';
+  document.body.appendChild(msg);
+
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  btn.addEventListener('click', function(){ if (mv.canActivateAR) mv.activateAR(); });
+
+  mv.addEventListener('load', function(){
+    if (mv.canActivateAR) { btn.disabled = false; msg.textContent = ''; return; }
+    btn.disabled = true;
+    msg.textContent = isIOS
+      ? 'Table view needs ' + (mv.dataset.dish||'') + '.usdz \u2014 drag the dish to look around it.'
+      : 'This device cannot do AR \u2014 drag the dish to look around it.';
+  });
+
+  /* Force every dish fully matte IN THE PREVIEW ONLY.
+     This edits the loaded copy in memory - the .glb and .usdz files on disk
+     are untouched, so AR still uses each model's original materials. */
+  mv.addEventListener('load', function () {
+    try {
+      (mv.model && mv.model.materials || []).forEach(function (m) {
+        var pbr = m.pbrMetallicRoughness;
+        if (!pbr) return;
+        pbr.setMetallicFactor(0);
+        pbr.setRoughnessFactor(1);
+      });
+    } catch (e) { /* older browsers - preview just keeps its own look */ }
+  });
+
+  mv.addEventListener('error', function(){
+    btn.disabled = true;
+    msg.textContent = 'Could not load ' + (mv.dataset.dish||'') + '.glb \u2014 check the file name.';
+  });
+})();
+</script>
+</body>
+</html>
