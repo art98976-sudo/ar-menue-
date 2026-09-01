@@ -26,41 +26,67 @@ html,body{background:var(--night)!important}
   padding-bottom:160px!important;color:var(--cream)!important;
 }
 
-/* ══ Header — the one loud moment ══════════════════════════ */
+/* ══ Header ════════════════════════════════════════════════
+   Concept: the page opens as a laid table seen from above.
+   A single plate ring sits behind the name, and the header
+   closes on a ruler edge — because the whole point of this
+   menu is that dishes appear at their real size.          */
 #header{
   position:relative!important;background:var(--night)!important;background-image:none!important;
-  padding:56px 24px 40px!important;text-align:left!important;
-  border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
-  border-bottom:1px solid var(--hair)!important;
+  padding:52px 24px 46px!important;text-align:left!important;
+  border-radius:0!important;box-shadow:none!important;border-bottom:none!important;
+  overflow:hidden!important;
 }
-#header::before{ /* soft brass bloom behind the wordmark */
-  content:'';position:absolute;top:-140px;left:-70px;width:340px;height:340px;
-  background:radial-gradient(circle,rgba(201,162,39,.16),transparent 68%);
+/* plate: two concentric hairlines, off-canvas to the right */
+.mv-plate{
+  position:absolute;top:-58px;right:-96px;width:290px;height:290px;border-radius:50%;
+  border:1px solid rgba(201,162,39,.20);
+  background:radial-gradient(circle at 38% 34%,rgba(201,162,39,.09),transparent 62%);
   pointer-events:none;
+}
+.mv-plate::after{
+  content:'';position:absolute;inset:26px;border-radius:50%;
+  border:1px solid rgba(201,162,39,.13);
+}
+.mv-eyebrow{
+  position:relative;display:inline-block;
+  font-family:'Instrument Serif',Georgia,serif;font-style:italic;
+  font-size:14px;color:var(--brass);margin-bottom:20px;letter-spacing:.01em;
+}
+.mv-eyebrow::after{
+  content:'';display:block;width:26px;height:1px;background:var(--brass-dim);margin-top:9px;
 }
 #header h1{
   position:relative;font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:clamp(46px,13vw,64px)!important;line-height:.94!important;
-  font-weight:400!important;letter-spacing:-.02em!important;
-  color:var(--cream)!important;margin:0 0 16px!important;
+  font-size:clamp(52px,15vw,74px)!important;line-height:.9!important;
+  font-weight:400!important;letter-spacing:-.028em!important;
+  color:var(--cream)!important;margin:0 0 18px!important;max-width:9ch!important;
 }
 #header p{
   position:relative;font-family:'Inter',system-ui,sans-serif!important;
-  font-size:13px!important;font-weight:400!important;color:var(--muted)!important;
-  margin:0 0 22px!important;letter-spacing:.02em!important;
+  font-size:12.5px!important;font-weight:400!important;color:var(--muted)!important;
+  margin:0 0 26px!important;letter-spacing:.04em!important;
 }
 #header .ar-badge{
-  position:relative;display:inline-flex!important;align-items:center!important;gap:8px!important;
-  background:transparent!important;border:1px solid var(--brass-dim)!important;
-  color:var(--brass)!important;font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12.5px!important;font-weight:500!important;padding:8px 15px!important;
-  border-radius:100px!important;box-shadow:none!important;letter-spacing:.01em!important;
+  position:relative;display:block!important;max-width:30ch!important;
+  background:transparent!important;border:none!important;
+  border-left:2px solid var(--brass)!important;
+  padding:2px 0 2px 14px!important;border-radius:0!important;box-shadow:none!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
+  font-weight:400!important;line-height:1.5!important;color:var(--cream)!important;
+  letter-spacing:0!important;
 }
-#header .ar-badge::before{
-  content:'';width:6px;height:6px;border-radius:50%;background:var(--brass);
-  box-shadow:0 0 0 3px rgba(201,162,39,.18);
+/* ruler edge — real ticks, 5mm apart, every 5th taller */
+.mv-rule{
+  position:absolute;left:0;right:0;bottom:0;height:15px;
+  border-bottom:1px solid var(--hair);
+  background-image:
+    repeating-linear-gradient(to right,rgba(244,237,225,.30) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(to right,rgba(244,237,225,.13) 0 1px,transparent 1px 8.8px);
+  background-size:100% 11px,100% 6px;
+  background-position:left bottom,left bottom;
+  background-repeat:repeat-x;
 }
-
 .section-title{
   font-family:'Instrument Serif',Georgia,serif!important;
   font-size:15px!important;font-weight:400!important;font-style:italic!important;
@@ -191,7 +217,9 @@ html,body{background:var(--night)!important}
 
 /* ══ Desktop ═══════════════════════════════════════════════ */
 @media(min-width:640px){
-  #header{padding:88px 44px 56px!important}
+  #header{padding:84px 44px 62px!important}
+  #header h1{max-width:11ch!important}
+  .mv-plate{width:400px;height:400px;top:-90px;right:-110px}
   #grid{grid-template-columns:1fr 1fr!important;max-width:940px;margin:0 auto!important;padding:22px 24px 0!important}
   .section-title{max-width:940px;margin:0 auto!important;padding:36px 24px 0!important}
   .card-img-placeholder{height:230px!important}
@@ -321,10 +349,12 @@ html,body{background:var(--night)!important}
 <!-- MENU PAGE -->
 <div id="menu-page">
     <div id="header">
-        
+        <div class="mv-plate" aria-hidden="true"></div>
+        <div class="mv-eyebrow">Table 12</div>
         <h1>The Cozy Cup</h1>
-        <p>Kitchen open until late</p>
-        <div class="ar-badge">See any dish on your table</div>
+        <p>Wood-fired &middot; Leith Walk &middot; Open till late</p>
+        <div class="ar-badge">Point your phone at the table &mdash; every dish appears actual size</div>
+        <div class="mv-rule" aria-hidden="true"></div>
     </div>
     <div class="section-title">Our Menu</div>
     <div id="grid">
