@@ -27,62 +27,60 @@ html,body{background:var(--night)!important}
 }
 
 /* ══ Header ════════════════════════════════════════════════
-   Concept: the page opens as a laid table seen from above.
-   A single plate ring sits behind the name, and the header
-   closes on a ruler edge — because the whole point of this
-   menu is that dishes appear at their real size.          */
+   Light stone panel sitting on the dark page — reads like a
+   printed menu card laid on the table. Plate ring behind the
+   name, ruler edge at the foot for the actual-size claim.  */
 #header{
-  position:relative!important;background:var(--night)!important;background-image:none!important;
-  padding:52px 24px 46px!important;text-align:left!important;
-  border-radius:0!important;box-shadow:none!important;border-bottom:none!important;
-  overflow:hidden!important;
+  position:relative!important;
+  background:linear-gradient(168deg,#fbf8f2 0%,#f2ece0 100%)!important;
+  color:#241f19!important;
+  padding:50px 24px 46px!important;text-align:left!important;
+  border-radius:0 0 22px 22px!important;box-shadow:none!important;
+  border-bottom:none!important;overflow:hidden!important;
 }
-/* plate: two concentric hairlines, off-canvas to the right */
 .mv-plate{
   position:absolute;top:-58px;right:-96px;width:290px;height:290px;border-radius:50%;
-  border:1px solid rgba(201,162,39,.20);
-  background:radial-gradient(circle at 38% 34%,rgba(201,162,39,.09),transparent 62%);
+  border:1px solid rgba(150,116,42,.26);
+  background:radial-gradient(circle at 38% 34%,rgba(190,152,58,.13),transparent 64%);
   pointer-events:none;
 }
 .mv-plate::after{
   content:'';position:absolute;inset:26px;border-radius:50%;
-  border:1px solid rgba(201,162,39,.13);
+  border:1px solid rgba(150,116,42,.16);
 }
 .mv-eyebrow{
   position:relative;display:inline-block;
   font-family:'Instrument Serif',Georgia,serif;font-style:italic;
-  font-size:14px;color:var(--brass);margin-bottom:20px;letter-spacing:.01em;
+  font-size:14px;color:#96742a;margin-bottom:20px;letter-spacing:.01em;
 }
 .mv-eyebrow::after{
-  content:'';display:block;width:26px;height:1px;background:var(--brass-dim);margin-top:9px;
+  content:'';display:block;width:26px;height:1px;background:rgba(150,116,42,.42);margin-top:9px;
 }
 #header h1{
   position:relative;font-family:'Instrument Serif',Georgia,serif!important;
   font-size:clamp(52px,15vw,74px)!important;line-height:.9!important;
   font-weight:400!important;letter-spacing:-.028em!important;
-  color:var(--cream)!important;margin:0 0 18px!important;max-width:9ch!important;
+  color:#20180f!important;margin:0 0 18px!important;max-width:9ch!important;
 }
 #header p{
   position:relative;font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12.5px!important;font-weight:400!important;color:var(--muted)!important;
+  font-size:12.5px!important;font-weight:400!important;color:#7d7266!important;
   margin:0 0 26px!important;letter-spacing:.04em!important;
 }
 #header .ar-badge{
   position:relative;display:block!important;max-width:30ch!important;
   background:transparent!important;border:none!important;
-  border-left:2px solid var(--brass)!important;
+  border-left:2px solid #96742a!important;
   padding:2px 0 2px 14px!important;border-radius:0!important;box-shadow:none!important;
   font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
-  font-weight:400!important;line-height:1.5!important;color:var(--cream)!important;
+  font-weight:400!important;line-height:1.5!important;color:#3a3229!important;
   letter-spacing:0!important;
 }
-/* ruler edge — real ticks, 5mm apart, every 5th taller */
 .mv-rule{
   position:absolute;left:0;right:0;bottom:0;height:15px;
-  border-bottom:1px solid var(--hair);
   background-image:
-    repeating-linear-gradient(to right,rgba(244,237,225,.30) 0 1px,transparent 1px 44px),
-    repeating-linear-gradient(to right,rgba(244,237,225,.13) 0 1px,transparent 1px 8.8px);
+    repeating-linear-gradient(to right,rgba(36,31,25,.34) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(to right,rgba(36,31,25,.16) 0 1px,transparent 1px 8.8px);
   background-size:100% 11px,100% 6px;
   background-position:left bottom,left bottom;
   background-repeat:repeat-x;
@@ -351,7 +349,7 @@ html,body{background:var(--night)!important}
     <div id="header">
         <div class="mv-plate" aria-hidden="true"></div>
         <div class="mv-eyebrow">Table 12</div>
-        <h1>The Cozy Cup</h1>
+        <h1>Saltmarket Row</h1>
         <p>Wood-fired &middot; Leith Walk &middot; Open till late</p>
         <div class="ar-badge">Point your phone at the table &mdash; every dish appears actual size</div>
         <div class="mv-rule" aria-hidden="true"></div>
