@@ -225,6 +225,30 @@ html,body{background:var(--night)!important}
 #cart-page{background:var(--night)!important;color:var(--cream)!important}
 #place-order-btn{background:var(--brass)!important;background-image:none!important;color:#191510!important;font-weight:700!important}
 
+
+/* ══ Typography detail ═════════════════════════════════════
+   Old-style figures with matching heights in serif prices and
+   headings; lining tabular figures wherever numbers are read
+   as data (kcal, sizes, cart totals) so columns line up.   */
+#header,#menu-page{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+#header h1,.card-name,.card-price,#cart-total,
+#ar-detail-name,#ar-detail-price{
+  font-variant-numeric:oldstyle-nums proportional-nums;
+  font-feature-settings:'onum' 1,'pnum' 1,'liga' 1,'kern' 1;
+}
+.card-cal,.card-size,#cart-count,.cal-badge,.size-badge,
+#summary-subtotal,#summary-tax,#summary-total,#ar-qty-num{
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:'lnum' 1,'tnum' 1;
+  font-variant-ligatures:none;
+}
+#header .mv-eyebrow{font-variant-numeric:oldstyle-nums;font-feature-settings:'onum' 1}
+.card-price,#ar-detail-price,#cart-total{font-kerning:normal}
+.card-name{text-wrap:balance;hyphens:none}
+#header h1{text-wrap:balance;font-kerning:normal}
+.card-desc,#header p,#header .ar-badge{text-wrap:pretty;hanging-punctuation:first}
+.ar-tag{font-variant-numeric:lining-nums;font-feature-settings:'lnum' 1}
+
 /* ══ Desktop ═══════════════════════════════════════════════ */
 @media(min-width:640px){
   #header{padding:88px 46px 66px!important}
@@ -360,9 +384,9 @@ html,body{background:var(--night)!important}
 <div id="menu-page">
     <div id="header">
         <div class="mv-eyebrow">Table 12</div>
-        <h1>Saltmarket <em>Row</em></h1>
+        <h1>The Cozy <em>Cup</em></h1>
         <div class="mv-hair" aria-hidden="true"></div>
-        <p>Wood-fired kitchen &middot; Leith Walk, Edinburgh</p>
+        <p>Coffee &amp; kitchen &middot; Leith Walk, Edinburgh</p>
         <div class="ar-badge">Point your phone at the table &mdash; every dish appears at its real size</div>
         <div class="mv-rule" aria-hidden="true"></div>
     </div>
