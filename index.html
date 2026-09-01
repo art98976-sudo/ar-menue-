@@ -27,69 +27,69 @@ html,body{background:var(--night)!important}
 }
 
 /* ══ Header ════════════════════════════════════════════════
-   Light stone panel sitting on the dark page — reads like a
-   printed menu card laid on the table. Plate ring behind the
-   name, ruler edge at the foot for the actual-size claim.  */
+   A printed menu card in cream stone, laid on the dark page.
+   No ornament except the ruler edge at the foot, which is
+   the product's actual claim: dishes shown at real size.  */
 #header{
-  position:relative!important;
-  background:linear-gradient(168deg,#fbf8f2 0%,#f2ece0 100%)!important;
-  color:#241f19!important;
-  padding:50px 24px 46px!important;text-align:left!important;
-  border-radius:0 0 22px 22px!important;box-shadow:none!important;
-  border-bottom:none!important;overflow:hidden!important;
-}
-.mv-plate{
-  position:absolute;top:-58px;right:-96px;width:290px;height:290px;border-radius:50%;
-  border:1px solid rgba(150,116,42,.26);
-  background:radial-gradient(circle at 38% 34%,rgba(190,152,58,.13),transparent 64%);
-  pointer-events:none;
-}
-.mv-plate::after{
-  content:'';position:absolute;inset:26px;border-radius:50%;
-  border:1px solid rgba(150,116,42,.16);
+  position:relative!important;display:block!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  background:#faf6ee!important;background-image:none!important;
+  color:#221c15!important;
+  padding:58px 26px 52px!important;margin:0!important;
+  text-align:left!important;border:none!important;
+  border-radius:0 0 26px 26px!important;box-shadow:none!important;
+  overflow:visible!important;
 }
 .mv-eyebrow{
-  position:relative;display:inline-block;
-  font-family:'Instrument Serif',Georgia,serif;font-style:italic;
-  font-size:14px;color:#96742a;margin-bottom:20px;letter-spacing:.01em;
+  display:inline-block;font-family:'Instrument Serif',Georgia,serif;font-style:italic;
+  font-size:15px;color:#9a7526;margin:0 0 22px;letter-spacing:.01em;
 }
 .mv-eyebrow::after{
-  content:'';display:block;width:26px;height:1px;background:rgba(150,116,42,.42);margin-top:9px;
+  content:'';display:block;width:24px;height:1px;background:rgba(154,117,38,.5);margin-top:8px;
 }
 #header h1{
-  position:relative;font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:clamp(52px,15vw,74px)!important;line-height:.9!important;
-  font-weight:400!important;letter-spacing:-.028em!important;
-  color:#20180f!important;margin:0 0 18px!important;max-width:9ch!important;
+  font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:clamp(40px,11.5vw,62px)!important;line-height:1.0!important;
+  font-weight:400!important;letter-spacing:-.022em!important;
+  color:#1c150e!important;margin:0 0 22px!important;
+  max-width:none!important;overflow-wrap:break-word!important;
+}
+#header h1 em{font-style:italic;color:#9a7526}
+.mv-hair{
+  height:3px;width:100%;margin:0 0 20px;
+  border-top:1px solid rgba(34,28,21,.22);
+  border-bottom:1px solid rgba(34,28,21,.10);
 }
 #header p{
-  position:relative;font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12.5px!important;font-weight:400!important;color:#7d7266!important;
-  margin:0 0 26px!important;letter-spacing:.04em!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:12.5px!important;font-weight:400!important;color:#7a6f62!important;
+  margin:0 0 26px!important;letter-spacing:.035em!important;
 }
 #header .ar-badge{
-  position:relative;display:block!important;max-width:30ch!important;
+  display:block!important;max-width:34ch!important;
   background:transparent!important;border:none!important;
-  border-left:2px solid #96742a!important;
-  padding:2px 0 2px 14px!important;border-radius:0!important;box-shadow:none!important;
+  border-left:2px solid #9a7526!important;
+  padding:1px 0 1px 14px!important;border-radius:0!important;box-shadow:none!important;
   font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
-  font-weight:400!important;line-height:1.5!important;color:#3a3229!important;
+  font-weight:400!important;line-height:1.55!important;color:#3c342b!important;
   letter-spacing:0!important;
 }
 .mv-rule{
-  position:absolute;left:0;right:0;bottom:0;height:15px;
+  position:absolute;left:0;right:0;bottom:0;height:14px;
+  border-radius:0 0 26px 26px;overflow:hidden;
   background-image:
-    repeating-linear-gradient(to right,rgba(36,31,25,.34) 0 1px,transparent 1px 44px),
-    repeating-linear-gradient(to right,rgba(36,31,25,.16) 0 1px,transparent 1px 8.8px);
-  background-size:100% 11px,100% 6px;
+    repeating-linear-gradient(to right,rgba(34,28,21,.30) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(to right,rgba(34,28,21,.14) 0 1px,transparent 1px 8.8px);
+  background-size:100% 10px,100% 5px;
   background-position:left bottom,left bottom;
   background-repeat:repeat-x;
 }
 .section-title{
   font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:15px!important;font-weight:400!important;font-style:italic!important;
-  color:var(--muted)!important;padding:30px 24px 0!important;margin:0!important;
-  letter-spacing:.02em!important;
+  font-size:16px!important;font-weight:400!important;font-style:italic!important;
+  text-transform:none!important;text-align:left!important;
+  color:var(--muted)!important;padding:34px 26px 0!important;margin:0!important;
+  letter-spacing:.01em!important;
 }
 
 /* ══ Cards ═════════════════════════════════════════════════ */
@@ -215,9 +215,9 @@ html,body{background:var(--night)!important}
 
 /* ══ Desktop ═══════════════════════════════════════════════ */
 @media(min-width:640px){
-  #header{padding:84px 44px 62px!important}
-  #header h1{max-width:11ch!important}
-  .mv-plate{width:400px;height:400px;top:-90px;right:-110px}
+  #header{padding:92px 46px 66px!important}
+  #header h1{font-size:76px!important}
+  .mv-hair{max-width:520px}
   #grid{grid-template-columns:1fr 1fr!important;max-width:940px;margin:0 auto!important;padding:22px 24px 0!important}
   .section-title{max-width:940px;margin:0 auto!important;padding:36px 24px 0!important}
   .card-img-placeholder{height:230px!important}
@@ -347,11 +347,11 @@ html,body{background:var(--night)!important}
 <!-- MENU PAGE -->
 <div id="menu-page">
     <div id="header">
-        <div class="mv-plate" aria-hidden="true"></div>
         <div class="mv-eyebrow">Table 12</div>
-        <h1>Saltmarket Row</h1>
-        <p>Wood-fired &middot; Leith Walk &middot; Open till late</p>
-        <div class="ar-badge">Point your phone at the table &mdash; every dish appears actual size</div>
+        <h1>Saltmarket <em>Row</em></h1>
+        <div class="mv-hair" aria-hidden="true"></div>
+        <p>Wood-fired kitchen &middot; Leith Walk, Edinburgh</p>
+        <div class="ar-badge">Point your phone at the table &mdash; every dish appears at its real size</div>
         <div class="mv-rule" aria-hidden="true"></div>
     </div>
     <div class="section-title">Our Menu</div>
