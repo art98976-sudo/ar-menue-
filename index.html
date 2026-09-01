@@ -5,6 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── MenuVision menu-page restyle. Overrides style.css, AR code untouched. ── */
+:root{
+  --ink:#20302b;        /* deep green-black, printed-menu ink        */
+  --ink-soft:#5c6b64;
+  --paper:#f6f3ed;      /* warm paper, not the usual cream           */
+  --card:#ffffff;
+  --rule:#e2ddd3;
+  --brass:#9c7c46;      /* muted brass accent, restaurant signage    */
+}
+
+#menu-page{background:var(--paper)!important;padding-bottom:150px!important}
+
+/* ── Header ─────────────────────────────────────────────── */
+#header{
+  background:var(--ink)!important;background-image:none!important;
+  color:var(--paper)!important;padding:44px 22px 34px!important;
+  border-radius:0!important;text-align:left!important;box-shadow:none!important;
+}
+#header h1{
+  font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:44px!important;line-height:1!important;font-weight:400!important;
+  letter-spacing:-.01em!important;margin:0 0 8px!important;color:var(--paper)!important;
+}
+#header p{
+  font-family:'Inter',system-ui,sans-serif!important;font-size:14px!important;
+  color:rgba(246,243,237,.62)!important;margin:0 0 20px!important;letter-spacing:.01em!important;
+}
+#header .ar-badge{
+  display:inline-block!important;background:transparent!important;
+  border:1px solid rgba(246,243,237,.32)!important;color:var(--paper)!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:12.5px!important;
+  font-weight:500!important;padding:7px 14px!important;border-radius:100px!important;
+  letter-spacing:.01em!important;box-shadow:none!important;
+}
+
+.section-title{
+  font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:26px!important;font-weight:400!important;color:var(--ink)!important;
+  padding:30px 22px 4px!important;margin:0!important;letter-spacing:-.01em!important;
+}
+.section-title::after{
+  content:'';display:block;width:34px;height:2px;
+  background:var(--brass);margin-top:12px;
+}
+
+/* ── Grid & cards ───────────────────────────────────────── */
+#grid{padding:18px 16px 0!important;gap:16px!important}
+.food-card{
+  background:var(--card)!important;border:1px solid var(--rule)!important;
+  border-radius:14px!important;box-shadow:none!important;overflow:hidden!important;
+  transition:border-color .18s ease!important;
+}
+.food-card:active{border-color:var(--brass)!important}
+
+.card-img-placeholder{height:158px!important;position:relative!important}
+.card-img-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important}
+.ar-tag{
+  position:absolute!important;top:10px!important;right:10px!important;
+  background:rgba(32,48,43,.86)!important;color:#fff!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:10.5px!important;font-weight:600!important;letter-spacing:.09em!important;
+  padding:4px 9px!important;border-radius:4px!important;
+}
+
+.card-body{padding:16px 15px 15px!important}
+.card-name{
+  font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:21px!important;font-weight:400!important;line-height:1.15!important;
+  color:var(--ink)!important;margin:0 0 5px!important;letter-spacing:-.005em!important;
+}
+.card-desc{
+  font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
+  color:var(--ink-soft)!important;line-height:1.45!important;margin:0 0 10px!important;
+}
+.card-size{
+  font-family:'Inter',system-ui,sans-serif!important;font-size:12px!important;
+  color:#8d968f!important;margin:0 0 12px!important;letter-spacing:.01em!important;
+}
+
+.card-meta{
+  display:flex!important;align-items:baseline!important;justify-content:space-between!important;
+  padding-top:12px!important;border-top:1px solid var(--rule)!important;margin-bottom:14px!important;
+}
+.card-cal{
+  background:none!important;padding:0!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:12px!important;color:#8d968f!important;
+}
+.card-price{
+  background:none!important;padding:0!important;border-radius:0!important;
+  font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:22px!important;font-weight:400!important;color:var(--ink)!important;
+}
+
+/* ── Buttons: AR is the one loud thing on the page ──────── */
+.card-btns{display:flex!important;gap:9px!important}
+.card-ar-btn{
+  flex:1!important;background:var(--ink)!important;background-image:none!important;
+  color:var(--paper)!important;border:none!important;border-radius:9px!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:14px!important;font-weight:600!important;padding:13px 10px!important;
+  letter-spacing:.005em!important;box-shadow:none!important;cursor:pointer!important;
+}
+.card-ar-btn:active{background:#2d413a!important}
+.card-add-btn{
+  width:46px!important;flex:0 0 46px!important;
+  background:transparent!important;background-image:none!important;
+  border:1px solid var(--rule)!important;color:var(--ink)!important;
+  border-radius:9px!important;font-size:20px!important;font-weight:400!important;
+  padding:0!important;box-shadow:none!important;cursor:pointer!important;
+}
+.card-add-btn:active{background:var(--paper)!important;border-color:var(--brass)!important}
+
+/* ── Cart bar & nav ─────────────────────────────────────── */
+#cart-bar{
+  background:var(--ink)!important;background-image:none!important;
+  border:none!important;box-shadow:0 -6px 22px rgba(32,48,43,.16)!important;
+}
+#cart-count,#cart-total{color:var(--paper)!important;
+  font-family:'Inter',system-ui,sans-serif!important}
+#cart-total{font-family:'Instrument Serif',Georgia,serif!important;font-size:19px!important}
+#cart-checkout-btn{
+  background:var(--brass)!important;background-image:none!important;color:#fff!important;
+  border-radius:9px!important;font-family:'Inter',system-ui,sans-serif!important;
+  font-weight:600!important;box-shadow:none!important;
+}
+#bottom-nav{
+  background:var(--card)!important;border-top:1px solid var(--rule)!important;
+  box-shadow:none!important;
+}
+#bottom-nav .nav-item{
+  font-family:'Inter',system-ui,sans-serif!important;font-size:11px!important;
+  color:#96a09a!important;
+}
+#bottom-nav .nav-item.active{color:var(--ink)!important;font-weight:600!important}
+
+/* ── Two columns on wider screens ───────────────────────── */
+@media(min-width:620px){
+  #grid{grid-template-columns:1fr 1fr!important;max-width:900px;margin:0 auto!important}
+  #header{padding:64px 40px 46px!important}
+  #header h1{font-size:58px!important}
+  .section-title{max-width:900px;margin:0 auto!important;padding-left:16px!important}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
@@ -60,7 +208,7 @@
         environment-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAIAAAD4YuoOAAAAIElEQVR42mPcs2cPAy0BEwONwagFoxaMWjBqwagF1AAAvqsCVKW+mPUAAAAASUVORK5CYII="
         camera-orbit="0deg 72deg 105%"
         alt="Dish preview">
-            <button slot="ar-button" id="ar-launch">📷 Place on your table</button>
+            <button slot="ar-button" id="ar-launch">Place on your table</button>
         </model-viewer>
 
     <!-- Scanning Guide - no text -->
@@ -86,7 +234,7 @@
 
 <!-- BOTTOM BAR -->
 <div id="ar-bottombar">
-    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
+    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate &middot; 🤏 Pinch to zoom</div>
     <div id="ar-detail-card">
         <div id="ar-detail-top">
             <div id="ar-detail-name">Margherita Pizza</div>
@@ -94,13 +242,13 @@
         </div>
         <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
         <div id="ar-cal-row">
-            <div class="cal-badge">🔥 320 kcal</div>
+            <div class="cal-badge">320 kcal</div>
             <div class="cal-badge">⏱️ 15 min</div>
             <div class="cal-badge">⭐ 4.8</div>
         </div>
         <div id="ar-size-row">
-            <div class="size-badge">📏 12 inch</div>
-            <div class="size-badge">👥 2-3 people</div>
+            <div class="size-badge">12 inch</div>
+            <div class="size-badge">2-3 people</div>
             <div class="size-badge">⚖️ 400g</div>
         </div>
         <div id="ar-qty-row">
@@ -120,89 +268,84 @@
 <!-- MENU PAGE -->
 <div id="menu-page">
     <div id="header">
-        <div class="cafe-label">Est. 2024</div>
+        
         <h1>The Cozy Cup</h1>
-        <p>Fresh ingredients · Made with love</p>
-        <div class="ar-badge">📱 View in 3D or AR</div>
+        <p>Kitchen open until late</p>
+        <div class="ar-badge">See any dish on your table</div>
     </div>
     <div class="section-title">Our Menu</div>
     <div id="grid">
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
-                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
             <div class="card-body">
                 <div class="card-name">Margherita Pizza</div>
                 <div class="card-desc">Tomato, mozzarella, fresh basil</div>
-                <div class="card-size">📏 12 inch · 👥 2-3 people</div>
-                <div class="card-meta"><div class="card-cal">🔥 320 kcal</div><div class="card-price">£8.99</div></div>
+                <div class="card-size">12 inch &middot; 2-3 people</div>
+                <div class="card-meta"><div class="card-cal">320 kcal</div><div class="card-price">£8.99</div></div>
                 <div class="card-btns">
-                    <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('pizza')">View on table</button>
                     <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
         </div>
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
-                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
             <div class="card-body">
                 <div class="card-name">Classic Burger</div>
                 <div class="card-desc">Beef patty, cheese, lettuce</div>
-                <div class="card-size">📏 5 inch · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 540 kcal</div><div class="card-price">£11.99</div></div>
+                <div class="card-size">5 inch &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">540 kcal</div><div class="card-price">£11.99</div></div>
                 <div class="card-btns">
-                    <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('burger')">View on table</button>
                     <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
         </div>
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
-                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
             <div class="card-body">
                 <div class="card-name">Fresh Lemonade</div>
                 <div class="card-desc">Cold pressed, mint, lime</div>
-                <div class="card-size">📏 350 ml · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 85 kcal</div><div class="card-price">£4.99</div></div>
+                <div class="card-size">350 ml &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">85 kcal</div><div class="card-price">£4.99</div></div>
                 <div class="card-btns">
-                    <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('drink')">View on table</button>
                     <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>
         </div>
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
-                <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+                <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
             <div class="card-body">
                 <div class="card-name">Creamy Pasta</div>
                 <div class="card-desc">Herbs, garlic and parmesan</div>
-                <div class="card-size">📏 300g · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 480 kcal</div><div class="card-price">£9.99</div></div>
+                <div class="card-size">300g &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">480 kcal</div><div class="card-price">£9.99</div></div>
                 <div class="card-btns">
-                    <button class="card-3d-btn" onclick="open3D('pasta')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="openAR('pasta')">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('pasta')">View on table</button>
                     <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
                 </div>
             </div>
         </div>
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
-                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">3D•AR</div>
+                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
             <div class="card-body">
                 <div class="card-name">Sushi Platter</div>
                 <div class="card-desc">Premium rolls with wasabi</div>
-                <div class="card-size">📏 5 pieces · 👥 1 person</div>
-                <div class="card-meta"><div class="card-cal">🔥 310 kcal</div><div class="card-price">£13.99</div></div>
+                <div class="card-size">5 pieces &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">310 kcal</div><div class="card-price">£13.99</div></div>
                 <div class="card-btns">
-                    <button class="card-3d-btn" onclick="open3D('sushi')">👁 3D</button>
-                    <button class="card-ar-btn" onclick="openAR('sushi')">📷 AR</button>
+                    <button class="card-ar-btn" onclick="openAR('sushi')">View on table</button>
                     <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
                 </div>
             </div>
