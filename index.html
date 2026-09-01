@@ -6,265 +6,290 @@
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ══ MenuVision — menu page. Overrides style.css. AR logic untouched. ══ */
+/* ══ MenuVision — premium dark menu. Overrides style.css. ══ */
 :root{
-  --night:#100e0c;        /* warm near-black, the page             */
-  --surface:#1a1613;      /* card                                  */
-  --surface-2:#241f1a;
-  --cream:#f4ede1;        /* primary text                          */
-  --muted:#9c8e7c;        /* secondary text                        */
-  --brass:#c9a227;        /* the single accent                     */
-  --brass-dim:rgba(201,162,39,.28);
-  --hair:rgba(244,237,225,.10);
+  --bg:#0F0E0D;          /* warm charcoal page      */
+  --card:#181614;        /* card surface            */
+  --line:#332F2A;        /* borders                 */
+  --gold:#D4AF37;        /* champagne gold          */
+  --gold-dim:rgba(212,175,55,.30);
+  --ivory:#F5F0E8;       /* primary text            */
+  --warm:#A99F91;        /* secondary text          */
+  --mute:#70695F;        /* muted detail text       */
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --pad:18px;            /* one padding value, used everywhere */
+  --r:14px;              /* one radius value                   */
 }
-
-html,body{background:var(--night)!important}
-#menu-page{
-  background:var(--night)!important;background-image:none!important;
-  padding-bottom:160px!important;color:var(--cream)!important;
-}
+html,body{background:var(--bg)!important}
+#menu-page{background:var(--bg)!important;background-image:none!important;
+  color:var(--ivory)!important;padding-bottom:150px!important}
 
 /* ══ Header ════════════════════════════════════════════════
    #menu-page is a flex column, so #header is a flex item and
-   was being squeezed below its own content height. flex:0 0 auto
-   is the fix — it must stay.
-   Design: a cream menu card laid on the dark page, closing on a
-   ruler edge, because the product's claim is real-size dishes. */
+   was collapsing below its content. flex:0 0 auto is the fix. */
 #header{
-  flex:0 0 auto!important;          /* the fix — do not remove */
-  position:relative!important;display:block!important;
-  box-sizing:border-box!important;width:100%!important;
-  height:auto!important;min-height:0!important;
-  background:#faf6ee!important;background-image:none!important;
-  padding:54px 26px 52px!important;margin:0!important;
-  text-align:left!important;border:none!important;
-  border-radius:0 0 26px 26px!important;box-shadow:none!important;
-  overflow:hidden!important;
+  flex:0 0 auto!important;
+  position:relative!important;display:block!important;box-sizing:border-box!important;
+  width:100%!important;height:auto!important;min-height:0!important;
+  background:linear-gradient(180deg,#151311 0%,var(--bg) 100%)!important;
+  padding:52px var(--pad) 46px!important;margin:0!important;
+  text-align:left!important;border:none!important;border-radius:0!important;
+  box-shadow:none!important;overflow:hidden!important;
 }
 #header .mv-eyebrow{
-  display:inline-block;font-family:'Instrument Serif',Georgia,serif;
-  font-style:italic;font-size:15px;line-height:1.2;
-  color:#9a7526;margin:0 0 20px;letter-spacing:.01em;
+  display:inline-block;font-family:var(--serif);font-style:italic;
+  font-size:16px;line-height:1.2;color:var(--gold);margin:0 0 18px;
 }
 #header .mv-eyebrow::after{
-  content:'';display:block;width:24px;height:1px;
-  background:rgba(154,117,38,.5);margin-top:8px;
+  content:'';display:block;width:24px;height:1px;background:var(--gold-dim);margin-top:8px;
 }
 #header h1{
-  font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:clamp(40px,11vw,60px)!important;line-height:1.02!important;
-  font-weight:400!important;letter-spacing:-.022em!important;
-  color:#1c150e!important;margin:0 0 20px!important;padding:0!important;
-  text-align:left!important;overflow-wrap:break-word!important;
+  font-family:var(--serif)!important;
+  font-size:clamp(42px,11.5vw,58px)!important;line-height:1.02!important;
+  font-weight:500!important;letter-spacing:.005em!important;
+  color:var(--ivory)!important;margin:0 0 18px!important;padding:0!important;
+  text-align:left!important;
 }
-#header h1 em{font-style:italic;color:#9a7526}
+#header h1 em{font-style:italic;font-weight:400;color:var(--gold)}
 #header .mv-hair{
-  display:block;height:3px;width:100%;margin:0 0 20px;
-  border-top:1px solid rgba(34,28,21,.22);
-  border-bottom:1px solid rgba(34,28,21,.10);
+  display:block;height:3px;width:100%;margin:0 0 18px;
+  border-top:1px solid var(--line);border-bottom:1px solid rgba(51,47,42,.5);
 }
 #header p{
-  font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12.5px!important;line-height:1.5!important;font-weight:400!important;
-  color:#7a6f62!important;margin:0 0 24px!important;padding:0!important;
-  text-align:left!important;letter-spacing:.035em!important;
+  font-family:var(--sans)!important;font-size:12.5px!important;line-height:1.5!important;
+  font-weight:400!important;color:var(--warm)!important;
+  margin:0 0 22px!important;padding:0!important;
+  text-align:left!important;letter-spacing:.04em!important;
 }
 #header .ar-badge{
   display:block!important;box-sizing:border-box!important;max-width:34ch!important;
-  background:none!important;background-image:none!important;border:none!important;
-  border-left:2px solid #9a7526!important;border-radius:0!important;
-  padding:1px 0 1px 14px!important;margin:0!important;gap:0!important;
-  font-family:'Inter',system-ui,sans-serif!important;
-  font-size:13.5px!important;font-weight:400!important;line-height:1.55!important;
-  color:#3c342b!important;letter-spacing:0!important;text-align:left!important;
+  background:none!important;border:none!important;border-left:2px solid var(--gold)!important;
+  border-radius:0!important;padding:1px 0 1px 14px!important;margin:0!important;gap:0!important;
+  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
+  line-height:1.55!important;color:var(--warm)!important;letter-spacing:0!important;
+  text-align:left!important;
 }
 #header .mv-rule{
-  display:block;position:absolute;left:0;right:0;bottom:0;height:14px;
+  display:block;position:absolute;left:0;right:0;bottom:0;height:13px;
   background-image:
-    repeating-linear-gradient(to right,rgba(34,28,21,.30) 0 1px,transparent 1px 44px),
-    repeating-linear-gradient(to right,rgba(34,28,21,.14) 0 1px,transparent 1px 8.8px);
-  background-size:100% 10px,100% 5px;
-  background-position:left bottom,left bottom;
-  background-repeat:repeat-x;
+    repeating-linear-gradient(to right,rgba(245,240,232,.22) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(to right,rgba(245,240,232,.10) 0 1px,transparent 1px 8.8px);
+  background-size:100% 9px,100% 5px;
+  background-position:left bottom,left bottom;background-repeat:repeat-x;
 }
-/* landscape phones: style.css hides the strapline, keep it coherent */
-@media(max-height:500px) and (orientation:landscape){
-  #header{padding:26px 26px 28px!important}
-  #header h1{font-size:32px!important;margin-bottom:0!important}
-  #header .mv-eyebrow{margin-bottom:12px}
-  #header .mv-hair,#header .mv-rule{display:none!important}
-}
+
+/* ══ Section heading ═══════════════════════════════════════ */
 .section-title{
-  font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:16px!important;font-weight:400!important;font-style:italic!important;
-  text-transform:none!important;text-align:left!important;
-  color:var(--muted)!important;padding:34px 26px 0!important;margin:0!important;
-  letter-spacing:.01em!important;
+  font-family:var(--serif)!important;font-size:25px!important;font-weight:500!important;
+  font-style:normal!important;text-transform:none!important;text-align:left!important;
+  color:var(--ivory)!important;letter-spacing:.01em!important;
+  padding:32px var(--pad) 0!important;margin:0!important;
+}
+.section-sub{
+  font-family:var(--sans);font-size:12.5px;font-weight:400;color:var(--mute);
+  letter-spacing:.02em;padding:5px var(--pad) 0;margin:0 0 4px;
 }
 
 /* ══ Cards ═════════════════════════════════════════════════ */
-#grid{padding:18px 16px 0!important;gap:20px!important}
+#grid{padding:16px var(--pad) 0!important;gap:16px!important}
 .food-card{
-  background:var(--surface)!important;border:1px solid var(--hair)!important;
-  border-radius:16px!important;overflow:hidden!important;box-shadow:none!important;
-  opacity:0;transform:translateY(14px);
-  animation:mvIn .6s cubic-bezier(.22,.7,.3,1) forwards;
+  display:block!important;background:var(--card)!important;
+  border:1px solid var(--line)!important;border-radius:var(--r)!important;
+  overflow:hidden!important;box-shadow:none!important;
+  opacity:0;transform:translateY(12px);
+  animation:mvIn .55s cubic-bezier(.22,.7,.3,1) forwards;
 }
-.food-card:nth-child(1){animation-delay:.04s}
-.food-card:nth-child(2){animation-delay:.10s}
-.food-card:nth-child(3){animation-delay:.16s}
-.food-card:nth-child(4){animation-delay:.22s}
-.food-card:nth-child(5){animation-delay:.28s}
+.food-card:nth-child(1){animation-delay:.03s}
+.food-card:nth-child(2){animation-delay:.09s}
+.food-card:nth-child(3){animation-delay:.15s}
+.food-card:nth-child(4){animation-delay:.21s}
+.food-card:nth-child(5){animation-delay:.27s}
 @keyframes mvIn{to{opacity:1;transform:none}}
 
 .card-img-placeholder{
-  height:196px!important;position:relative!important;background:var(--surface-2)!important;
+  width:100%!important;min-width:0!important;height:210px!important;min-height:0!important;
+  position:relative!important;background:#211d1a!important;border-radius:0!important;
 }
 .card-img-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important}
-.card-img-placeholder::after{ /* fade photo into the card */
-  content:'';position:absolute;inset:auto 0 -1px 0;height:62%;
-  background:linear-gradient(to top,#1a1613 6%,rgba(26,22,19,.55) 48%,transparent);
+.card-img-placeholder::after{
+  content:'';position:absolute;inset:auto 0 -1px 0;height:44%;
+  background:linear-gradient(to top,#181614 5%,rgba(24,22,20,.45) 55%,transparent);
   pointer-events:none;
 }
 .ar-tag{
   position:absolute!important;top:12px!important;right:12px!important;z-index:2!important;
-  background:rgba(16,14,12,.72)!important;backdrop-filter:blur(8px)!important;
-  border:1px solid var(--brass-dim)!important;color:var(--brass)!important;
-  font-family:'Inter',system-ui,sans-serif!important;font-size:10px!important;
-  font-weight:700!important;letter-spacing:.14em!important;
-  padding:5px 10px!important;border-radius:5px!important;
+  background:rgba(15,14,13,.78)!important;backdrop-filter:blur(8px)!important;
+  border:1px solid var(--gold-dim)!important;color:var(--gold)!important;
+  font-family:var(--sans)!important;font-size:9.5px!important;font-weight:700!important;
+  letter-spacing:.16em!important;padding:5px 9px!important;border-radius:4px!important;
+  line-height:1!important;
 }
 
-.card-body{padding:4px 18px 18px!important;position:relative!important;z-index:2!important}
+.card-body{
+  padding:14px var(--pad) var(--pad)!important;position:relative!important;z-index:2!important;
+  display:block!important;
+}
 .card-name{
-  font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:27px!important;font-weight:400!important;line-height:1.08!important;
-  color:var(--cream)!important;margin:0 0 7px!important;letter-spacing:-.012em!important;
+  font-family:var(--serif)!important;font-size:26px!important;font-weight:600!important;
+  line-height:1.06!important;color:var(--ivory)!important;
+  margin:0 0 5px!important;letter-spacing:.004em!important;
 }
 .card-desc{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
-  color:var(--muted)!important;line-height:1.5!important;margin:0 0 14px!important;
+  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
+  color:var(--warm)!important;line-height:1.4!important;margin:0 0 7px!important;
 }
 .card-size{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important;
-  color:#6f6459!important;letter-spacing:.03em!important;margin:0 0 16px!important;
+  font-family:var(--sans)!important;font-size:11px!important;font-weight:400!important;
+  color:var(--mute)!important;letter-spacing:.04em!important;margin:0 0 12px!important;
 }
-
 .card-meta{
-  display:flex!important;align-items:baseline!important;justify-content:space-between!important;
-  padding-top:15px!important;margin-bottom:16px!important;
-  border-top:1px solid var(--hair)!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  padding-top:12px!important;margin:0 0 14px!important;
+  border-top:1px solid var(--line)!important;
 }
 .card-cal{
   background:none!important;padding:0!important;border-radius:0!important;
-  font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important;
-  color:#6f6459!important;letter-spacing:.03em!important;
+  font-family:var(--sans)!important;font-size:11px!important;
+  color:var(--mute)!important;letter-spacing:.04em!important;
 }
 .card-price{
   background:none!important;padding:0!important;border-radius:0!important;
-  font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:27px!important;font-weight:400!important;color:var(--brass)!important;
-  letter-spacing:-.01em!important;
+  font-family:var(--serif)!important;font-size:30px!important;font-weight:600!important;
+  color:var(--gold)!important;line-height:1!important;letter-spacing:.004em!important;
 }
 
-/* ══ Buttons ═══════════════════════════════════════════════ */
-.card-btns{display:flex!important;gap:10px!important}
+/* ══ Buttons — identical box on every card ═════════════════ */
+.card-btns{display:flex!important;gap:10px!important;align-items:stretch!important}
 .card-ar-btn{
-  flex:1!important;position:relative!important;
-  background:var(--brass)!important;background-image:none!important;
-  color:#191510!important;border:none!important;border-radius:11px!important;
-  font-family:'Inter',system-ui,sans-serif!important;font-size:14.5px!important;
-  font-weight:700!important;padding:15px 10px!important;letter-spacing:.005em!important;
-  box-shadow:0 6px 18px rgba(201,162,39,.16)!important;cursor:pointer!important;
-  transition:transform .12s ease,box-shadow .18s ease!important;
+  flex:1 1 auto!important;display:inline-flex!important;
+  align-items:center!important;justify-content:center!important;gap:8px!important;
+  height:48px!important;padding:0 14px!important;box-sizing:border-box!important;
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:1px solid var(--gold)!important;border-radius:10px!important;
+  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
+  letter-spacing:.01em!important;line-height:1!important;box-shadow:none!important;
+  cursor:pointer!important;transition:transform .12s ease,background .15s ease!important;
 }
-.card-ar-btn:active{transform:scale(.975)!important;box-shadow:none!important}
+.card-ar-btn .mv-ic{width:17px;height:17px;flex:0 0 17px;display:block}
+.card-ar-btn:active{transform:scale(.98)!important;background:#c19f2f!important}
 .card-add-btn{
-  width:52px!important;flex:0 0 52px!important;background:transparent!important;
-  background-image:none!important;border:1px solid var(--hair)!important;
-  color:var(--cream)!important;border-radius:11px!important;
-  font-size:22px!important;font-weight:300!important;padding:0!important;
+  flex:0 0 48px!important;width:48px!important;height:48px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  padding:0!important;box-sizing:border-box!important;
+  background:transparent!important;background-image:none!important;
+  border:1px solid var(--line)!important;color:var(--ivory)!important;
+  border-radius:10px!important;font-family:var(--sans)!important;
+  font-size:21px!important;font-weight:400!important;line-height:1!important;
   box-shadow:none!important;cursor:pointer!important;transition:border-color .15s ease!important;
 }
-.card-add-btn:active{border-color:var(--brass)!important;color:var(--brass)!important}
+.card-add-btn:active{border-color:var(--gold)!important;color:var(--gold)!important}
 
-/* ══ Cart bar, nav, detail card ════════════════════════════ */
+/* ══ Cart bar ══════════════════════════════════════════════ */
 #cart-bar{
-  background:rgba(26,22,19,.94)!important;background-image:none!important;
-  backdrop-filter:blur(14px)!important;border-top:1px solid var(--hair)!important;
+  background:rgba(24,22,20,.96)!important;background-image:none!important;
+  backdrop-filter:blur(14px)!important;border-top:1px solid var(--line)!important;
   box-shadow:none!important;
 }
-#cart-count{color:var(--muted)!important;font-family:'Inter',system-ui,sans-serif!important;font-size:12.5px!important}
-#cart-total{color:var(--cream)!important;font-family:'Instrument Serif',Georgia,serif!important;font-size:22px!important}
+#cart-count{font-family:var(--sans)!important;font-size:12px!important;color:var(--mute)!important}
+#cart-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--ivory)!important}
 #cart-checkout-btn{
-  background:var(--brass)!important;background-image:none!important;color:#191510!important;
-  border-radius:11px!important;font-family:'Inter',system-ui,sans-serif!important;
-  font-weight:700!important;box-shadow:none!important;
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:none!important;border-radius:10px!important;height:48px!important;
+  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
+  box-shadow:none!important;
 }
+
+/* ══ Bottom nav ════════════════════════════════════════════ */
 #bottom-nav{
-  background:rgba(16,14,12,.96)!important;backdrop-filter:blur(14px)!important;
-  border-top:1px solid var(--hair)!important;box-shadow:none!important;
+  background:rgba(15,14,13,.97)!important;backdrop-filter:blur(14px)!important;
+  border-top:1px solid var(--line)!important;box-shadow:none!important;
 }
 #bottom-nav .nav-item{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:10.5px!important;
-  color:#5f564c!important;letter-spacing:.03em!important;
+  font-family:var(--sans)!important;font-size:10px!important;font-weight:500!important;
+  color:var(--mute)!important;letter-spacing:.05em!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;gap:4px!important;
 }
-#bottom-nav .nav-item.active{color:var(--brass)!important;font-weight:600!important}
+#bottom-nav .nav-icon{
+  font-size:0!important;line-height:0!important;margin:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+}
+#bottom-nav .nav-icon svg{width:21px;height:21px;display:block}
+#bottom-nav .nav-item.active{color:var(--gold)!important;font-weight:600!important}
 
-#ar-detail-card{background:rgba(16,14,12,.95)!important;backdrop-filter:blur(16px)!important;
-  border-top:1px solid var(--hair)!important}
-#ar-detail-name{font-family:'Instrument Serif',Georgia,serif!important;font-size:25px!important;color:var(--cream)!important}
-#ar-detail-price{font-family:'Instrument Serif',Georgia,serif!important;font-size:25px!important;color:var(--brass)!important}
-#ar-detail-desc{font-family:'Inter',system-ui,sans-serif!important;color:var(--muted)!important;font-size:13.5px!important}
-.cal-badge,.size-badge{background:var(--surface-2)!important;border:1px solid var(--hair)!important;
-  color:var(--muted)!important;font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important}
-#ar-order-btn{background:var(--brass)!important;background-image:none!important;color:#191510!important;font-weight:700!important}
-#ar-cart-btn{background:transparent!important;border:1px solid var(--hair)!important;color:var(--cream)!important}
-#cart-page{background:var(--night)!important;color:var(--cream)!important}
-#place-order-btn{background:var(--brass)!important;background-image:none!important;color:#191510!important;font-weight:700!important}
+/* ══ AR detail card & cart page ════════════════════════════ */
+#ar-detail-card{background:rgba(15,14,13,.96)!important;backdrop-filter:blur(16px)!important;
+  border-top:1px solid var(--line)!important}
+#ar-detail-name{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--ivory)!important}
+#ar-detail-price{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--gold)!important}
+#ar-detail-desc{font-family:var(--sans)!important;font-size:13px!important;color:var(--warm)!important}
+.cal-badge,.size-badge{
+  background:#211d1a!important;border:1px solid var(--line)!important;color:var(--mute)!important;
+  font-family:var(--sans)!important;font-size:11px!important;border-radius:7px!important;
+}
+.ar-qty-btn{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
+#ar-qty-label,#ar-qty-num{font-family:var(--sans)!important;color:var(--ivory)!important}
+#ar-order-btn,#place-order-btn{
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:none!important;border-radius:10px!important;
+  font-family:var(--sans)!important;font-weight:700!important;
+}
+#ar-cart-btn,#ar-reset-btn{
+  background:transparent!important;background-image:none!important;
+  border:1px solid var(--line)!important;color:var(--ivory)!important;
+  border-radius:10px!important;font-family:var(--sans)!important;font-weight:600!important;
+}
+#cart-page{background:var(--bg)!important;color:var(--ivory)!important}
+#cart-header h2,#cart-items,#cart-summary{font-family:var(--sans)!important;color:var(--ivory)!important}
+#cart-back{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
+.summary-row{font-family:var(--sans)!important;color:var(--warm)!important}
+.summary-row.total{color:var(--ivory)!important}
+#summary-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--gold)!important}
 
-
-/* ══ Typography detail ═════════════════════════════════════
-   Old-style figures with matching heights in serif prices and
-   headings; lining tabular figures wherever numbers are read
-   as data (kcal, sizes, cart totals) so columns line up.   */
-#header,#menu-page{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-#header h1,.card-name,.card-price,#cart-total,
-#ar-detail-name,#ar-detail-price{
+/* ══ Numerals ══════════════════════════════════════════════
+   Serif display uses old-style figures; data uses lining
+   tabular figures so columns of numbers align.             */
+#menu-page,#header{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+#header h1,.card-name,.card-price,#cart-total,#summary-total,
+#ar-detail-name,#ar-detail-price,#header .mv-eyebrow{
   font-variant-numeric:oldstyle-nums proportional-nums;
-  font-feature-settings:'onum' 1,'pnum' 1,'liga' 1,'kern' 1;
+  font-feature-settings:'onum' 1,'pnum' 1,'kern' 1,'liga' 1;
 }
 .card-cal,.card-size,#cart-count,.cal-badge,.size-badge,
-#summary-subtotal,#summary-tax,#summary-total,#ar-qty-num{
+#summary-subtotal,#summary-tax,#ar-qty-num,.ar-tag{
   font-variant-numeric:lining-nums tabular-nums;
   font-feature-settings:'lnum' 1,'tnum' 1;
   font-variant-ligatures:none;
 }
-#header .mv-eyebrow{font-variant-numeric:oldstyle-nums;font-feature-settings:'onum' 1}
-.card-price,#ar-detail-price,#cart-total{font-kerning:normal}
-.card-name{text-wrap:balance;hyphens:none}
-#header h1{text-wrap:balance;font-kerning:normal}
-.card-desc,#header p,#header .ar-badge{text-wrap:pretty;hanging-punctuation:first}
-.ar-tag{font-variant-numeric:lining-nums;font-feature-settings:'lnum' 1}
+#header h1,.card-name{text-wrap:balance;font-kerning:normal}
+.card-desc,#header p,#header .ar-badge{text-wrap:pretty}
 
-/* ══ Desktop ═══════════════════════════════════════════════ */
+/* ══ Larger screens ════════════════════════════════════════ */
 @media(min-width:640px){
-  #header{padding:88px 46px 66px!important}
-  #header h1{font-size:72px!important}
-  #header .mv-hair{max-width:520px!important}
-  #grid{grid-template-columns:1fr 1fr!important;max-width:940px;margin:0 auto!important;padding:22px 24px 0!important}
-  .section-title{max-width:940px;margin:0 auto!important;padding:36px 24px 0!important}
-  .card-img-placeholder{height:230px!important}
+  #header{padding:80px 26px 60px!important}
+  #header h1{font-size:66px!important}
+  #header .mv-hair{max-width:520px}
+  #grid{grid-template-columns:1fr 1fr!important;max-width:960px;margin:0 auto!important;padding:18px 26px 0!important}
+  .section-title,.section-sub{max-width:960px;margin-left:auto!important;margin-right:auto!important;padding-left:26px!important;padding-right:26px!important}
+  .card-img-placeholder{height:225px!important}
 }
-@media(min-width:1000px){#grid{grid-template-columns:repeat(3,1fr)!important}}
+@media(min-width:1024px){#grid{grid-template-columns:repeat(3,1fr)!important}}
 
+/* landscape phones: style.css hides the strapline */
+@media(max-height:500px) and (orientation:landscape){
+  #header{padding:24px var(--pad) 26px!important}
+  #header h1{font-size:32px!important;margin-bottom:0!important}
+  #header .mv-eyebrow{margin-bottom:10px}
+  #header .mv-hair,#header .mv-rule{display:none!important}
+}
 @media(prefers-reduced-motion:reduce){
   .food-card{opacity:1!important;transform:none!important;animation:none!important}
   *{transition:none!important}
 }
-:focus-visible{outline:2px solid var(--brass)!important;outline-offset:3px!important}
+:focus-visible{outline:2px solid var(--gold)!important;outline-offset:3px!important}
 </style>
 
 
@@ -391,6 +416,7 @@ html,body{background:var(--night)!important}
         <div class="mv-rule" aria-hidden="true"></div>
     </div>
     <div class="section-title">Our Menu</div>
+    <div class="section-sub">See your food before you order</div>
     <div id="grid">
         <div class="food-card">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
@@ -402,7 +428,7 @@ html,body{background:var(--night)!important}
                 <div class="card-size">12 inch &middot; 2-3 people</div>
                 <div class="card-meta"><div class="card-cal">320 kcal</div><div class="card-price">£8.99</div></div>
                 <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('pizza')">View on table</button>
+                    <button class="card-ar-btn" onclick="openAR('pizza')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
                     <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
@@ -417,7 +443,7 @@ html,body{background:var(--night)!important}
                 <div class="card-size">5 inch &middot; 1 person</div>
                 <div class="card-meta"><div class="card-cal">540 kcal</div><div class="card-price">£11.99</div></div>
                 <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('burger')">View on table</button>
+                    <button class="card-ar-btn" onclick="openAR('burger')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
                     <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
@@ -432,7 +458,7 @@ html,body{background:var(--night)!important}
                 <div class="card-size">350 ml &middot; 1 person</div>
                 <div class="card-meta"><div class="card-cal">85 kcal</div><div class="card-price">£4.99</div></div>
                 <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('drink')">View on table</button>
+                    <button class="card-ar-btn" onclick="openAR('drink')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
                     <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>
@@ -447,7 +473,7 @@ html,body{background:var(--night)!important}
                 <div class="card-size">300g &middot; 1 person</div>
                 <div class="card-meta"><div class="card-cal">480 kcal</div><div class="card-price">£9.99</div></div>
                 <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('pasta')">View on table</button>
+                    <button class="card-ar-btn" onclick="openAR('pasta')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
                     <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
                 </div>
             </div>
@@ -462,7 +488,7 @@ html,body{background:var(--night)!important}
                 <div class="card-size">5 pieces &middot; 1 person</div>
                 <div class="card-meta"><div class="card-cal">310 kcal</div><div class="card-price">£13.99</div></div>
                 <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('sushi')">View on table</button>
+                    <button class="card-ar-btn" onclick="openAR('sushi')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
                     <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
                 </div>
             </div>
@@ -476,10 +502,10 @@ html,body{background:var(--night)!important}
 </div>
 
 <div id="bottom-nav">
-    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon"></div>Menu</div>
-    <div class="nav-item" onclick="openCart()"><div class="nav-icon"></div>Cart</div>
-    <div class="nav-item"><div class="nav-icon"></div>Orders</div>
-    <div class="nav-item"><div class="nav-icon"></div>Profile</div>
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Menu</div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 5h2.2l2.1 10.2a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.25L20.5 8H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg></div>Cart</div>
+    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="2.4" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h6M9 13h6M9 17h3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Orders</div>
+    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.7"/><path d="M4.8 20c.9-3.7 3.8-5.6 7.2-5.6s6.3 1.9 7.2 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Profile</div>
 </div>
 
 <div id="cart-page">
