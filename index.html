@@ -27,62 +27,74 @@ html,body{background:var(--night)!important}
 }
 
 /* ══ Header ════════════════════════════════════════════════
-   A printed menu card in cream stone, laid on the dark page.
-   No ornament except the ruler edge at the foot, which is
-   the product's actual claim: dishes shown at real size.  */
+   #menu-page is a flex column, so #header is a flex item and
+   was being squeezed below its own content height. flex:0 0 auto
+   is the fix — it must stay.
+   Design: a cream menu card laid on the dark page, closing on a
+   ruler edge, because the product's claim is real-size dishes. */
 #header{
+  flex:0 0 auto!important;          /* the fix — do not remove */
   position:relative!important;display:block!important;
-  height:auto!important;min-height:0!important;max-height:none!important;
+  box-sizing:border-box!important;width:100%!important;
+  height:auto!important;min-height:0!important;
   background:#faf6ee!important;background-image:none!important;
-  color:#221c15!important;
-  padding:58px 26px 52px!important;margin:0!important;
+  padding:54px 26px 52px!important;margin:0!important;
   text-align:left!important;border:none!important;
   border-radius:0 0 26px 26px!important;box-shadow:none!important;
-  overflow:visible!important;
+  overflow:hidden!important;
 }
-.mv-eyebrow{
-  display:inline-block;font-family:'Instrument Serif',Georgia,serif;font-style:italic;
-  font-size:15px;color:#9a7526;margin:0 0 22px;letter-spacing:.01em;
+#header .mv-eyebrow{
+  display:inline-block;font-family:'Instrument Serif',Georgia,serif;
+  font-style:italic;font-size:15px;line-height:1.2;
+  color:#9a7526;margin:0 0 20px;letter-spacing:.01em;
 }
-.mv-eyebrow::after{
-  content:'';display:block;width:24px;height:1px;background:rgba(154,117,38,.5);margin-top:8px;
+#header .mv-eyebrow::after{
+  content:'';display:block;width:24px;height:1px;
+  background:rgba(154,117,38,.5);margin-top:8px;
 }
 #header h1{
   font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:clamp(40px,11.5vw,62px)!important;line-height:1.0!important;
+  font-size:clamp(40px,11vw,60px)!important;line-height:1.02!important;
   font-weight:400!important;letter-spacing:-.022em!important;
-  color:#1c150e!important;margin:0 0 22px!important;
-  max-width:none!important;overflow-wrap:break-word!important;
+  color:#1c150e!important;margin:0 0 20px!important;padding:0!important;
+  text-align:left!important;overflow-wrap:break-word!important;
 }
 #header h1 em{font-style:italic;color:#9a7526}
-.mv-hair{
-  height:3px;width:100%;margin:0 0 20px;
+#header .mv-hair{
+  display:block;height:3px;width:100%;margin:0 0 20px;
   border-top:1px solid rgba(34,28,21,.22);
   border-bottom:1px solid rgba(34,28,21,.10);
 }
 #header p{
   font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12.5px!important;font-weight:400!important;color:#7a6f62!important;
-  margin:0 0 26px!important;letter-spacing:.035em!important;
+  font-size:12.5px!important;line-height:1.5!important;font-weight:400!important;
+  color:#7a6f62!important;margin:0 0 24px!important;padding:0!important;
+  text-align:left!important;letter-spacing:.035em!important;
 }
 #header .ar-badge{
-  display:block!important;max-width:34ch!important;
-  background:transparent!important;border:none!important;
-  border-left:2px solid #9a7526!important;
-  padding:1px 0 1px 14px!important;border-radius:0!important;box-shadow:none!important;
-  font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
-  font-weight:400!important;line-height:1.55!important;color:#3c342b!important;
-  letter-spacing:0!important;
+  display:block!important;box-sizing:border-box!important;max-width:34ch!important;
+  background:none!important;background-image:none!important;border:none!important;
+  border-left:2px solid #9a7526!important;border-radius:0!important;
+  padding:1px 0 1px 14px!important;margin:0!important;gap:0!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  font-size:13.5px!important;font-weight:400!important;line-height:1.55!important;
+  color:#3c342b!important;letter-spacing:0!important;text-align:left!important;
 }
-.mv-rule{
-  position:absolute;left:0;right:0;bottom:0;height:14px;
-  border-radius:0 0 26px 26px;overflow:hidden;
+#header .mv-rule{
+  display:block;position:absolute;left:0;right:0;bottom:0;height:14px;
   background-image:
     repeating-linear-gradient(to right,rgba(34,28,21,.30) 0 1px,transparent 1px 44px),
     repeating-linear-gradient(to right,rgba(34,28,21,.14) 0 1px,transparent 1px 8.8px);
   background-size:100% 10px,100% 5px;
   background-position:left bottom,left bottom;
   background-repeat:repeat-x;
+}
+/* landscape phones: style.css hides the strapline, keep it coherent */
+@media(max-height:500px) and (orientation:landscape){
+  #header{padding:26px 26px 28px!important}
+  #header h1{font-size:32px!important;margin-bottom:0!important}
+  #header .mv-eyebrow{margin-bottom:12px}
+  #header .mv-hair,#header .mv-rule{display:none!important}
 }
 .section-title{
   font-family:'Instrument Serif',Georgia,serif!important;
@@ -215,9 +227,9 @@ html,body{background:var(--night)!important}
 
 /* ══ Desktop ═══════════════════════════════════════════════ */
 @media(min-width:640px){
-  #header{padding:92px 46px 66px!important}
-  #header h1{font-size:76px!important}
-  .mv-hair{max-width:520px}
+  #header{padding:88px 46px 66px!important}
+  #header h1{font-size:72px!important}
+  #header .mv-hair{max-width:520px!important}
   #grid{grid-template-columns:1fr 1fr!important;max-width:940px;margin:0 auto!important;padding:22px 24px 0!important}
   .section-title{max-width:940px;margin:0 auto!important;padding:36px 24px 0!important}
   .card-img-placeholder{height:230px!important}
