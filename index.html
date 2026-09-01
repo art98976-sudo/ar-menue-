@@ -5,153 +5,206 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── MenuVision menu-page restyle. Overrides style.css, AR code untouched. ── */
+/* ══ MenuVision — menu page. Overrides style.css. AR logic untouched. ══ */
 :root{
-  --ink:#20302b;        /* deep green-black, printed-menu ink        */
-  --ink-soft:#5c6b64;
-  --paper:#f6f3ed;      /* warm paper, not the usual cream           */
-  --card:#ffffff;
-  --rule:#e2ddd3;
-  --brass:#9c7c46;      /* muted brass accent, restaurant signage    */
+  --night:#100e0c;        /* warm near-black, the page             */
+  --surface:#1a1613;      /* card                                  */
+  --surface-2:#241f1a;
+  --cream:#f4ede1;        /* primary text                          */
+  --muted:#9c8e7c;        /* secondary text                        */
+  --brass:#c9a227;        /* the single accent                     */
+  --brass-dim:rgba(201,162,39,.28);
+  --hair:rgba(244,237,225,.10);
 }
 
-#menu-page{background:var(--paper)!important;padding-bottom:150px!important}
+html,body{background:var(--night)!important}
+#menu-page{
+  background:var(--night)!important;background-image:none!important;
+  padding-bottom:160px!important;color:var(--cream)!important;
+}
 
-/* ── Header ─────────────────────────────────────────────── */
+/* ══ Header — the one loud moment ══════════════════════════ */
 #header{
-  background:var(--ink)!important;background-image:none!important;
-  color:var(--paper)!important;padding:44px 22px 34px!important;
-  border-radius:0!important;text-align:left!important;box-shadow:none!important;
+  position:relative!important;background:var(--night)!important;background-image:none!important;
+  padding:56px 24px 40px!important;text-align:left!important;
+  border-radius:0!important;box-shadow:none!important;overflow:hidden!important;
+  border-bottom:1px solid var(--hair)!important;
+}
+#header::before{ /* soft brass bloom behind the wordmark */
+  content:'';position:absolute;top:-140px;left:-70px;width:340px;height:340px;
+  background:radial-gradient(circle,rgba(201,162,39,.16),transparent 68%);
+  pointer-events:none;
 }
 #header h1{
-  font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:44px!important;line-height:1!important;font-weight:400!important;
-  letter-spacing:-.01em!important;margin:0 0 8px!important;color:var(--paper)!important;
+  position:relative;font-family:'Instrument Serif',Georgia,serif!important;
+  font-size:clamp(46px,13vw,64px)!important;line-height:.94!important;
+  font-weight:400!important;letter-spacing:-.02em!important;
+  color:var(--cream)!important;margin:0 0 16px!important;
 }
 #header p{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:14px!important;
-  color:rgba(246,243,237,.62)!important;margin:0 0 20px!important;letter-spacing:.01em!important;
+  position:relative;font-family:'Inter',system-ui,sans-serif!important;
+  font-size:13px!important;font-weight:400!important;color:var(--muted)!important;
+  margin:0 0 22px!important;letter-spacing:.02em!important;
 }
 #header .ar-badge{
-  display:inline-block!important;background:transparent!important;
-  border:1px solid rgba(246,243,237,.32)!important;color:var(--paper)!important;
-  font-family:'Inter',system-ui,sans-serif!important;font-size:12.5px!important;
-  font-weight:500!important;padding:7px 14px!important;border-radius:100px!important;
-  letter-spacing:.01em!important;box-shadow:none!important;
+  position:relative;display:inline-flex!important;align-items:center!important;gap:8px!important;
+  background:transparent!important;border:1px solid var(--brass-dim)!important;
+  color:var(--brass)!important;font-family:'Inter',system-ui,sans-serif!important;
+  font-size:12.5px!important;font-weight:500!important;padding:8px 15px!important;
+  border-radius:100px!important;box-shadow:none!important;letter-spacing:.01em!important;
+}
+#header .ar-badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--brass);
+  box-shadow:0 0 0 3px rgba(201,162,39,.18);
 }
 
 .section-title{
   font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:26px!important;font-weight:400!important;color:var(--ink)!important;
-  padding:30px 22px 4px!important;margin:0!important;letter-spacing:-.01em!important;
-}
-.section-title::after{
-  content:'';display:block;width:34px;height:2px;
-  background:var(--brass);margin-top:12px;
+  font-size:15px!important;font-weight:400!important;font-style:italic!important;
+  color:var(--muted)!important;padding:30px 24px 0!important;margin:0!important;
+  letter-spacing:.02em!important;
 }
 
-/* ── Grid & cards ───────────────────────────────────────── */
-#grid{padding:18px 16px 0!important;gap:16px!important}
+/* ══ Cards ═════════════════════════════════════════════════ */
+#grid{padding:18px 16px 0!important;gap:20px!important}
 .food-card{
-  background:var(--card)!important;border:1px solid var(--rule)!important;
-  border-radius:14px!important;box-shadow:none!important;overflow:hidden!important;
-  transition:border-color .18s ease!important;
+  background:var(--surface)!important;border:1px solid var(--hair)!important;
+  border-radius:16px!important;overflow:hidden!important;box-shadow:none!important;
+  opacity:0;transform:translateY(14px);
+  animation:mvIn .6s cubic-bezier(.22,.7,.3,1) forwards;
 }
-.food-card:active{border-color:var(--brass)!important}
+.food-card:nth-child(1){animation-delay:.04s}
+.food-card:nth-child(2){animation-delay:.10s}
+.food-card:nth-child(3){animation-delay:.16s}
+.food-card:nth-child(4){animation-delay:.22s}
+.food-card:nth-child(5){animation-delay:.28s}
+@keyframes mvIn{to{opacity:1;transform:none}}
 
-.card-img-placeholder{height:158px!important;position:relative!important}
+.card-img-placeholder{
+  height:196px!important;position:relative!important;background:var(--surface-2)!important;
+}
 .card-img-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important}
+.card-img-placeholder::after{ /* fade photo into the card */
+  content:'';position:absolute;inset:auto 0 -1px 0;height:62%;
+  background:linear-gradient(to top,#1a1613 6%,rgba(26,22,19,.55) 48%,transparent);
+  pointer-events:none;
+}
 .ar-tag{
-  position:absolute!important;top:10px!important;right:10px!important;
-  background:rgba(32,48,43,.86)!important;color:#fff!important;
-  font-family:'Inter',system-ui,sans-serif!important;
-  font-size:10.5px!important;font-weight:600!important;letter-spacing:.09em!important;
-  padding:4px 9px!important;border-radius:4px!important;
+  position:absolute!important;top:12px!important;right:12px!important;z-index:2!important;
+  background:rgba(16,14,12,.72)!important;backdrop-filter:blur(8px)!important;
+  border:1px solid var(--brass-dim)!important;color:var(--brass)!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:10px!important;
+  font-weight:700!important;letter-spacing:.14em!important;
+  padding:5px 10px!important;border-radius:5px!important;
 }
 
-.card-body{padding:16px 15px 15px!important}
+.card-body{padding:4px 18px 18px!important;position:relative!important;z-index:2!important}
 .card-name{
   font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:21px!important;font-weight:400!important;line-height:1.15!important;
-  color:var(--ink)!important;margin:0 0 5px!important;letter-spacing:-.005em!important;
+  font-size:27px!important;font-weight:400!important;line-height:1.08!important;
+  color:var(--cream)!important;margin:0 0 7px!important;letter-spacing:-.012em!important;
 }
 .card-desc{
   font-family:'Inter',system-ui,sans-serif!important;font-size:13.5px!important;
-  color:var(--ink-soft)!important;line-height:1.45!important;margin:0 0 10px!important;
+  color:var(--muted)!important;line-height:1.5!important;margin:0 0 14px!important;
 }
 .card-size{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:12px!important;
-  color:#8d968f!important;margin:0 0 12px!important;letter-spacing:.01em!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important;
+  color:#6f6459!important;letter-spacing:.03em!important;margin:0 0 16px!important;
 }
 
 .card-meta{
   display:flex!important;align-items:baseline!important;justify-content:space-between!important;
-  padding-top:12px!important;border-top:1px solid var(--rule)!important;margin-bottom:14px!important;
+  padding-top:15px!important;margin-bottom:16px!important;
+  border-top:1px solid var(--hair)!important;
 }
 .card-cal{
-  background:none!important;padding:0!important;
-  font-family:'Inter',system-ui,sans-serif!important;
-  font-size:12px!important;color:#8d968f!important;
+  background:none!important;padding:0!important;border-radius:0!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important;
+  color:#6f6459!important;letter-spacing:.03em!important;
 }
 .card-price{
   background:none!important;padding:0!important;border-radius:0!important;
   font-family:'Instrument Serif',Georgia,serif!important;
-  font-size:22px!important;font-weight:400!important;color:var(--ink)!important;
+  font-size:27px!important;font-weight:400!important;color:var(--brass)!important;
+  letter-spacing:-.01em!important;
 }
 
-/* ── Buttons: AR is the one loud thing on the page ──────── */
-.card-btns{display:flex!important;gap:9px!important}
+/* ══ Buttons ═══════════════════════════════════════════════ */
+.card-btns{display:flex!important;gap:10px!important}
 .card-ar-btn{
-  flex:1!important;background:var(--ink)!important;background-image:none!important;
-  color:var(--paper)!important;border:none!important;border-radius:9px!important;
-  font-family:'Inter',system-ui,sans-serif!important;
-  font-size:14px!important;font-weight:600!important;padding:13px 10px!important;
-  letter-spacing:.005em!important;box-shadow:none!important;cursor:pointer!important;
+  flex:1!important;position:relative!important;
+  background:var(--brass)!important;background-image:none!important;
+  color:#191510!important;border:none!important;border-radius:11px!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:14.5px!important;
+  font-weight:700!important;padding:15px 10px!important;letter-spacing:.005em!important;
+  box-shadow:0 6px 18px rgba(201,162,39,.16)!important;cursor:pointer!important;
+  transition:transform .12s ease,box-shadow .18s ease!important;
 }
-.card-ar-btn:active{background:#2d413a!important}
+.card-ar-btn:active{transform:scale(.975)!important;box-shadow:none!important}
 .card-add-btn{
-  width:46px!important;flex:0 0 46px!important;
-  background:transparent!important;background-image:none!important;
-  border:1px solid var(--rule)!important;color:var(--ink)!important;
-  border-radius:9px!important;font-size:20px!important;font-weight:400!important;
-  padding:0!important;box-shadow:none!important;cursor:pointer!important;
+  width:52px!important;flex:0 0 52px!important;background:transparent!important;
+  background-image:none!important;border:1px solid var(--hair)!important;
+  color:var(--cream)!important;border-radius:11px!important;
+  font-size:22px!important;font-weight:300!important;padding:0!important;
+  box-shadow:none!important;cursor:pointer!important;transition:border-color .15s ease!important;
 }
-.card-add-btn:active{background:var(--paper)!important;border-color:var(--brass)!important}
+.card-add-btn:active{border-color:var(--brass)!important;color:var(--brass)!important}
 
-/* ── Cart bar & nav ─────────────────────────────────────── */
+/* ══ Cart bar, nav, detail card ════════════════════════════ */
 #cart-bar{
-  background:var(--ink)!important;background-image:none!important;
-  border:none!important;box-shadow:0 -6px 22px rgba(32,48,43,.16)!important;
-}
-#cart-count,#cart-total{color:var(--paper)!important;
-  font-family:'Inter',system-ui,sans-serif!important}
-#cart-total{font-family:'Instrument Serif',Georgia,serif!important;font-size:19px!important}
-#cart-checkout-btn{
-  background:var(--brass)!important;background-image:none!important;color:#fff!important;
-  border-radius:9px!important;font-family:'Inter',system-ui,sans-serif!important;
-  font-weight:600!important;box-shadow:none!important;
-}
-#bottom-nav{
-  background:var(--card)!important;border-top:1px solid var(--rule)!important;
+  background:rgba(26,22,19,.94)!important;background-image:none!important;
+  backdrop-filter:blur(14px)!important;border-top:1px solid var(--hair)!important;
   box-shadow:none!important;
 }
+#cart-count{color:var(--muted)!important;font-family:'Inter',system-ui,sans-serif!important;font-size:12.5px!important}
+#cart-total{color:var(--cream)!important;font-family:'Instrument Serif',Georgia,serif!important;font-size:22px!important}
+#cart-checkout-btn{
+  background:var(--brass)!important;background-image:none!important;color:#191510!important;
+  border-radius:11px!important;font-family:'Inter',system-ui,sans-serif!important;
+  font-weight:700!important;box-shadow:none!important;
+}
+#bottom-nav{
+  background:rgba(16,14,12,.96)!important;backdrop-filter:blur(14px)!important;
+  border-top:1px solid var(--hair)!important;box-shadow:none!important;
+}
 #bottom-nav .nav-item{
-  font-family:'Inter',system-ui,sans-serif!important;font-size:11px!important;
-  color:#96a09a!important;
+  font-family:'Inter',system-ui,sans-serif!important;font-size:10.5px!important;
+  color:#5f564c!important;letter-spacing:.03em!important;
 }
-#bottom-nav .nav-item.active{color:var(--ink)!important;font-weight:600!important}
+#bottom-nav .nav-item.active{color:var(--brass)!important;font-weight:600!important}
 
-/* ── Two columns on wider screens ───────────────────────── */
-@media(min-width:620px){
-  #grid{grid-template-columns:1fr 1fr!important;max-width:900px;margin:0 auto!important}
-  #header{padding:64px 40px 46px!important}
-  #header h1{font-size:58px!important}
-  .section-title{max-width:900px;margin:0 auto!important;padding-left:16px!important}
+#ar-detail-card{background:rgba(16,14,12,.95)!important;backdrop-filter:blur(16px)!important;
+  border-top:1px solid var(--hair)!important}
+#ar-detail-name{font-family:'Instrument Serif',Georgia,serif!important;font-size:25px!important;color:var(--cream)!important}
+#ar-detail-price{font-family:'Instrument Serif',Georgia,serif!important;font-size:25px!important;color:var(--brass)!important}
+#ar-detail-desc{font-family:'Inter',system-ui,sans-serif!important;color:var(--muted)!important;font-size:13.5px!important}
+.cal-badge,.size-badge{background:var(--surface-2)!important;border:1px solid var(--hair)!important;
+  color:var(--muted)!important;font-family:'Inter',system-ui,sans-serif!important;font-size:11.5px!important}
+#ar-order-btn{background:var(--brass)!important;background-image:none!important;color:#191510!important;font-weight:700!important}
+#ar-cart-btn{background:transparent!important;border:1px solid var(--hair)!important;color:var(--cream)!important}
+#cart-page{background:var(--night)!important;color:var(--cream)!important}
+#place-order-btn{background:var(--brass)!important;background-image:none!important;color:#191510!important;font-weight:700!important}
+
+/* ══ Desktop ═══════════════════════════════════════════════ */
+@media(min-width:640px){
+  #header{padding:88px 44px 56px!important}
+  #grid{grid-template-columns:1fr 1fr!important;max-width:940px;margin:0 auto!important;padding:22px 24px 0!important}
+  .section-title{max-width:940px;margin:0 auto!important;padding:36px 24px 0!important}
+  .card-img-placeholder{height:230px!important}
 }
-@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(min-width:1000px){#grid{grid-template-columns:repeat(3,1fr)!important}}
+
+@media(prefers-reduced-motion:reduce){
+  .food-card{opacity:1!important;transform:none!important;animation:none!important}
+  *{transition:none!important}
+}
+:focus-visible{outline:2px solid var(--brass)!important;outline-offset:3px!important}
 </style>
+
 
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
@@ -183,7 +236,7 @@
 <div id="viewer-3d">
     <canvas id="three-canvas"></canvas>
     <div id="ar-loading">
-        <div class="loading-icon">🍕</div>
+        <div class="loading-icon"></div>
         <div class="loading-text">Loading 3D Model...</div>
         <div class="progress-bar-container">
             <div class="progress-bar" id="progress-bar"></div>
@@ -243,13 +296,13 @@
         <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
         <div id="ar-cal-row">
             <div class="cal-badge">320 kcal</div>
-            <div class="cal-badge">⏱️ 15 min</div>
-            <div class="cal-badge">⭐ 4.8</div>
+            <div class="cal-badge">15 min</div>
+            <div class="cal-badge">4.8</div>
         </div>
         <div id="ar-size-row">
             <div class="size-badge">12 inch</div>
             <div class="size-badge">2-3 people</div>
-            <div class="size-badge">⚖️ 400g</div>
+            <div class="size-badge">400g</div>
         </div>
         <div id="ar-qty-row">
             <div id="ar-qty-label">Quantity</div>
@@ -258,8 +311,8 @@
             <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
         </div>
         <div id="ar-action-row">
-            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">🛒 Add to Cart</button>
-            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">⚡ Order Now</button>
+            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">Add to order</button>
+            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">Order now</button>
             <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
         </div>
     </div>
@@ -359,16 +412,16 @@
 </div>
 
 <div id="bottom-nav">
-    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div>Menu</div>
-    <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div>Cart</div>
-    <div class="nav-item"><div class="nav-icon">📋</div>Orders</div>
-    <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon"></div>Menu</div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon"></div>Cart</div>
+    <div class="nav-item"><div class="nav-icon"></div>Orders</div>
+    <div class="nav-item"><div class="nav-icon"></div>Profile</div>
 </div>
 
 <div id="cart-page">
-    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>🛒 Your Cart</h2></div>
+    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>Your Cart</h2></div>
     <div id="cart-items"></div>
-    <div id="empty-cart"><div class="empty-icon">🛒</div><div>Your cart is empty</div><small>Add items from the menu</small></div>
+    <div id="empty-cart"><div class="empty-icon"></div><div>Your cart is empty</div><small>Add items from the menu</small></div>
     <div id="cart-summary">
         <div class="summary-row"><span id="summary-subtotal">£0</span></div>
         <div class="summary-row"><span id="summary-tax">£0</span></div>
@@ -378,7 +431,7 @@
 </div>
 
 <div id="order-success">
-    <div class="success-icon">🎉</div>
+    <div class="success-icon"></div>
     <h2>Order Placed!</h2>
     <p>Your order has been received.<br>We'll have it ready soon.</p>
     <div class="order-id" id="order-id-text">Order #0000</div>
