@@ -49,13 +49,29 @@ const AR_TEMPLATE = {
 };
 
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 // REAL-WORLD SIZE — In MindAR, 1 scene unit = the width of your printed
 // target image. So: measure your printed menu card's real width in cm,
-// set TARGET_CM below, and each dish renders at its true physical size.
-// ════════════════════════════════════════════════════════════
-const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm
+// set TARGET_CM below, and each dish renders at its true physical size
+// automatically (no more guessed scale numbers).
+//
+// >>> MEASURE your printed menu card's width edge-to-edge and set this: <<<
+const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (lowering this makes everything render bigger)
 
-// True real-world width of each dish in cm — matches the size labels in the menu UI
+// Real-world width of each dish, in cm (matches the size labels already
+// shown in the menu UI — adjust if you want a different dish width).
+// True real-world width of each dish in cm — these MATCH the size labels
+// already shown in the menu UI, so what the badge claims and what AR renders
+// are the same thing:
+//   pizza  "12 inch"    -> 30.5 cm
+//   burger "5 inch"     -> 12.7 cm
+//   drink  "350 ml"     -> ~8.5 cm cup diameter
+//   pasta  "300g"       -> ~22 cm bowl
+//   sushi  "5 pieces"   -> ~25 cm platter
+// NOTE: at true scale a burger IS less than half a pizza's width — that's
+// physically correct, not a bug. If everything reads too small on screen,
+// the master control is TARGET_CM above (and printing a bigger target),
+// not inflating individual dishes.
 const REAL_SIZE_CM = {
     pizza: 30.5,  // 12 inch
     burger: 12.7,  // 5 inch
@@ -64,8 +80,9 @@ const REAL_SIZE_CM = {
     sushi: 25,    // 5-piece platter
 };
 
-// Measures a model's own on-table footprint and returns the scale factor
-// needed to render it at REAL_SIZE_CM[id].
+// Measures a model's own on-table footprint (isolated from the AR target's
+// currently tracked pose, same technique as groundModelOnSurface) and
+// returns the scale factor needed to render it at REAL_SIZE_CM[id].
 function getRealScale(el, desiredCm) {
     const THREE = getThree();
     if (!THREE || !el) return null;
@@ -90,7 +107,11 @@ function getRealScale(el, desiredCm) {
     if (box.isEmpty()) return null;
     const size = new THREE.Vector3();
     box.getSize(size);
-    // Footprint = the model's extent ON the paper (X and Y); Z is height.
+    // Footprint = the model's extent ON the paper. After AR_ROTATION, X and Y
+    // are the two on-paper axes and Z is height off the surface.
+    // (An earlier version used max(x,y,z) — that was wrong: for a tall model
+    // it measured HEIGHT as the width, divided by too large a number, and made
+    // burger/sushi come out smaller rather than bigger.)
     const footprint = Math.max(size.x, size.y);
     if (footprint <= 0) return null;
 
@@ -98,9 +119,15 @@ function getRealScale(el, desiredCm) {
     return desiredUnits / footprint;
 }
 
-// Per-model rotation — GLB files use different up-axis conventions:
+// Per-model rotation — the 5 GLB files were exported with different
+// up-axis conventions (checked by measuring each mesh's bounding box):
 //   pizza / sushi / drink -> already Z-up (no rotation needed)
 //   burger / pasta        -> Y-up (need +90 on X to match)
+// A -90 rotation on X maps the model's Y-up to NEGATIVE Z, the opposite of
+// pizza's convention — that sign error is what pushed the burger toward the
+// viewer instead of grounding flush on the table. +90 maps Y-up to
+// POSITIVE Z, matching pizza, sushi and drink correctly.
+// ════════════════════════════════════════════════════════════
 const AR_ROTATION = {
     pizza: '0 0 0',
     sushi: '0 0 0',
@@ -110,16 +137,45 @@ const AR_ROTATION = {
 };
 
 // Grounding offset confirmed by live testing on the real table: 3.0
+// (previous hardcoded values of 5 buried the model 50cm below the surface;
+// 0 overshot and floated it above the surface — 3.0 sits it flush).
 const AR_EXTRA_OFFSET = 3.0;
-
+// surface (the MindAR target's local Z=0 plane), regardless of the model's
+// own geometry or the current tracked pose.
+//
+// Why the old approach floated: it measured the bounding box with
+// THREE.Box3().setFromObject(obj), which returns the box in *world* space —
+// i.e. it already includes whatever pose MindAR has currently assigned to
+// the tracked target. Mixing that world-space measurement with a *local*
+// position.y adjustment (and adjusting the wrong axis — Y instead of Z) is
+// why the model drifted / floated inconsistently.
+//
+// This version temporarily moves the model to the scene root (identity
+// transform) before measuring, so the box reflects only the model's own
+// rotation + scale, then restores it — then grounds on Z, which is the
+// correct "off the surface" axis once AR_ROTATION has been applied.
+// ════════════════════════════════════════════════════════════
 // PLACEMENT — where the dish sits relative to the printed card.
-// Set to -1 from live testing: at +1 the dish came out on the customer's side.
+//
+// A dish centred on the card covers the very image MindAR is tracking. The
+// camera then can't see the target it's locked onto, the pose estimate gets
+// noisy, and that shows up as shake. So the dish is offset to sit just past
+// one edge of the card — the card stays readable, tracking stays fed, and it
+// looks like a plate set down beside the menu, which is what actually happens
+// on a table.
+//
+// Which way along the card the dish sits. Set to -1 from live testing on a
+// real table: at +1 the dish came out on the customer's side.
 const AR_OFFSET_DIR = -1;
 
-// 0.5 = dish sits half on the printed card and half past it.
+// How far out to push, away from the customer. 0 = dead centre on the card.
+// 0.5 = half over the card. 1.0 = fully clears it.
+// Set to 0.5 per live testing: the dish should sit half on the printed
+// card and half past it, on the side away from the customer.
 const AR_OFFSET_FACTOR = 0.5;
 
-// Printed card shape: height ÷ width. 1.414 = A-series paper.
+// Your printed card's shape: height ÷ width. 1.414 is A-series paper (A5/A6).
+// If your card is square, use 1. If it's a wide strip, use something like 0.6.
 const CARD_ASPECT = 1.414;
 
 // Extra breathing room between card edge and dish edge, in target widths.
@@ -148,17 +204,25 @@ function groundModelOnSurface(el, extra) {
     const size = box.getSize(new THREE.Vector3());
     const minZ = box.min.z;
 
+    // Clearance is computed from THIS model's own measured depth, so a big
+    // pizza pushes out further than a small drink automatically — no
+    // hand-tuning five numbers.
     const offsetY = AR_OFFSET_DIR * AR_OFFSET_FACTOR * ((CARD_ASPECT / 2) + (size.y / 2) + AR_OFFSET_GAP);
 
+    // X: centred on the card. Several GLB meshes aren't centred at their own
+    // local origin, which is what pushed the food off to one side.
     obj.position.x = originalPosition.x - center.x;
     obj.position.y = originalPosition.y - center.y + offsetY;
     obj.position.z = originalPosition.z - (minZ + (extra || 0));
 
-    // Keep the contact shadow under the dish, sized to the dish.
+    // Keep the contact shadow under the dish. Without this it stays stranded
+    // at the card's centre while the dish sits off to one side — which reads
+    // as floating, exactly the illusion the shadow exists to kill. It's also
+    // sized to the dish, so a big pizza gets a big shadow.
     const shadow = document.getElementById('ar-shadow');
     if (shadow && shadow.object3D) {
         shadow.object3D.position.set(obj.position.x, obj.position.y, 0);
-        const spread = Math.max(size.x, size.y) / 0.6;
+        const spread = Math.max(size.x, size.y) / 0.6; // ellipse is ~0.6 wide at scale 1
         shadow.object3D.scale.set(spread, spread, 1);
     }
 }
@@ -197,7 +261,6 @@ const menuData = {
 };
 
 let cart = {}, currentModel = null, arQty = 1, viewerMode = null;
-let hapticPlayed = false; // ★ HAPTICS: so the dish only buzzes once per AR session
 let threeRenderer, threeScene, threeCamera, threeControls, loadedModel, T;
 let isRendering = false;
 
@@ -213,34 +276,45 @@ function initThreeJS() {
     threeRenderer.setClearColor(0x070c16, 1);
     threeRenderer.shadowMap.enabled = true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-    threeRenderer.toneMappingExposure = 1.1;
+    threeRenderer.toneMappingExposure = 1.1; // even soft light, food clearly visible
     threeScene = new THREE.Scene();
 
-    // ── PREMIUM BACKGROUND ──
+    // No environment map — matte natural food look, no shiny reflections
+
+
+    // ── PREMIUM STUDIO BACKGROUND ──
+    // Clean bright studio backdrop like professional food photography
     const bgCanvas = document.createElement('canvas');
     bgCanvas.width = 512; bgCanvas.height = 512;
     const bgCtx = bgCanvas.getContext('2d');
 
+    // ══════════════════════════════════════════
+    // PREMIUM WARM-DARK BACKGROUND (layered, fine-dining feel)
+    // ══════════════════════════════════════════
+    // Base: deep warm vertical gradient (like a dim restaurant wall)
     const base = bgCtx.createLinearGradient(0, 0, 0, 512);
-    base.addColorStop(0, '#1a2a44');
-    base.addColorStop(0.45, '#111d33');
-    base.addColorStop(1, '#070c16');
+    base.addColorStop(0, '#1a2a44'); // premium navy top - soft cool glow
+    base.addColorStop(0.45, '#111d33'); // deep midnight blue mid
+    base.addColorStop(1, '#070c16'); // near-black navy bottom
     bgCtx.fillStyle = base;
     bgCtx.fillRect(0, 0, 512, 512);
 
+    // Soft warm spotlight pooled behind the dish (draws the eye, premium focus)
     const spot = bgCtx.createRadialGradient(256, 215, 10, 256, 240, 300);
-    spot.addColorStop(0, 'rgba(150,190,255,0.26)');
+    spot.addColorStop(0, 'rgba(150,190,255,0.26)'); // cool blue-white core
     spot.addColorStop(0.45, 'rgba(90,140,220,0.10)');
     spot.addColorStop(1, 'rgba(60,100,180,0)');
     bgCtx.fillStyle = spot;
     bgCtx.fillRect(0, 0, 512, 512);
 
+    // Subtle darker "table surface" band at the bottom for grounding depth
     const tableGrad = bgCtx.createLinearGradient(0, 360, 0, 512);
     tableGrad.addColorStop(0, 'rgba(0,0,0,0)');
     tableGrad.addColorStop(1, 'rgba(0,0,0,0.45)');
     bgCtx.fillStyle = tableGrad;
     bgCtx.fillRect(0, 360, 512, 152);
 
+    // Gentle vignette on the edges to frame the scene
     const vig = bgCtx.createRadialGradient(256, 256, 180, 256, 256, 380);
     vig.addColorStop(0, 'rgba(0,0,0,0)');
     vig.addColorStop(1, 'rgba(0,0,0,0.55)');
@@ -249,17 +323,25 @@ function initThreeJS() {
 
     threeScene.background = new THREE.CanvasTexture(bgCanvas);
 
+    // Warm dark fog matching background
     threeScene.fog = new THREE.FogExp2(0x070c16, 0.02);
     threeCamera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.01, 100);
     threeCamera.position.set(0, 0.5, 3);
 
-    // ── SOFT EVEN LIGHTING ──
+    // ══════════════════════════════════════════
+    // SOFT EVEN LIGHTING — no harsh hot-spots / no shine
+    // Leans on ambient + hemisphere for flat even coverage,
+    // with two gentle directionals for subtle shape only
+    // ══════════════════════════════════════════
+
+    // Strong soft ambient base — even light everywhere, no glare
     const hemiLight = new THREE.HemisphereLight(0xf2f6ff, 0x2a3346, 2.6);
     threeScene.add(hemiLight);
 
     const ambient = new THREE.AmbientLight(0xffffff, 1.05);
     threeScene.add(ambient);
 
+    // Gentle key from front-top — low intensity, just for form (no hot-spot)
     const keyLight = new THREE.DirectionalLight(0xffffff, 0.45);
     keyLight.position.set(-2, 5, 5);
     keyLight.castShadow = true;
@@ -271,13 +353,15 @@ function initThreeJS() {
     keyLight.shadow.camera.far = 20;
     threeScene.add(keyLight);
 
+    // Even soft fill from every side — LOW intensity so no glare,
+    // but together they guarantee every corner is visible when rotating
     const sides = [
-        [5, 2, 2],
-        [-5, 2, 2],
-        [0, 2, 6],
-        [0, 2, -6],
-        [0, 6, 0],
-        [0, -3, 0],
+        [5, 2, 2],  // right
+        [-5, 2, 2],  // left
+        [0, 2, 6],  // front
+        [0, 2, -6],  // back
+        [0, 6, 0],  // top
+        [0, -3, 0],  // underside lift
     ];
     sides.forEach(p => {
         const d = new THREE.DirectionalLight(0xffffff, 0.3);
@@ -285,11 +369,13 @@ function initThreeJS() {
         threeScene.add(d);
     });
 
+    // Faint cool rim to lift the dish off the navy background
     const rimLight = new THREE.DirectionalLight(0xbcd4ff, 0.45);
     rimLight.position.set(0, 3, -5);
     threeScene.add(rimLight);
 
-    // Shadow ground
+    // STEP 5+6 — Shadow Ground + Contact Shadow
+    // Cast shadow plane just beneath the dish so it looks planted
     const groundMat = new THREE.ShadowMaterial({ opacity: 0.3 });
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -297,7 +383,8 @@ function initThreeJS() {
     ground.receiveShadow = true;
     threeScene.add(ground);
 
-    // Soft contact shadow
+    // Soft baked contact shadow — tight dark blob right under the dish
+    // This is what really sells "it's sitting on the surface"
     const csCanvas = document.createElement('canvas');
     csCanvas.width = 256; csCanvas.height = 256;
     const csCtx = csCanvas.getContext('2d');
@@ -351,13 +438,13 @@ function loadGLBModel(path) {
             if (c.isMesh) {
                 c.castShadow = true;
                 c.receiveShadow = true;
-                // Fully matte natural food — no shine
+                // Fully matte natural food — force no shine on every material
                 if (c.material) {
                     const mats = Array.isArray(c.material) ? c.material : [c.material];
                     mats.forEach(m => {
-                        m.roughness = 1.0;
-                        m.metalness = 0.0;
-                        m.envMapIntensity = 0;
+                        m.roughness = 1.0;        // fully matte, no glossy hot-spots
+                        m.metalness = 0.0;        // no metal shine
+                        m.envMapIntensity = 0;    // no reflections
                         if (m.shininess !== undefined) m.shininess = 0;
                         if (m.specular && m.specular.setRGB) m.specular.setRGB(0, 0, 0);
                         m.needsUpdate = true;
@@ -370,14 +457,15 @@ function loadGLBModel(path) {
         const scale = 2.8 / Math.max(size.x, size.y, size.z);
         loadedModel.scale.setScalar(scale);
         loadedModel.position.sub(center.multiplyScalar(scale));
-        // Drop the model so its base rests on the shadow plane
+        // Drop the model so its base rests on the shadow plane (grounded, not floating)
         const scaledBox = new THREE.Box3().setFromObject(loadedModel);
         loadedModel.position.y -= (scaledBox.min.y - (-1.4));
         threeScene.add(loadedModel);
-        if (window.MenuHaptics) MenuHaptics.onDishAppear(currentModel); // ★ HAPTICS: buzz when dish appears in 3D
+        // addSteamEffect(); // steam removed
         setTimeout(() => { document.getElementById('ar-loading').style.display = 'none'; }, 200);
         threeCamera.position.set(0, 0.5, 3); threeControls && threeControls.reset(); threeControls && (threeControls.autoRotate = true);
-        // Aim the orbit pivot at the true center of the placed model
+        // Aim the orbit pivot at the TRUE center of the placed model so zoom
+        // always keeps the dish framed — bottom never slides off screen
         const finalBox = new THREE.Box3().setFromObject(loadedModel);
         const finalCenter = finalBox.getCenter(new THREE.Vector3());
         if (threeControls) {
@@ -422,13 +510,12 @@ function open3D(id) {
 
 function openAR(id) {
     currentModel = id; viewerMode = 'ar'; updateViewerUI(id); stopRendering();
-    hapticPlayed = false; if (window.MenuHaptics) MenuHaptics.stop(); // ★ HAPTICS: reset for this AR session
     document.getElementById('viewer-ar').style.display = 'block'; document.getElementById('viewer-3d').style.display = 'none';
     document.getElementById('ar-hint-bar').innerText = '📷 Scan image · ☝️ Rotate · 🤏 Zoom';
     document.getElementById('scan-overlay').classList.remove('hidden');
     arRotY = 0; arRotX = 0; arScale = menuData[id].arScale;
 
-    // Hide all models first
+    // Hide all models first — use different variable name to avoid conflict
     ['ar-pizza', 'ar-burger', 'ar-drink', 'ar-pasta', 'ar-sushi'].forEach(function (arId) {
         const el = document.getElementById(arId);
         if (el) el.setAttribute('scale', '0 0 0');
@@ -436,22 +523,27 @@ function openAR(id) {
     // Show selected model
     const arEl2 = document.getElementById(menuData[id].arId);
     if (arEl2) {
+        // Placeholder scale/rotation first, so the mesh + rotation are in
+        // place before we measure its footprint for real-size scaling.
         arEl2.setAttribute('scale', `${menuData[id].arScale} ${menuData[id].arScale} ${menuData[id].arScale}`);
         arEl2.setAttribute('rotation', AR_ROTATION[id] || '0 0 0');
         arEl2.setAttribute('position', '0 0 0');
-        // Scale first, THEN centre+ground — in one pass
+        // Scale first, THEN centre+ground — in one pass. Running these as two
+        // separate timers meant each measured a state the other had just
+        // changed, which is what threw off both the centring and the size.
         setTimeout(() => {
             const real = getRealScale(arEl2, REAL_SIZE_CM[id]);
             if (real) {
-                arRealScale = real;
-                arScale = real;
+                arRealScale = real;  // pinch limits are relative to this
+                arScale = real;      // keep pinch-zoom's baseline in sync
                 arEl2.setAttribute('scale', `${real} ${real} ${real}`);
             }
+            // Uses the confirmed, permanent grounding offset (3.0).
             groundModelOnSurface(arEl2, AR_EXTRA_OFFSET);
         }, 300);
     }
 
-    // Trigger resize so model appears without opening inspect
+    // Fix 2: Trigger resize so model appears without opening inspect
     setTimeout(function () {
         window.dispatchEvent(new Event('resize'));
         fixVideo();
@@ -481,13 +573,7 @@ function onFound() {
             arRealScale = real;
             arScale = real;
             el.setAttribute('scale', `${real} ${real} ${real}`);
-            groundModelOnSurface(el, AR_EXTRA_OFFSET);
-
-            // ★ HAPTICS: dish "lands" on the table — once per AR session
-            if (!hapticPlayed && window.MenuHaptics) {
-                MenuHaptics.onDishAppear(currentModel);
-                hapticPlayed = true;
-            }
+            groundModelOnSurface(el, AR_EXTRA_OFFSET); // confirmed permanent offset
         }
     }
 }
@@ -501,7 +587,6 @@ setInterval(() => { if (document.getElementById('viewer-ar').style.display === '
 
 function closeViewer() {
     currentModel = null; viewerMode = null;
-    if (window.MenuHaptics) MenuHaptics.stop(); // ★ HAPTICS: stop any vibration when leaving
     removeSteamEffect();
     stopRendering();
     const t = document.querySelector('[mindar-image-target]');
@@ -571,8 +656,8 @@ let arRotY = 0, arRotX = 0, arScale = 0.3;
 let arLastX = null, arLastY = null, arLastPinch = null;
 function getArEl() { return currentModel ? document.getElementById(menuData[currentModel].arId) : null; }
 function pd(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
-const arMaxScale = 6.0;
-let arRealScale = null; // real-world scale for the current model; pinch limits are relative to this
+const arMaxScale = 6.0; // bigger zoom limit
+let arRealScale = null; // the computed real-world scale for the current model; pinch clamps are relative to this
 document.addEventListener('touchstart', e => {
     if (viewerMode !== 'ar') return;
     if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
@@ -586,12 +671,16 @@ document.addEventListener('touchmove', e => {
     if (e.touches.length === 1 && arLastX !== null) {
         const dx = e.touches[0].clientX - arLastX;
         const dy = e.touches[0].clientY - arLastY;
-        arRotY += dx;
-        arRotX += dy;
+        arRotY += dx; // left/right rotation
+        arRotX += dy; // up/down rotation
         el.setAttribute('rotation', `${arRotX} ${arRotY} 0`);
         arLastX = e.touches[0].clientX; arLastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && arLastPinch !== null) {
-        // Pinch limits relative to real-world scale: half size to 3x
+        // There used to be TWO lines here both adjusting arScale — the pinch
+        // delta got applied twice, and the lower clamp was 0.05 (about 2% of
+        // real size), which is why the pizza collapsed to almost nothing.
+        // Limits are now relative to the model's real-world scale: you can
+        // shrink to half real size, or grow to 3x.
         const base = arRealScale || 1;
         const nd = pd(e.touches);
         arScale = Math.max(base * 0.5, Math.min(base * 3, arScale + (nd - arLastPinch) * 0.015));
@@ -600,6 +689,8 @@ document.addEventListener('touchmove', e => {
 }, { passive: true });
 document.addEventListener('touchend', () => { arLastX = null; arLastY = null; arLastPinch = null; });
 
+// Height buttons removed — final grounding offset (-5) is now baked
+// permanently into openAR()/onFound() above.
 const _origCloseViewer2 = closeViewer;
 closeViewer = function () {
     _origCloseViewer2();

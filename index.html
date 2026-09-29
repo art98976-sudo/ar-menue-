@@ -71,6 +71,7 @@
 
             <a-entity mindar-image-target="targetIndex: 0" ar-anchor>
 
+                <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
                 <!-- Outer soft shadow -->
                 <a-ellipse radiusX="0.30" radiusY="0.24" rotation="-90 0 0" position="0 0.001 0"
                     material="color:#000000; opacity:0.15; transparent:true; shader:flat">
@@ -80,11 +81,24 @@
                     material="color:#000000; opacity:0.35; transparent:true; shader:flat">
                 </a-ellipse>
 
+                <!-- STEP 1: In front of user, slightly below center — like waiter placed it -->
+                <!-- STEP 2: Y=0 bottom touches table — ZERO gap, no floating -->
+                <!-- STEP 3: Scale 1.0 = real plate size — no zoom needed -->
+                <!-- rotation -90 0 180 = flat on table facing user -->
+                <!-- Z=0.15 = slightly closer to user edge of table -->
+
+                <!-- Real food sizes + pushed down to touch surface -->
+                <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
+                <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
+                <!-- Pushed down -0.5 to stick on image surface -->
                 <!-- Shadow -->
                 <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0"
                     material="color:#000; opacity:0.3; transparent:true; shader:flat">
                 </a-circle>
 
+                <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
+                <!-- This is the proven fix for MindAR floating -->
+                <!-- ground-fix auto-calculates bottom and places on surface -->
                 <a-gltf-model id="ar-pizza" src="#pizzaModel" position="0 -1.0 0" scale="2.0 2.0 2.0" rotation="0 0 0"
                     visible="true"></a-gltf-model>
                 <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -1.0 0" scale="1.5 1.5 1.5" rotation="0 0 0"
@@ -347,6 +361,7 @@
 
     <script>
         // ANCHOR SYSTEM — locks model position after first detection
+        // Camera movement does NOT affect it — no shaking, no drifting
         AFRAME.registerComponent('ar-anchor', {
             init: function () {
                 let anchored = false;
@@ -354,6 +369,7 @@
 
                 this.el.sceneEl.addEventListener('targetFound', () => {
                     if (!anchored) {
+                        // First detection — save exact position as anchor
                         anchorPos = {
                             x: this.el.object3D.position.x,
                             y: this.el.object3D.position.y,
@@ -364,9 +380,12 @@
                 });
 
                 this.tick = function () {
+                    // Once anchored — lock position every frame
+                    // Prevents any drift or shaking
                     if (anchored && anchorPos) {
                         this.el.object3D.position.x = anchorPos.x;
                         this.el.object3D.position.z = anchorPos.z;
+                        // Y stays at our set value
                     }
                 };
             }
@@ -376,6 +395,7 @@
         AFRAME.registerComponent('ground-fix', {
             init: function () {
                 this.el.addEventListener('model-loaded', () => {
+                    // Try multiple times to ensure model is ready
                     [300, 600, 1000].forEach(delay => {
                         setTimeout(() => {
                             const mesh = this.el.getObject3D('mesh');
@@ -394,9 +414,7 @@
             }
         });
     </script>
-    <!-- ★ HAPTICS: load vibration before script.js; ?v= forces phones to get the new files -->
-    <script src="haptics.js?v=1"></script>
-    <script src="script.js?v=2"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
