@@ -16,6 +16,11 @@
   if (!mv) return;
 
   var MODEL_VERSION = '?v=25'; // keep in step with your model cache number
+  var SHOW_DESCRIPTION = false; // description card switched off
+
+  // iPhone sound inside AR: add a dish here once you've made its .reality
+  // file (Reality Composer) and uploaded it next to index.html, e.g. ['burger']
+  var REALITY_FILES = [];
 
   /* ── 1. Dish content ─────────────────────────────────────────────── */
   var SENSORY = {
@@ -351,7 +356,7 @@
   /* ── 9. Description card ─────────────────────────────────────────── */
   function fillDesc(id) {
     var s = SENSORY[id];
-    if (!s) { hide(desc); return; }
+    if (!s || !SHOW_DESCRIPTION) { hide(desc); return; }
     desc.querySelector('.sv-text').textContent = s.text;
     desc.querySelector('.sv-tags').innerHTML = s.tags.map(function (t) {
       return '<span class="sv-tag">' + t + '</span>';
@@ -377,7 +382,8 @@
     if (!currentDish) return;
     hide(loading);
     fillDesc(currentDish);
-    show(desc); show(rotate); show(soundBtn);
+    if (SHOW_DESCRIPTION) show(desc);
+    show(rotate); show(soundBtn);
     placeSteam(currentDish);
     startBreathing();
     playDishSound(currentDish);
@@ -396,12 +402,14 @@
     if (status === 'session-started') {
       hide(desc); hide(steam); hide(realBadge);    // instructions take over
     } else if (status === 'object-placed') {
-      show(desc); placeSteam(currentDish);
+      if (SHOW_DESCRIPTION) show(desc);
+      placeSteam(currentDish);
       flashRealSize();
       playDishSound(currentDish);
       buzz([20, 40, 20], 0);
     } else if (status === 'not-presenting') {
-      show(desc); placeSteam(currentDish);
+      if (SHOW_DESCRIPTION) show(desc);
+      placeSteam(currentDish);
     } else if (status === 'failed') {
       var m = document.getElementById('ar-msg');
       if (m) m.textContent = 'AR could not start on this phone — you can still turn the dish here.';
@@ -426,6 +434,37 @@
       return;
     }
 
+    var android = /Android/.test(ua);
+    var base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '');
+
+    // iPhone: straight into the camera with AR Quick Look
+    if (iOS) {
+      playDishSound(id); // experiment: may keep playing as Quick Look opens
+      var useReality = REALITY_FILES.indexOf(id) !== -1;
+      var file = base + id + (useReality ? '.reality' : '.usdz') + MODEL_VERSION;
+      if (window.__arLink) {
+        window.__arLink.href = file + '#allowsContentScaling=0';
+        window.__arLink.click();
+      } else {
+        location.href = file;
+      }
+      return;
+    }
+
+    // Android: straight into the camera with Google Scene Viewer
+    if (android) {
+      buzz([20, 40, 20], 0);
+      var glb = base + id + '.glb' + MODEL_VERSION;
+      location.href = 'intent://arvr.google.com/scene-viewer/1.0?file='
+        + encodeURIComponent(glb)
+        + '&mode=ar_only&resizable=false&title=' + encodeURIComponent(dishName(id))
+        + '#Intent;scheme=https;package=com.google.ar.core;'
+        + 'action=android.intent.action.VIEW;'
+        + 'S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end;';
+      return;
+    }
+
+    // Laptop / desktop (no AR camera): turnable preview
     currentDish = id;
     try { currentModel = id; viewerMode = 'ar'; } catch (e) {}
     try { if (typeof stopRendering === 'function') stopRendering(); } catch (e) {}
