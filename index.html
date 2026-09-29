@@ -1,420 +1,770 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Cafe Menu</title>
     <link rel="stylesheet" href="style.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══ MenuVision — premium dark menu. Overrides style.css. ══ */
+:root{
+  --bg:#0F0E0D;          /* warm charcoal page      */
+  --card:#181614;        /* card surface            */
+  --line:#332F2A;        /* borders                 */
+  --gold:#D4AF37;        /* champagne gold          */
+  --gold-dim:rgba(212,175,55,.30);
+  --ivory:#F5F0E8;       /* primary text            */
+  --warm:#A99F91;        /* secondary text          */
+  --mute:#70695F;        /* muted detail text       */
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --pad:18px;            /* one padding value, used everywhere */
+  --r:14px;              /* one radius value                   */
+}
+html,body{background:var(--bg)!important}
+#menu-page{background:var(--bg)!important;background-image:none!important;
+  color:var(--ivory)!important;padding-bottom:150px!important}
+
+/* ══ Header ════════════════════════════════════════════════
+   #menu-page is a flex column, so #header is a flex item and
+   was collapsing below its content. flex:0 0 auto is the fix. */
+#header{
+  flex:0 0 auto!important;
+  position:relative!important;display:block!important;box-sizing:border-box!important;
+  width:100%!important;height:auto!important;min-height:0!important;
+  background:linear-gradient(180deg,#151311 0%,var(--bg) 100%)!important;
+  padding:52px var(--pad) 46px!important;margin:0!important;
+  text-align:left!important;border:none!important;border-radius:0!important;
+  box-shadow:none!important;overflow:hidden!important;
+}
+#header .mv-eyebrow{
+  display:inline-block;font-family:var(--serif);font-style:italic;
+  font-size:16px;line-height:1.2;color:var(--gold);margin:0 0 18px;
+}
+#header .mv-eyebrow::after{
+  content:'';display:block;width:24px;height:1px;background:var(--gold-dim);margin-top:8px;
+}
+#header h1{
+  font-family:var(--serif)!important;
+  font-size:clamp(42px,11.5vw,58px)!important;line-height:1.02!important;
+  font-weight:500!important;letter-spacing:.005em!important;
+  color:var(--ivory)!important;margin:0 0 18px!important;padding:0!important;
+  text-align:left!important;
+}
+#header h1 em{font-style:italic;font-weight:400;color:var(--gold)}
+#header .mv-hair{
+  display:block;height:3px;width:100%;margin:0 0 18px;
+  border-top:1px solid var(--line);border-bottom:1px solid rgba(51,47,42,.5);
+}
+#header p{
+  font-family:var(--sans)!important;font-size:12.5px!important;line-height:1.5!important;
+  font-weight:400!important;color:var(--warm)!important;
+  margin:0 0 22px!important;padding:0!important;
+  text-align:left!important;letter-spacing:.04em!important;
+}
+#header .ar-badge{
+  display:block!important;box-sizing:border-box!important;max-width:34ch!important;
+  background:none!important;border:none!important;border-left:2px solid var(--gold)!important;
+  border-radius:0!important;padding:1px 0 1px 14px!important;margin:0!important;gap:0!important;
+  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
+  line-height:1.55!important;color:var(--warm)!important;letter-spacing:0!important;
+  text-align:left!important;
+}
+#header .mv-rule{
+  display:block;position:absolute;left:0;right:0;bottom:0;height:13px;
+  background-image:
+    repeating-linear-gradient(to right,rgba(245,240,232,.22) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(to right,rgba(245,240,232,.10) 0 1px,transparent 1px 8.8px);
+  background-size:100% 9px,100% 5px;
+  background-position:left bottom,left bottom;background-repeat:repeat-x;
+}
+
+/* ══ Section heading ═══════════════════════════════════════ */
+.section-title{
+  font-family:var(--serif)!important;font-size:25px!important;font-weight:500!important;
+  font-style:normal!important;text-transform:none!important;text-align:left!important;
+  color:var(--ivory)!important;letter-spacing:.01em!important;
+  padding:32px var(--pad) 0!important;margin:0!important;
+}
+.section-sub{
+  font-family:var(--sans);font-size:12.5px;font-weight:400;color:var(--mute);
+  letter-spacing:.02em;padding:5px var(--pad) 0;margin:0 0 4px;
+}
+
+/* ══ Cards ═════════════════════════════════════════════════ */
+#grid{padding:16px var(--pad) 0!important;gap:16px!important}
+.food-card{
+  display:block!important;background:var(--card)!important;
+  border:1px solid var(--line)!important;border-radius:var(--r)!important;
+  overflow:hidden!important;box-shadow:none!important;
+  opacity:0;transform:translateY(12px);
+  animation:mvIn .55s cubic-bezier(.22,.7,.3,1) forwards;
+}
+.food-card:nth-child(1){animation-delay:.03s}
+.food-card:nth-child(2){animation-delay:.09s}
+.food-card:nth-child(3){animation-delay:.15s}
+.food-card:nth-child(4){animation-delay:.21s}
+.food-card:nth-child(5){animation-delay:.27s}
+@keyframes mvIn{to{opacity:1;transform:none}}
+
+.card-img-placeholder{
+  width:100%!important;min-width:0!important;height:210px!important;min-height:0!important;
+  position:relative!important;background:#211d1a!important;border-radius:0!important;
+}
+.card-img-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important}
+.card-img-placeholder::after{
+  content:'';position:absolute;inset:auto 0 -1px 0;height:44%;
+  background:linear-gradient(to top,#181614 5%,rgba(24,22,20,.45) 55%,transparent);
+  pointer-events:none;
+}
+.ar-tag{
+  position:absolute!important;top:12px!important;right:12px!important;z-index:2!important;
+  background:rgba(15,14,13,.78)!important;backdrop-filter:blur(8px)!important;
+  border:1px solid var(--gold-dim)!important;color:var(--gold)!important;
+  font-family:var(--sans)!important;font-size:9.5px!important;font-weight:700!important;
+  letter-spacing:.16em!important;padding:5px 9px!important;border-radius:4px!important;
+  line-height:1!important;
+}
+
+.card-body{
+  padding:14px var(--pad) var(--pad)!important;position:relative!important;z-index:2!important;
+  display:block!important;
+}
+.card-name{
+  font-family:var(--serif)!important;font-size:26px!important;font-weight:600!important;
+  line-height:1.06!important;color:var(--ivory)!important;
+  margin:0 0 5px!important;letter-spacing:.004em!important;
+}
+.card-desc{
+  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
+  color:var(--warm)!important;line-height:1.4!important;margin:0 0 7px!important;
+}
+.card-size{
+  font-family:var(--sans)!important;font-size:11px!important;font-weight:400!important;
+  color:var(--mute)!important;letter-spacing:.04em!important;margin:0 0 12px!important;
+}
+.card-meta{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  padding-top:12px!important;margin:0 0 14px!important;
+  border-top:1px solid var(--line)!important;
+}
+.card-cal{
+  background:none!important;padding:0!important;border-radius:0!important;
+  font-family:var(--sans)!important;font-size:11px!important;
+  color:var(--mute)!important;letter-spacing:.04em!important;
+}
+.card-price{
+  background:none!important;padding:0!important;border-radius:0!important;
+  font-family:var(--serif)!important;font-size:30px!important;font-weight:600!important;
+  color:var(--gold)!important;line-height:1!important;letter-spacing:.004em!important;
+}
+
+/* ══ Buttons — identical box on every card ═════════════════ */
+.card-btns{display:flex!important;gap:10px!important;align-items:stretch!important}
+.card-ar-btn{
+  flex:1 1 auto!important;display:inline-flex!important;
+  align-items:center!important;justify-content:center!important;gap:8px!important;
+  height:48px!important;padding:0 14px!important;box-sizing:border-box!important;
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:1px solid var(--gold)!important;border-radius:10px!important;
+  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
+  letter-spacing:.01em!important;line-height:1!important;box-shadow:none!important;
+  cursor:pointer!important;transition:transform .12s ease,background .15s ease!important;
+}
+.card-ar-btn .mv-ic{width:17px;height:17px;flex:0 0 17px;display:block}
+.card-ar-btn:active{transform:scale(.98)!important;background:#c19f2f!important}
+.card-add-btn{
+  flex:0 0 48px!important;width:48px!important;height:48px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  padding:0!important;box-sizing:border-box!important;
+  background:transparent!important;background-image:none!important;
+  border:1px solid var(--line)!important;color:var(--ivory)!important;
+  border-radius:10px!important;font-family:var(--sans)!important;
+  font-size:21px!important;font-weight:400!important;line-height:1!important;
+  box-shadow:none!important;cursor:pointer!important;transition:border-color .15s ease!important;
+}
+.card-add-btn:active{border-color:var(--gold)!important;color:var(--gold)!important}
+
+/* ══ Cart bar ══════════════════════════════════════════════ */
+#cart-bar{
+  background:rgba(24,22,20,.96)!important;background-image:none!important;
+  backdrop-filter:blur(14px)!important;border-top:1px solid var(--line)!important;
+  box-shadow:none!important;
+}
+#cart-count{font-family:var(--sans)!important;font-size:12px!important;color:var(--mute)!important}
+#cart-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--ivory)!important}
+#cart-checkout-btn{
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:none!important;border-radius:10px!important;height:48px!important;
+  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
+  box-shadow:none!important;
+}
+
+/* ══ Bottom nav ════════════════════════════════════════════ */
+#bottom-nav{
+  background:rgba(15,14,13,.97)!important;backdrop-filter:blur(14px)!important;
+  border-top:1px solid var(--line)!important;box-shadow:none!important;
+}
+#bottom-nav .nav-item{
+  font-family:var(--sans)!important;font-size:10px!important;font-weight:500!important;
+  color:var(--mute)!important;letter-spacing:.05em!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;gap:4px!important;
+}
+#bottom-nav .nav-icon{
+  font-size:0!important;line-height:0!important;margin:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+}
+#bottom-nav .nav-icon svg{width:21px;height:21px;display:block}
+#bottom-nav .nav-item.active{color:var(--gold)!important;font-weight:600!important}
+
+/* ══ AR detail card & cart page ════════════════════════════ */
+#ar-detail-card{background:rgba(15,14,13,.96)!important;backdrop-filter:blur(16px)!important;
+  border-top:1px solid var(--line)!important}
+#ar-detail-name{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--ivory)!important}
+#ar-detail-price{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--gold)!important}
+#ar-detail-desc{font-family:var(--sans)!important;font-size:13px!important;color:var(--warm)!important}
+.cal-badge,.size-badge{
+  background:#211d1a!important;border:1px solid var(--line)!important;color:var(--mute)!important;
+  font-family:var(--sans)!important;font-size:11px!important;border-radius:7px!important;
+}
+.ar-qty-btn{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
+#ar-qty-label,#ar-qty-num{font-family:var(--sans)!important;color:var(--ivory)!important}
+#ar-order-btn,#place-order-btn{
+  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
+  border:none!important;border-radius:10px!important;
+  font-family:var(--sans)!important;font-weight:700!important;
+}
+#ar-cart-btn,#ar-reset-btn{
+  background:transparent!important;background-image:none!important;
+  border:1px solid var(--line)!important;color:var(--ivory)!important;
+  border-radius:10px!important;font-family:var(--sans)!important;font-weight:600!important;
+}
+#cart-page{background:var(--bg)!important;color:var(--ivory)!important}
+#cart-header h2,#cart-items,#cart-summary{font-family:var(--sans)!important;color:var(--ivory)!important}
+#cart-back{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
+.summary-row{font-family:var(--sans)!important;color:var(--warm)!important}
+.summary-row.total{color:var(--ivory)!important}
+#summary-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--gold)!important}
+
+/* ══ Numerals ══════════════════════════════════════════════
+   Serif display uses old-style figures; data uses lining
+   tabular figures so columns of numbers align.             */
+#menu-page,#header{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+#header h1,.card-name,.card-price,#cart-total,#summary-total,
+#ar-detail-name,#ar-detail-price,#header .mv-eyebrow{
+  font-variant-numeric:oldstyle-nums proportional-nums;
+  font-feature-settings:'onum' 1,'pnum' 1,'kern' 1,'liga' 1;
+}
+.card-cal,.card-size,#cart-count,.cal-badge,.size-badge,
+#summary-subtotal,#summary-tax,#ar-qty-num,.ar-tag{
+  font-variant-numeric:lining-nums tabular-nums;
+  font-feature-settings:'lnum' 1,'tnum' 1;
+  font-variant-ligatures:none;
+}
+#header h1,.card-name{text-wrap:balance;font-kerning:normal}
+.card-desc,#header p,#header .ar-badge{text-wrap:pretty}
+
+/* ══ Larger screens ════════════════════════════════════════ */
+@media(min-width:640px){
+  #header{padding:80px 26px 60px!important}
+  #header h1{font-size:66px!important}
+  #header .mv-hair{max-width:520px}
+  #grid{grid-template-columns:1fr 1fr!important;max-width:960px;margin:0 auto!important;padding:18px 26px 0!important}
+  .section-title,.section-sub{max-width:960px;margin-left:auto!important;margin-right:auto!important;padding-left:26px!important;padding-right:26px!important}
+  .card-img-placeholder{height:225px!important}
+}
+@media(min-width:1024px){#grid{grid-template-columns:repeat(3,1fr)!important}}
+
+/* landscape phones: style.css hides the strapline */
+@media(max-height:500px) and (orientation:landscape){
+  #header{padding:24px var(--pad) 26px!important}
+  #header h1{font-size:32px!important;margin-bottom:0!important}
+  #header .mv-eyebrow{margin-bottom:10px}
+  #header .mv-hair,#header .mv-rule{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .food-card{opacity:1!important;transform:none!important;animation:none!important}
+  *{transition:none!important}
+}
+:focus-visible{outline:2px solid var(--gold)!important;outline-offset:3px!important}
+</style>
+
+
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
     <script>
-        window.addEventListener('load', function () {
-            if (window.AFRAME && window.AFRAME.THREE) {
-                if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
-                if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
-                if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
-            }
-        });
+    window.addEventListener('load', function() {
+        if (window.AFRAME && window.AFRAME.THREE) {
+            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
+            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
+            if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
+        }
+    });
     </script>
 </head>
-
 <body>
 
-    <button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
+<button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
 
-    <div id="ar-topbar" style="display:none!important">
-        <div id="ar-food-name">Pizza</div>
-        <div id="ar-food-price">£8.99</div>
+<div id="ar-topbar" style="display:none!important">
+    <div id="ar-food-name">Pizza</div>
+    <div id="ar-food-price">£8.99</div>
+</div>
+
+<!-- 3D VIEWER -->
+<div id="viewer-3d">
+    <canvas id="three-canvas"></canvas>
+    <div id="ar-loading">
+        <div class="loading-icon"></div>
+        <div class="loading-text">Loading 3D Model...</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-percent" id="progress-percent">0%</div>
     </div>
+</div>
 
-    <!-- 3D VIEWER -->
-    <div id="viewer-3d">
-        <canvas id="three-canvas"></canvas>
-        <div id="ar-loading">
-            <div class="loading-icon">🍕</div>
-            <div class="loading-text">Loading 3D Model...</div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress-bar"></div>
-            </div>
-            <div class="progress-percent" id="progress-percent">0%</div>
-        </div>
-    </div>
+<!-- AR VIEWER -->
+<div id="viewer-ar">
+    <model-viewer id="ar-mv"
+        ar
+        ar-modes="scene-viewer quick-look webxr"
+        ar-placement="floor"
+        ar-scale="fixed"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="0"
+        shadow-softness="1"
+        exposure="1.25"
+        tone-mapping="neutral"
+        environment-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAIAAAD4YuoOAAAAIElEQVR42mPcs2cPAy0BEwONwagFoxaMWjBqwagF1AAAvqsCVKW+mPUAAAAASUVORK5CYII="
+        camera-orbit="0deg 72deg 105%"
+        alt="Dish preview">
+            <button slot="ar-button" id="ar-launch">Place on your table</button>
+        </model-viewer>
 
-    <!-- AR VIEWER -->
-    <div id="viewer-ar">
-        <a-scene
-            mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 5; warmupTolerance: 5"
-            color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; exposure: 0.9"
-            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false"
-            loading-screen="enabled: false">
-            <a-assets timeout="120000">
-                <a-asset-item id="pizzaModel" src="./pizza.glb"></a-asset-item>
-                <a-asset-item id="burgerModel" src="./burger.glb"></a-asset-item>
-                <a-asset-item id="drinkModel" src="./drink.glb"></a-asset-item>
-                <a-asset-item id="pastaModel" src="./pasta.glb"></a-asset-item>
-                <a-asset-item id="sushiModel" src="./sushi.glb"></a-asset-item>
-            </a-assets>
-            <!-- STEP 4: Camera slight top-down like sitting at restaurant table -->
-            <a-camera position="0 0 0" rotation="0 0 0" look-controls="enabled: false"></a-camera>
-
-            <!-- Warm restaurant lighting -->
-            <a-light type="hemisphere" color="#fff5e0" ground-color="#443322" intensity="1.0"></a-light>
-            <a-light type="directional" color="#FFD8B0" intensity="1.6" position="-3 6 4" cast-shadow="true"
-                shadow-map-width="2048" shadow-map-height="2048" shadow-radius="12" shadow-bias="-0.0005"></a-light>
-            <a-light type="directional" color="#ffe8d5" intensity="0.45" position="4 3 -2"></a-light>
-            <a-light type="directional" color="#fff0e8" intensity="0.6" position="0 4 -6"></a-light>
-            <a-light type="point" color="#ffd8a0" intensity="0.5" position="0 5 1" distance="10"></a-light>
-
-            <a-entity mindar-image-target="targetIndex: 0" ar-anchor>
-
-                <!-- STEP 4: Strong shadow grounding — stable with object, reduces floating illusion -->
-                <!-- Outer soft shadow -->
-                <a-ellipse radiusX="0.30" radiusY="0.24" rotation="-90 0 0" position="0 0.001 0"
-                    material="color:#000000; opacity:0.15; transparent:true; shader:flat">
-                </a-ellipse>
-                <!-- Inner stronger shadow -->
-                <a-ellipse radiusX="0.20" radiusY="0.16" rotation="-90 0 0" position="0 0.002 0"
-                    material="color:#000000; opacity:0.35; transparent:true; shader:flat">
-                </a-ellipse>
-
-                <!-- STEP 1: In front of user, slightly below center — like waiter placed it -->
-                <!-- STEP 2: Y=0 bottom touches table — ZERO gap, no floating -->
-                <!-- STEP 3: Scale 1.0 = real plate size — no zoom needed -->
-                <!-- rotation -90 0 180 = flat on table facing user -->
-                <!-- Z=0.15 = slightly closer to user edge of table -->
-
-                <!-- Real food sizes + pushed down to touch surface -->
-                <!-- Pizza = 0.30m, Burger = 0.20m, Drink = 0.15m -->
-                <!-- position y=-0.15 pushes model DOWN to touch menu surface -->
-                <!-- Pushed down -0.5 to stick on image surface -->
-                <!-- Shadow -->
-                <a-circle radius="0.18" rotation="-90 0 0" position="0 0.001 0"
-                    material="color:#000; opacity:0.3; transparent:true; shader:flat">
-                </a-circle>
-
-                <!-- Y=-0.15 pushes model DOWN to sit on image surface -->
-                <!-- This is the proven fix for MindAR floating -->
-                <!-- ground-fix auto-calculates bottom and places on surface -->
-                <a-gltf-model id="ar-pizza" src="#pizzaModel" position="0 -1.0 0" scale="2.0 2.0 2.0" rotation="0 0 0"
-                    visible="true"></a-gltf-model>
-                <a-gltf-model id="ar-burger" src="#burgerModel" position="0 -1.0 0" scale="1.5 1.5 1.5" rotation="0 0 0"
-                    visible="true"></a-gltf-model>
-                <a-gltf-model id="ar-drink" src="#drinkModel" position="0 -1.0 0" scale="1.2 1.2 1.2" rotation="0 0 0"
-                    visible="true"></a-gltf-model>
-                <a-gltf-model id="ar-pasta" src="#pastaModel" position="0 -1.0 0" scale="2.0 2.0 2.0" rotation="0 0 0"
-                    visible="true"></a-gltf-model>
-                <a-gltf-model id="ar-sushi" src="#sushiModel" position="0 -1.0 0" scale="1.8 1.8 1.8" rotation="0 0 0"
-                    visible="true"></a-gltf-model>
-
-                <!-- Steam effect — animated rising smoke puffs -->
-                <a-sphere position="-0.05 0.25 0" radius="0.04" color="#ffffff" opacity="0.25"
-                    animation="property:position; to:-0.05 0.6 0; loop:true; dur:2000; easing:easeInQuad"
-                    animation__op="property:opacity; from:0.25; to:0; loop:true; dur:2000">
-                </a-sphere>
-                <a-sphere position="0.05 0.2 0.02" radius="0.035" color="#ffffff" opacity="0.2"
-                    animation="property:position; to:0.08 0.55 0.02; loop:true; dur:2500; easing:easeInQuad"
-                    animation__op="property:opacity; from:0.2; to:0; loop:true; dur:2500">
-                </a-sphere>
-                <a-sphere position="0 0.22 -0.03" radius="0.03" color="#ffffff" opacity="0.2"
-                    animation="property:position; to:0 0.58 -0.03; loop:true; dur:1800; easing:easeInQuad"
-                    animation__op="property:opacity; from:0.2; to:0; loop:true; dur:1800">
-                </a-sphere>
-
-            </a-entity>
-        </a-scene>
-
-        <!-- Scanning Guide - no text -->
-        <div id="scan-overlay" style="display:none!important">
-            <div id="scan-box">
-                <div class="scan-corner tl"></div>
-                <div class="scan-corner tr"></div>
-                <div class="scan-corner bl"></div>
-                <div class="scan-corner br"></div>
-                <div id="scan-line"></div>
-            </div>
-        </div>
-        <div id="ar-detected" style="display:none!important">
-            <div id="ar-detected-icon">✅</div>
-            <div id="ar-detected-text">Image Detected!</div>
-        </div>
-
-        <!-- Height adjustment buttons -->
-        <div id="height-controls" style="display:none!important">
-            <button onclick="adjustHeight(0.05)">⬆️ Up</button>
-            <button onclick="adjustHeight(-0.05)">⬇️ Down</button>
+    <!-- Scanning Guide - no text -->
+    <div id="scan-overlay" style="display:none!important">
+        <div id="scan-box">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div id="scan-line"></div>
         </div>
     </div>
-
-    <!-- BOTTOM BAR -->
-    <div id="ar-bottombar">
-        <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate · 🤏 Pinch to zoom</div>
-        <div id="ar-detail-card">
-            <div id="ar-detail-top">
-                <div id="ar-detail-name">Margherita Pizza</div>
-                <div id="ar-detail-price">£8.99</div>
-            </div>
-            <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
-            <div id="ar-cal-row">
-                <div class="cal-badge">🔥 320 kcal</div>
-                <div class="cal-badge">⏱️ 15 min</div>
-                <div class="cal-badge">⭐ 4.8</div>
-            </div>
-            <div id="ar-size-row">
-                <div class="size-badge">📏 12 inch</div>
-                <div class="size-badge">👥 2-3 people</div>
-                <div class="size-badge">⚖️ 400g</div>
-            </div>
-            <div id="ar-qty-row">
-                <div id="ar-qty-label">Quantity</div>
-                <button class="ar-qty-btn" onclick="changeQty(-1)"
-                    ontouchend="event.preventDefault();changeQty(-1)">−</button>
-                <div id="ar-qty-num">1</div>
-                <button class="ar-qty-btn" onclick="changeQty(1)"
-                    ontouchend="event.preventDefault();changeQty(1)">+</button>
-            </div>
-            <div id="ar-action-row">
-                <button id="ar-cart-btn" onclick="addToCart()" ontouchend="event.preventDefault();addToCart()">🛒 Add to
-                    Cart</button>
-                <button id="ar-order-btn" onclick="orderNow()" ontouchend="event.preventDefault();orderNow()">⚡ Order
-                    Now</button>
-                <button id="ar-reset-btn" onclick="resetModel()"
-                    ontouchend="event.preventDefault();resetModel()">⟳</button>
-            </div>
-        </div>
+    <div id="ar-detected" style="display:none!important">
+        <div id="ar-detected-icon">✅</div>
+        <div id="ar-detected-text">Image Detected!</div>
     </div>
 
-    <!-- MENU PAGE -->
-    <div id="menu-page">
-        <div id="header">
-            <div class="cafe-label">Est. 2024</div>
-            <h1>The Cozy Cup</h1>
-            <p>Fresh ingredients · Made with love</p>
-            <div class="ar-badge">📱 View in 3D or AR</div>
+    <!-- Height adjustment buttons -->
+    <!-- Removed — grounding offset confirmed by live testing on the real
+         table and permanently baked in at 3.0 in script.js -->
+    <div id="height-controls" style="display:none!important"></div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="ar-bottombar">
+    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate &middot; 🤏 Pinch to zoom</div>
+    <div id="ar-detail-card">
+        <div id="ar-detail-top">
+            <div id="ar-detail-name">Margherita Pizza</div>
+            <div id="ar-detail-price">£8.99</div>
         </div>
-        <div class="section-title">Our Menu</div>
-        <div id="grid">
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
-                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80"
-                        onerror="this.style.display='none'" />
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Margherita Pizza</div>
-                    <div class="card-desc">Tomato, mozzarella, fresh basil</div>
-                    <div class="card-size">📏 12 inch · 👥 2-3 people</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 320 kcal</div>
-                        <div class="card-price">£8.99</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('pizza')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('pizza')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
-                    </div>
+        <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
+        <div id="ar-cal-row">
+            <div class="cal-badge">320 kcal</div>
+            <div class="cal-badge">15 min</div>
+            <div class="cal-badge">4.8</div>
+        </div>
+        <div id="ar-size-row">
+            <div class="size-badge">12 inch</div>
+            <div class="size-badge">2-3 people</div>
+            <div class="size-badge">400g</div>
+        </div>
+        <div id="ar-qty-row">
+            <div id="ar-qty-label">Quantity</div>
+            <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
+            <div id="ar-qty-num">1</div>
+            <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
+        </div>
+        <div id="ar-action-row">
+            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">Add to order</button>
+            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">Order now</button>
+            <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
+        </div>
+    </div>
+</div>
+
+<!-- MENU PAGE -->
+<div id="menu-page">
+    <div id="header">
+        <div class="mv-eyebrow">Table 12</div>
+        <h1>The Cozy <em>Cup</em></h1>
+        <div class="mv-hair" aria-hidden="true"></div>
+        <p>Coffee &amp; kitchen &middot; Leith Walk, Edinburgh</p>
+        <div class="ar-badge">Point your phone at the table &mdash; every dish appears at its real size</div>
+        <div class="mv-rule" aria-hidden="true"></div>
+    </div>
+    <div class="section-title">Our Menu</div>
+    <div class="section-sub">See your food before you order</div>
+    <div id="grid">
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
+                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Margherita Pizza</div>
+                <div class="card-desc">Tomato, mozzarella, fresh basil</div>
+                <div class="card-size">12 inch &middot; 2-3 people</div>
+                <div class="card-meta"><div class="card-cal">320 kcal</div><div class="card-price">£8.99</div></div>
+                <div class="card-btns">
+                    <button class="card-ar-btn" onclick="openAR('pizza')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
+                    <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
                 </div>
             </div>
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
-                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80"
-                        onerror="this.style.display='none'" />
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Classic Burger</div>
-                    <div class="card-desc">Beef patty, cheese, lettuce</div>
-                    <div class="card-size">📏 5 inch · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 540 kcal</div>
-                        <div class="card-price">£11.99</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('burger')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('burger')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
+                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Classic Burger</div>
+                <div class="card-desc">Beef patty, cheese, lettuce</div>
+                <div class="card-size">5 inch &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">540 kcal</div><div class="card-price">£11.99</div></div>
+                <div class="card-btns">
+                    <button class="card-ar-btn" onclick="openAR('burger')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
+                    <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
                 </div>
             </div>
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
-                    <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80"
-                        onerror="this.style.display='none'" />
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Fresh Lemonade</div>
-                    <div class="card-desc">Cold pressed, mint, lime</div>
-                    <div class="card-size">📏 350 ml · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 85 kcal</div>
-                        <div class="card-price">£4.99</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('drink')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('drink')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
+                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Fresh Lemonade</div>
+                <div class="card-desc">Cold pressed, mint, lime</div>
+                <div class="card-size">350 ml &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">85 kcal</div><div class="card-price">£4.99</div></div>
+                <div class="card-btns">
+                    <button class="card-ar-btn" onclick="openAR('drink')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
+                    <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
                 </div>
             </div>
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
-                    <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80"
-                        onerror="this.style.display='none'" />
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Creamy Pasta</div>
-                    <div class="card-desc">Herbs, garlic and parmesan</div>
-                    <div class="card-size">📏 300g · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 480 kcal</div>
-                        <div class="card-price">£9.99</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('pasta')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('pasta')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
+                <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Creamy Pasta</div>
+                <div class="card-desc">Herbs, garlic and parmesan</div>
+                <div class="card-size">300g &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">480 kcal</div><div class="card-price">£9.99</div></div>
+                <div class="card-btns">
+                    <button class="card-ar-btn" onclick="openAR('pasta')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
+                    <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
                 </div>
             </div>
-            <div class="food-card">
-                <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
-                    <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80"
-                        onerror="this.style.display='none'" />
-                    <div class="ar-tag">3D•AR</div>
-                </div>
-                <div class="card-body">
-                    <div class="card-name">Sushi Platter</div>
-                    <div class="card-desc">Premium rolls with wasabi</div>
-                    <div class="card-size">📏 5 pieces · 👥 1 person</div>
-                    <div class="card-meta">
-                        <div class="card-cal">🔥 310 kcal</div>
-                        <div class="card-price">£13.99</div>
-                    </div>
-                    <div class="card-btns">
-                        <button class="card-3d-btn" onclick="open3D('sushi')">👁 3D</button>
-                        <button class="card-ar-btn" onclick="openAR('sushi')">📷 AR</button>
-                        <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
-                    </div>
+        </div>
+        <div class="food-card">
+            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
+                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+            </div>
+            <div class="card-body">
+                <div class="card-name">Sushi Platter</div>
+                <div class="card-desc">Premium rolls with wasabi</div>
+                <div class="card-size">5 pieces &middot; 1 person</div>
+                <div class="card-meta"><div class="card-cal">310 kcal</div><div class="card-price">£13.99</div></div>
+                <div class="card-btns">
+                    <button class="card-ar-btn" onclick="openAR('sushi')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
+                    <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="cart-bar">
-        <div id="cart-info">
-            <div id="cart-count">0 items</div>
-            <div id="cart-total">£0</div>
-        </div>
-        <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+<div id="cart-bar">
+    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">£0</div></div>
+    <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
+</div>
+
+<div id="bottom-nav">
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Menu</div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 5h2.2l2.1 10.2a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.25L20.5 8H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg></div>Cart</div>
+    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="2.4" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h6M9 13h6M9 17h3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Orders</div>
+    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.7"/><path d="M4.8 20c.9-3.7 3.8-5.6 7.2-5.6s6.3 1.9 7.2 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Profile</div>
+</div>
+
+<div id="cart-page">
+    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>Your Cart</h2></div>
+    <div id="cart-items"></div>
+    <div id="empty-cart"><div class="empty-icon"></div><div>Your cart is empty</div><small>Add items from the menu</small></div>
+    <div id="cart-summary">
+        <div class="summary-row"><span id="summary-subtotal">£0</span></div>
+        <div class="summary-row"><span id="summary-tax">£0</span></div>
+        <div class="summary-row total"><span id="summary-total">£0</span></div>
+        <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
     </div>
+</div>
 
-    <div id="bottom-nav">
-        <div class="nav-item active" onclick="showMenu()">
-            <div class="nav-icon">🍽️</div>Menu
-        </div>
-        <div class="nav-item" onclick="openCart()">
-            <div class="nav-icon">🛒</div>Cart
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon">📋</div>Orders
-        </div>
-        <div class="nav-item">
-            <div class="nav-icon">👤</div>Profile
-        </div>
-    </div>
+<div id="order-success">
+    <div class="success-icon"></div>
+    <h2>Order Placed!</h2>
+    <p>Your order has been received.<br>We'll have it ready soon.</p>
+    <div class="order-id" id="order-id-text">Order #0000</div>
+    <button onclick="backToMenu()">Back to Menu</button>
+</div>
 
-    <div id="cart-page">
-        <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button>
-            <h2>🛒 Your Cart</h2>
-        </div>
-        <div id="cart-items"></div>
-        <div id="empty-cart">
-            <div class="empty-icon">🛒</div>
-            <div>Your cart is empty</div><small>Add items from the menu</small>
-        </div>
-        <div id="cart-summary">
-            <div class="summary-row"><span id="summary-subtotal">£0</span></div>
-            <div class="summary-row"><span id="summary-tax">£0</span></div>
-            <div class="summary-row total"><span id="summary-total">£0</span></div>
-            <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
-        </div>
-    </div>
+<div id="toast">
+    <div class="toast-icon" id="toast-icon">✅</div>
+    <div class="toast-msg" id="toast-msg">Added!</div>
+    <div class="toast-sub" id="toast-sub"></div>
+</div>
 
-    <div id="order-success">
-        <div class="success-icon">🎉</div>
-        <h2>Order Placed!</h2>
-        <p>Your order has been received.<br>We'll have it ready soon.</p>
-        <div class="order-id" id="order-id-text">Order #0000</div>
-        <button onclick="backToMenu()">Back to Menu</button>
-    </div>
+<script>
+// ════════════════════════════════════════════════════════════════
+// SMOOTH-FOLLOW — the actual shake fix.
+//
+// Why earlier attempts couldn't work: MindAR re-estimates the target's pose
+// from the camera image every single frame, and that estimate always carries
+// noise (a millimetre here, a fraction of a degree there). Anything parented
+// INSIDE the target entity inherits that noise directly — no filter setting
+// damps it from within, because it's the parent itself that's moving.
+//
+// So: the target entity is now empty and only carries the raw pose. This
+// component reads that pose each frame and eases the visible stage toward it
+// instead of snapping to it:
+//   - exponential smoothing on position (frame-rate independent)
+//   - spherical interpolation (slerp) on rotation
+//   - a dead zone: movement below a threshold is ignored entirely, so a still
+//     phone gives a genuinely still model instead of micro-wobble
+// ════════════════════════════════════════════════════════════════
+AFRAME.registerComponent('smooth-follow', {
+    schema: {
+        target:      { type: 'selector' },
+        // Response time in ms. This is the "stuck to the paper" dial.
+        // Raised from 45 to 90 — trades a touch of extra lag when the phone
+        // moves fast for a noticeably steadier model when the phone (and
+        // model) are held still, which is what "still shaking" complaints
+        // are actually about.
+        tau:         { type: 'number', default: 90 },
+        // Widened further — at rest, tiny camera-pose noise between frames
+        // was still sneaking past the old thresholds and reading as a
+        // faint shake. These are deliberately generous: real intentional
+        // phone movement is far larger than this and still passes through
+        // immediately.
+        posDeadZone: { type: 'number', default: 0.018 },
+        rotDeadZone: { type: 'number', default: 0.04 }
+    },
+    init: function () {
+        const THREE = AFRAME.THREE;
+        this.rawPos   = new THREE.Vector3();
+        this.rawQuat  = new THREE.Quaternion();
+        this.rawScale = new THREE.Vector3();
+        this.heldPos  = new THREE.Vector3();
+        this.heldQuat = new THREE.Quaternion();
+        this.primed   = false;
 
-    <div id="toast">
-        <div class="toast-icon" id="toast-icon">✅</div>
-        <div class="toast-msg" id="toast-msg">Added!</div>
-        <div class="toast-sub" id="toast-sub"></div>
-    </div>
+        // On re-detection, snap to the new pose rather than gliding to it
+        // across the screen from wherever it was last seen.
+        this.el.sceneEl.addEventListener('targetLost', () => { this.primed = false; });
+    },
+    tick: function (time, dt) {
+        const targetEl = this.data.target;
+        if (!targetEl || !dt) return;
+        const src = targetEl.object3D;
+        const dst = this.el.object3D;
 
-    <script>
-        // ANCHOR SYSTEM — locks model position after first detection
-        // Camera movement does NOT affect it — no shaking, no drifting
-        AFRAME.registerComponent('ar-anchor', {
-            init: function () {
-                let anchored = false;
-                let anchorPos = null;
+        // Mirror the target's visibility — no target found, nothing shown.
+        dst.visible = src.visible;
+        if (!src.visible) { this.primed = false; return; }
 
-                this.el.sceneEl.addEventListener('targetFound', () => {
-                    if (!anchored) {
-                        // First detection — save exact position as anchor
-                        anchorPos = {
-                            x: this.el.object3D.position.x,
-                            y: this.el.object3D.position.y,
-                            z: this.el.object3D.position.z
-                        };
-                        anchored = true;
-                    }
-                });
+        src.updateMatrixWorld(true);
+        src.matrixWorld.decompose(this.rawPos, this.rawQuat, this.rawScale);
 
-                this.tick = function () {
-                    // Once anchored — lock position every frame
-                    // Prevents any drift or shaking
-                    if (anchored && anchorPos) {
-                        this.el.object3D.position.x = anchorPos.x;
-                        this.el.object3D.position.z = anchorPos.z;
-                        // Y stays at our set value
-                    }
-                };
+        if (!this.primed) {
+            this.heldPos.copy(this.rawPos);      // first frame: adopt exactly
+            this.heldQuat.copy(this.rawQuat);
+            this.primed = true;
+        } else {
+            // Dead zone: if the new estimate is within noise range of what's
+            // already on screen, hold perfectly still. This is what makes it
+            // read as "stuck to the paper" instead of quietly vibrating.
+            const moved  = this.heldPos.distanceTo(this.rawPos);
+            const turned = this.heldQuat.angleTo(this.rawQuat);
+            if (moved >= this.data.posDeadZone || turned >= this.data.rotDeadZone) {
+                // Frame-rate independent smoothing: same steadiness at 30 or 60fps.
+                const alpha = 1 - Math.exp(-dt / this.data.tau);
+                this.heldPos.lerp(this.rawPos, alpha);
+                this.heldQuat.slerp(this.rawQuat, alpha);
             }
-        });
+        }
 
-        // Ground fix — places model bottom exactly at Y=0 (image surface)
-        AFRAME.registerComponent('ground-fix', {
-            init: function () {
-                this.el.addEventListener('model-loaded', () => {
-                    // Try multiple times to ensure model is ready
-                    [300, 600, 1000].forEach(delay => {
-                        setTimeout(() => {
-                            const mesh = this.el.getObject3D('mesh');
-                            if (!mesh) return;
-                            mesh.updateMatrixWorld(true);
-                            const box = new THREE.Box3().setFromObject(mesh);
-                            if (box.isEmpty()) return;
-                            const minY = box.min.y;
-                            if (Math.abs(minY) > 0.001) {
-                                this.el.object3D.position.y -= minY;
-                                console.log('Ground fix:', this.el.id, 'shifted by:', (-minY).toFixed(3));
-                            }
-                        }, delay);
-                    });
-                });
-            }
-        });
-    </script>
-    <script src="script.js"></script>
+        dst.position.copy(this.heldPos);
+        dst.quaternion.copy(this.heldQuat);
+        dst.scale.copy(this.rawScale);
+    }
+});
+
+</script>
+<script src="script.js?v=12"></script>
+
+<div id="ar-wait"><div class="spin"></div><div>Opening camera…</div></div>
+
+<!-- ═══ TABLE DETECTION — added, nothing above this line was changed ═══ -->
+<style>
+/* force a solid black stage - beats any cached stylesheet */
+html, body,
+#ar-page, #viewer-ar, #viewer-3d, #three-canvas,
+#viewer-ar model-viewer, #viewer-ar model-viewer::part(default-progress-bar){
+  background:#000!important; background-image:none!important;
+}
+#viewer-ar model-viewer{position:fixed!important;inset:0!important;
+  width:100vw!important;height:100vh!important;z-index:2!important;
+  background:#0f0e0d!important}
+#ar-wait{position:fixed;inset:0;z-index:70;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  background:#0f0e0d;color:#f0ebe4;font-size:15px;font-weight:600}
+#ar-wait .spin{width:34px;height:34px;border:3px solid #3a3330;
+  border-top-color:#ff6b35;border-radius:50%;animation:arspin .8s linear infinite}
+@keyframes arspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#ar-wait .spin{animation:none}}
+#ar-launch{position:fixed;left:50%;transform:translateX(-50%);bottom:290px;
+  z-index:60;padding:14px 24px;border:none;border-radius:100px;
+  background:#ff6b35!important;color:#fff!important;font-size:15px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
+#ar-launch[disabled]{opacity:.4}
+#ar-msg{position:fixed;left:0;right:0;bottom:255px;z-index:60;text-align:center;
+  font-size:12.5px;color:#e6a3a3;padding:0 20px}
+</style>
+
+<script>
+/* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
+
+/* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
+   contains a loaded <img>. Building it up front avoids that prompt. */
+(function () {
+  var a = document.createElement('a');
+  a.setAttribute('rel', 'ar');
+  a.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
+  var img = document.createElement('img');
+  img.width = 1; img.height = 1;
+  img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  a.appendChild(img);
+  document.body.appendChild(a);
+  window.__arLink = a;
+})();
+
+window.openAR = function (id) {
+  var base  = location.href.replace(/[^/]*$/, '');
+  var V     = '?v=25';   // bump this number whenever you replace a model file
+  var glb   = base + id + '.glb'  + V;
+  var usdz  = base + id + '.usdz' + V;
+
+  var ua    = navigator.userAgent;
+  var iOS   = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/.test(ua);
+
+  /* ---- iPhone: Quick Look, fires instantly, no model load needed ---- */
+  if (iOS) {
+    /* Apple only allows AR Quick Look from Safari. Chrome/Edge/Firefox on iOS
+       honour the x-safari- prefix, so bounce the page across automatically. */
+    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {
+      var target = location.href.split('#')[0];
+      var jumped = false;
+      var t = setTimeout(function () {
+        if (!jumped) alert('Please open this page in Safari to view dishes on your table.');
+      }, 1200);
+      window.addEventListener('pagehide', function () { jumped = true; clearTimeout(t); });
+      location.href = 'x-safari-' + target;
+      return;
+    }
+    /* allowsContentScaling=0 locks true size so the dish can't be pinched bigger */
+    window.__arLink.href = usdz + '#allowsContentScaling=0';
+    window.__arLink.click();
+    return;
+  }
+
+  /* ---- Android: Scene Viewer straight through, ar_only, real size ---- */
+  if (android) {
+    location.href = 'intent://arvr.google.com/scene-viewer/1.0?file='
+      + encodeURIComponent(glb)
+      + '&mode=ar_only&resizable=false&title=' + encodeURIComponent(id)
+      + '#Intent;scheme=https;package=com.google.ar.core;'
+      + 'action=android.intent.action.VIEW;'
+      + 'S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end;';
+    return;
+  }
+
+  /* ---- Desktop: no camera, so show the spin preview instead ---- */
+  var mv = document.getElementById('ar-mv');
+  mv.dataset.dish = id;
+  mv.setAttribute('ios-src', usdz);
+  if (mv.getAttribute('src') !== id + '.glb') mv.setAttribute('src', id + '.glb');
+
+  var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
+  var v = document.getElementById('viewer-3d'); if (v) v.style.display = 'none';
+  var w = document.getElementById('viewer-ar'); if (w) w.style.display = 'block';
+  var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
+
+  ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
+    if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
+  });
+};
+
+(function(){
+  var mv = document.getElementById('ar-mv');
+  var btn = document.getElementById('ar-launch');
+  var msg = document.createElement('p');
+  msg.id = 'ar-msg';
+  document.body.appendChild(msg);
+
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  btn.addEventListener('click', function(){ if (mv.canActivateAR) mv.activateAR(); });
+
+  mv.addEventListener('load', function(){
+    if (mv.canActivateAR) { btn.disabled = false; msg.textContent = ''; return; }
+    btn.disabled = true;
+    msg.textContent = isIOS
+      ? 'Table view needs ' + (mv.dataset.dish||'') + '.usdz \u2014 drag the dish to look around it.'
+      : 'This device cannot do AR \u2014 drag the dish to look around it.';
+  });
+
+  /* Force every dish fully matte IN THE PREVIEW ONLY.
+     This edits the loaded copy in memory - the .glb and .usdz files on disk
+     are untouched, so AR still uses each model's original materials. */
+  mv.addEventListener('load', function () {
+    try {
+      (mv.model && mv.model.materials || []).forEach(function (m) {
+        var pbr = m.pbrMetallicRoughness;
+        if (!pbr) return;
+        pbr.setMetallicFactor(0);
+        pbr.setRoughnessFactor(1);
+      });
+    } catch (e) { /* older browsers - preview just keeps its own look */ }
+  });
+
+  mv.addEventListener('error', function(){
+    btn.disabled = true;
+    msg.textContent = 'Could not load ' + (mv.dataset.dish||'') + '.glb \u2014 check the file name.';
+  });
+})();
+</script>
 </body>
-
 </html>

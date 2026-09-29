@@ -6,29 +6,29 @@ const AR_TEMPLATE = {
 
     // Fixed scale rules — real world sizes
     scale: {
-        pizza: { x: 2.0, y: 2.0, z: 2.0 },  // ~28cm plate
+        pizza:  { x: 2.0, y: 2.0, z: 2.0 },  // ~28cm plate
         burger: { x: 2.0, y: 2.0, z: 2.0 },  // increased to match pizza
-        drink: { x: 1.2, y: 1.2, z: 1.2 },  // ~10cm glass
-        pasta: { x: 2.0, y: 2.0, z: 2.0 },  // ~25cm bowl
-        sushi: { x: 1.8, y: 1.8, z: 1.8 },  // ~20cm platter
+        drink:  { x: 1.2, y: 1.2, z: 1.2 },  // ~10cm glass
+        pasta:  { x: 2.0, y: 2.0, z: 2.0 },  // ~25cm bowl
+        sushi:  { x: 1.8, y: 1.8, z: 1.8 },  // ~20cm platter
     },
 
     // Fixed position — Y pushed down to touch image surface
     position: {
-        pizza: { x: 0, y: 0, z: 0 },
+        pizza:  { x: 0, y: 0, z: 0 },
         burger: { x: 0, y: 0, z: 0 },
-        drink: { x: 0, y: 0, z: 0 },
-        pasta: { x: 0, y: 0, z: 0 },
-        sushi: { x: 0, y: 0, z: 0 },
+        drink:  { x: 0, y: 0, z: 0 },
+        pasta:  { x: 0, y: 0, z: 0 },
+        sushi:  { x: 0, y: 0, z: 0 },
     },
 
     // Fixed rotation — 0 0 0 since model is already flat in Blender
     rotation: {
-        pizza: { x: 0, y: 0, z: 0 },
+        pizza:  { x: 0, y: 0, z: 0 },
         burger: { x: 0, y: 0, z: 0 },
-        drink: { x: 0, y: 0, z: 0 },
-        pasta: { x: 0, y: 0, z: 0 },
-        sushi: { x: 0, y: 0, z: 0 },
+        drink:  { x: 0, y: 0, z: 0 },
+        pasta:  { x: 0, y: 0, z: 0 },
+        sushi:  { x: 0, y: 0, z: 0 },
     },
 
     // Fixed shadow — same for all dishes
@@ -42,9 +42,9 @@ const AR_TEMPLATE = {
     // Fixed lighting behavior
     lighting: {
         ambient: { color: '#fff5e0', intensity: 1.0 },
-        key: { color: '#FFD8B0', intensity: 1.6, position: '-3 6 4' },
-        fill: { color: '#ffe8d5', intensity: 0.45, position: '4 3 -2' },
-        rim: { color: '#fff0e8', intensity: 0.6, position: '0 4 -6' },
+        key:     { color: '#FFD8B0', intensity: 1.6, position: '-3 6 4' },
+        fill:    { color: '#ffe8d5', intensity: 0.45, position: '4 3 -2' },
+        rim:     { color: '#fff0e8', intensity: 0.6,  position: '0 4 -6' },
     },
 };
 
@@ -73,11 +73,11 @@ const TARGET_CM = 10; // <-- change to your printed menu's actual width in cm (l
 // the master control is TARGET_CM above (and printing a bigger target),
 // not inflating individual dishes.
 const REAL_SIZE_CM = {
-    pizza: 30.5,  // 12 inch
+    pizza:  30.5,  // 12 inch
     burger: 12.7,  // 5 inch
-    drink: 8.5,   // 350ml cup diameter
-    pasta: 22,    // bowl width
-    sushi: 25,    // 5-piece platter
+    drink:  8.5,   // 350ml cup diameter
+    pasta:  22,    // bowl width
+    sushi:  25,    // 5-piece platter
 };
 
 // Measures a model's own on-table footprint (isolated from the AR target's
@@ -129,11 +129,11 @@ function getRealScale(el, desiredCm) {
 // POSITIVE Z, matching pizza, sushi and drink correctly.
 // ════════════════════════════════════════════════════════════
 const AR_ROTATION = {
-    pizza: '0 0 0',
-    sushi: '0 0 0',
-    drink: '0 0 0',
+    pizza:  '0 0 0',
+    sushi:  '0 0 0',
+    drink:  '0 0 0',
     burger: '90 0 0',
-    pasta: '90 0 0',
+    pasta:  '90 0 0',
 };
 
 // Grounding offset confirmed by live testing on the real table: 3.0
@@ -201,8 +201,8 @@ function groundModelOnSurface(el, extra) {
 
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const minZ = box.min.z;
+    const size   = box.getSize(new THREE.Vector3());
+    const minZ   = box.min.z;
 
     // Clearance is computed from THIS model's own measured depth, so a big
     // pizza pushes out further than a small drink automatically — no
@@ -236,10 +236,10 @@ function applyARTemplate(modelId) {
     const p = AR_TEMPLATE.position[modelId];
     const r = AR_TEMPLATE.rotation[modelId];
 
-    el.setAttribute('scale', `${s.x} ${s.y} ${s.z}`);
+    el.setAttribute('scale',    `${s.x} ${s.y} ${s.z}`);
     el.setAttribute('position', `${p.x} ${p.y} ${p.z}`);
     el.setAttribute('rotation', `${r.x} ${r.y} ${r.z}`);
-    el.setAttribute('visible', 'true');
+    el.setAttribute('visible',  'true');
 }
 
 // Hide all AR models using template
@@ -253,80 +253,80 @@ function hideAllARModels() {
 }
 
 const menuData = {
-    pizza: { icon: '🍕', name: 'Margherita Pizza', price: 8.99, desc: 'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories: '320 kcal', time: '15 min', rating: '4.8', model: './pizza.glb', arId: 'ar-pizza', arScale: 2.0, size: '12 inch', serves: '2-3 people', weight: '400g' },
-    burger: { icon: '🍔', name: 'Classic Burger', price: 11.99, desc: 'Juicy beef patty with melted cheese and crisp lettuce.', calories: '540 kcal', time: '10 min', rating: '4.7', model: './burger.glb', arId: 'ar-burger', arScale: 1.5, size: '5 inch', serves: '1 person', weight: '250g' },
-    drink: { icon: '🥤', name: 'Fresh Lemonade', price: 4.99, desc: 'Cold pressed lemonade with fresh mint and lime.', calories: '85 kcal', time: '5 min', rating: '4.9', model: './drink.glb', arId: 'ar-drink', arScale: 1.2, size: '350 ml', serves: '1 person', weight: '350g' },
-    pasta: { icon: '🍝', name: 'Creamy Pasta', price: 9.99, desc: 'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories: '480 kcal', time: '12 min', rating: '4.6', model: './pasta.glb', arId: 'ar-pasta', arScale: 2.0, size: '300g', serves: '1 person', weight: '300g' },
-    sushi: { icon: '🍣', name: 'Sushi Platter', price: 13.99, desc: 'Fresh sushi rolls with premium ingredients and wasabi.', calories: '310 kcal', time: '8 min', rating: '4.9', model: './sushi.glb', arId: 'ar-sushi', arScale: 1.8, size: '5 pieces', serves: '1 person', weight: '200g' },
+    pizza:  { icon:'🍕', name:'Margherita Pizza', price:8.99, desc:'Fresh tomato sauce, mozzarella cheese and aromatic basil.', calories:'320 kcal', time:'15 min', rating:'4.8', model:'./pizza.glb',  arId:'ar-pizza',  arScale:2.0, size:'12 inch', serves:'2-3 people', weight:'400g' },
+    burger: { icon:'🍔', name:'Classic Burger',   price:11.99, desc:'Juicy beef patty with melted cheese and crisp lettuce.',   calories:'540 kcal', time:'10 min', rating:'4.7', model:'./burger.glb', arId:'ar-burger', arScale:1.5, size:'5 inch',  serves:'1 person',   weight:'250g' },
+    drink:  { icon:'🥤', name:'Fresh Lemonade',   price:4.99,  desc:'Cold pressed lemonade with fresh mint and lime.',          calories:'85 kcal',  time:'5 min',  rating:'4.9', model:'./drink.glb',  arId:'ar-drink',  arScale:1.2, size:'350 ml',   serves:'1 person',  weight:'350g' },
+    pasta:  { icon:'🍝', name:'Creamy Pasta',     price:9.99, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  arId:'ar-pasta',  arScale:2.0, size:'300g',     serves:'1 person',  weight:'300g' },
+    sushi:  { icon:'🍣', name:'Sushi Platter',    price:13.99, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  arId:'ar-sushi',  arScale:1.8, size:'5 pieces',  serves:'1 person',  weight:'200g' },
 };
 
-let cart = {}, currentModel = null, arQty = 1, viewerMode = null;
+let cart={}, currentModel=null, arQty=1, viewerMode=null;
 let threeRenderer, threeScene, threeCamera, threeControls, loadedModel, T;
-let isRendering = false;
+let isRendering=false;
 
-function getThree() { if (T) return T; T = (window.AFRAME && window.AFRAME.THREE) || window.THREE; return T; }
+function getThree(){if(T)return T;T=(window.AFRAME&&window.AFRAME.THREE)||window.THREE;return T;}
 
-function initThreeJS() {
-    const THREE = getThree(); if (!THREE) return;
-    const canvas = document.getElementById('three-canvas');
-    const container = document.getElementById('viewer-3d');
-    threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    threeRenderer.setSize(container.clientWidth, container.clientHeight);
-    threeRenderer.setClearColor(0x070c16, 1);
-    threeRenderer.shadowMap.enabled = true;
+function initThreeJS(){
+    const THREE=getThree();if(!THREE)return;
+    const canvas=document.getElementById('three-canvas');
+    const container=document.getElementById('viewer-3d');
+    threeRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
+    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    threeRenderer.setSize(container.clientWidth,container.clientHeight);
+    threeRenderer.setClearColor(0x070c16,1);
+    threeRenderer.shadowMap.enabled=true;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure = 1.1; // even soft light, food clearly visible
-    threeScene = new THREE.Scene();
+    threeScene=new THREE.Scene();
 
     // No environment map — matte natural food look, no shiny reflections
 
 
     // ── PREMIUM STUDIO BACKGROUND ──
     // Clean bright studio backdrop like professional food photography
-    const bgCanvas = document.createElement('canvas');
-    bgCanvas.width = 512; bgCanvas.height = 512;
-    const bgCtx = bgCanvas.getContext('2d');
+    const bgCanvas=document.createElement('canvas');
+    bgCanvas.width=512;bgCanvas.height=512;
+    const bgCtx=bgCanvas.getContext('2d');
 
     // ══════════════════════════════════════════
     // PREMIUM WARM-DARK BACKGROUND (layered, fine-dining feel)
     // ══════════════════════════════════════════
     // Base: deep warm vertical gradient (like a dim restaurant wall)
-    const base = bgCtx.createLinearGradient(0, 0, 0, 512);
-    base.addColorStop(0, '#1a2a44'); // premium navy top - soft cool glow
-    base.addColorStop(0.45, '#111d33'); // deep midnight blue mid
-    base.addColorStop(1, '#070c16'); // near-black navy bottom
-    bgCtx.fillStyle = base;
-    bgCtx.fillRect(0, 0, 512, 512);
+    const base=bgCtx.createLinearGradient(0,0,0,512);
+    base.addColorStop(0,   '#1a2a44'); // premium navy top - soft cool glow
+    base.addColorStop(0.45,'#111d33'); // deep midnight blue mid
+    base.addColorStop(1,   '#070c16'); // near-black navy bottom
+    bgCtx.fillStyle=base;
+    bgCtx.fillRect(0,0,512,512);
 
     // Soft warm spotlight pooled behind the dish (draws the eye, premium focus)
-    const spot = bgCtx.createRadialGradient(256, 215, 10, 256, 240, 300);
-    spot.addColorStop(0, 'rgba(150,190,255,0.26)'); // cool blue-white core
-    spot.addColorStop(0.45, 'rgba(90,140,220,0.10)');
-    spot.addColorStop(1, 'rgba(60,100,180,0)');
-    bgCtx.fillStyle = spot;
-    bgCtx.fillRect(0, 0, 512, 512);
+    const spot=bgCtx.createRadialGradient(256,215,10,256,240,300);
+    spot.addColorStop(0,   'rgba(150,190,255,0.26)'); // cool blue-white core
+    spot.addColorStop(0.45,'rgba(90,140,220,0.10)');
+    spot.addColorStop(1,   'rgba(60,100,180,0)');
+    bgCtx.fillStyle=spot;
+    bgCtx.fillRect(0,0,512,512);
 
     // Subtle darker "table surface" band at the bottom for grounding depth
-    const tableGrad = bgCtx.createLinearGradient(0, 360, 0, 512);
+    const tableGrad=bgCtx.createLinearGradient(0,360,0,512);
     tableGrad.addColorStop(0, 'rgba(0,0,0,0)');
     tableGrad.addColorStop(1, 'rgba(0,0,0,0.45)');
-    bgCtx.fillStyle = tableGrad;
-    bgCtx.fillRect(0, 360, 512, 152);
+    bgCtx.fillStyle=tableGrad;
+    bgCtx.fillRect(0,360,512,152);
 
     // Gentle vignette on the edges to frame the scene
-    const vig = bgCtx.createRadialGradient(256, 256, 180, 256, 256, 380);
+    const vig=bgCtx.createRadialGradient(256,256,180,256,256,380);
     vig.addColorStop(0, 'rgba(0,0,0,0)');
     vig.addColorStop(1, 'rgba(0,0,0,0.55)');
-    bgCtx.fillStyle = vig;
-    bgCtx.fillRect(0, 0, 512, 512);
+    bgCtx.fillStyle=vig;
+    bgCtx.fillRect(0,0,512,512);
 
-    threeScene.background = new THREE.CanvasTexture(bgCanvas);
+    threeScene.background=new THREE.CanvasTexture(bgCanvas);
 
     // Warm dark fog matching background
-    threeScene.fog = new THREE.FogExp2(0x070c16, 0.02);
-    threeCamera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.01, 100);
-    threeCamera.position.set(0, 0.5, 3);
+    threeScene.fog=new THREE.FogExp2(0x070c16, 0.02);
+    threeCamera=new THREE.PerspectiveCamera(40,container.clientWidth/container.clientHeight,0.01,100);
+    threeCamera.position.set(0,0.5,3);
 
     // ══════════════════════════════════════════
     // SOFT EVEN LIGHTING — no harsh hot-spots / no shine
@@ -356,12 +356,12 @@ function initThreeJS() {
     // Even soft fill from every side — LOW intensity so no glare,
     // but together they guarantee every corner is visible when rotating
     const sides = [
-        [5, 2, 2],  // right
-        [-5, 2, 2],  // left
-        [0, 2, 6],  // front
-        [0, 2, -6],  // back
-        [0, 6, 0],  // top
-        [0, -3, 0],  // underside lift
+        [ 5, 2,  2],  // right
+        [-5, 2,  2],  // left
+        [ 0, 2,  6],  // front
+        [ 0, 2, -6],  // back
+        [ 0, 6,  0],  // top
+        [ 0,-3,  0],  // underside lift
     ];
     sides.forEach(p => {
         const d = new THREE.DirectionalLight(0xffffff, 0.3);
@@ -402,59 +402,59 @@ function initThreeJS() {
     contactShadow.rotation.x = -Math.PI / 2;
     contactShadow.position.y = -1.4;
     threeScene.add(contactShadow);
-    const OC = (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.OrbitControls) || window.OrbitControls;
-    if (!OC) return;
-    threeControls = new OC(threeCamera, canvas);
-    threeControls.enableDamping = true; threeControls.dampingFactor = 0.05;
-    threeControls.minDistance = 1.4; threeControls.maxDistance = 8;
-    threeControls.enablePan = false; threeControls.autoRotate = true; threeControls.autoRotateSpeed = 1.0;
+    const OC=(window.AFRAME&&window.AFRAME.THREE&&window.AFRAME.THREE.OrbitControls)||window.OrbitControls;
+    if(!OC)return;
+    threeControls=new OC(threeCamera,canvas);
+    threeControls.enableDamping=true;threeControls.dampingFactor=0.05;
+    threeControls.minDistance=1.4;threeControls.maxDistance=8;
+    threeControls.enablePan=false;threeControls.autoRotate=true;threeControls.autoRotateSpeed=1.0;
     threeControls.target.set(0, -0.6, 0); threeControls.update();
-    canvas.addEventListener('touchstart', () => { threeControls.autoRotate = false; });
-    canvas.addEventListener('mousedown', () => { threeControls.autoRotate = false; });
+    canvas.addEventListener('touchstart',()=>{threeControls.autoRotate=false;});
+    canvas.addEventListener('mousedown',()=>{threeControls.autoRotate=false;});
     startRendering();
 }
 
-function startRendering() {
-    isRendering = true;
-    function loop() { if (!isRendering) return; requestAnimationFrame(loop); threeControls && threeControls.update(); threeRenderer && threeRenderer.render(threeScene, threeCamera); }
+function startRendering(){
+    isRendering=true;
+    function loop(){if(!isRendering)return;requestAnimationFrame(loop);threeControls&&threeControls.update();threeRenderer&&threeRenderer.render(threeScene,threeCamera);}
     loop();
 }
-function stopRendering() { isRendering = false; }
+function stopRendering(){isRendering=false;}
 
-function loadGLBModel(path) {
-    const THREE = getThree(); if (!THREE) return;
-    if (loadedModel) { threeScene.remove(loadedModel); loadedModel = null; }
-    document.getElementById('ar-loading').style.display = 'flex';
-    const pb = document.getElementById('progress-bar'), pp = document.getElementById('progress-percent'), li = document.querySelector('.loading-icon');
-    if (pb) pb.style.width = '0%'; if (pp) pp.innerText = '0%'; if (li && currentModel) li.innerText = menuData[currentModel].icon;
-    const LC = (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.GLTFLoader) || window.GLTFLoader; if (!LC) return;
-    const loader = new LC();
-    const DC = window.DRACOLoader || (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.DRACOLoader);
-    if (DC) { const d = new DC(); d.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/'); d.setDecoderConfig({ type: 'js' }); loader.setDRACOLoader(d); }
-    loader.load(path, function (gltf) {
-        if (pb) pb.style.width = '100%'; if (pp) pp.innerText = '100%';
-        loadedModel = gltf.scene;
-        loadedModel.traverse(c => {
-            if (c.isMesh) {
-                c.castShadow = true;
-                c.receiveShadow = true;
+function loadGLBModel(path){
+    const THREE=getThree();if(!THREE)return;
+    if(loadedModel){threeScene.remove(loadedModel);loadedModel=null;}
+    document.getElementById('ar-loading').style.display='flex';
+    const pb=document.getElementById('progress-bar'),pp=document.getElementById('progress-percent'),li=document.querySelector('.loading-icon');
+    if(pb)pb.style.width='0%';if(pp)pp.innerText='0%';if(li&&currentModel)li.innerText=menuData[currentModel].icon;
+    const LC=(window.AFRAME&&window.AFRAME.THREE&&window.AFRAME.THREE.GLTFLoader)||window.GLTFLoader;if(!LC)return;
+    const loader=new LC();
+    const DC=window.DRACOLoader||(window.AFRAME&&window.AFRAME.THREE&&window.AFRAME.THREE.DRACOLoader);
+    if(DC){const d=new DC();d.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');d.setDecoderConfig({type:'js'});loader.setDRACOLoader(d);}
+    loader.load(path,function(gltf){
+        if(pb)pb.style.width='100%';if(pp)pp.innerText='100%';
+        loadedModel=gltf.scene;
+        loadedModel.traverse(c=>{
+            if(c.isMesh){
+                c.castShadow=true;
+                c.receiveShadow=true;
                 // Fully matte natural food — force no shine on every material
-                if (c.material) {
+                if(c.material){
                     const mats = Array.isArray(c.material) ? c.material : [c.material];
                     mats.forEach(m => {
                         m.roughness = 1.0;        // fully matte, no glossy hot-spots
                         m.metalness = 0.0;        // no metal shine
                         m.envMapIntensity = 0;    // no reflections
                         if (m.shininess !== undefined) m.shininess = 0;
-                        if (m.specular && m.specular.setRGB) m.specular.setRGB(0, 0, 0);
+                        if (m.specular && m.specular.setRGB) m.specular.setRGB(0,0,0);
                         m.needsUpdate = true;
                     });
                 }
             }
         });
-        const box = new THREE.Box3().setFromObject(loadedModel);
-        const center = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
-        const scale = 2.8 / Math.max(size.x, size.y, size.z);
+        const box=new THREE.Box3().setFromObject(loadedModel);
+        const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
+        const scale=2.8/Math.max(size.x,size.y,size.z);
         loadedModel.scale.setScalar(scale);
         loadedModel.position.sub(center.multiplyScalar(scale));
         // Drop the model so its base rests on the shadow plane (grounded, not floating)
@@ -462,61 +462,61 @@ function loadGLBModel(path) {
         loadedModel.position.y -= (scaledBox.min.y - (-1.4));
         threeScene.add(loadedModel);
         // addSteamEffect(); // steam removed
-        setTimeout(() => { document.getElementById('ar-loading').style.display = 'none'; }, 200);
-        threeCamera.position.set(0, 0.5, 3); threeControls && threeControls.reset(); threeControls && (threeControls.autoRotate = true);
+        setTimeout(()=>{document.getElementById('ar-loading').style.display='none';},200);
+        threeCamera.position.set(0,0.5,3);threeControls&&threeControls.reset();threeControls&&(threeControls.autoRotate=true);
         // Aim the orbit pivot at the TRUE center of the placed model so zoom
         // always keeps the dish framed — bottom never slides off screen
         const finalBox = new THREE.Box3().setFromObject(loadedModel);
         const finalCenter = finalBox.getCenter(new THREE.Vector3());
-        if (threeControls) {
+        if(threeControls){
             threeControls.target.copy(finalCenter);
             threeCamera.position.set(finalCenter.x, finalCenter.y + 0.4, 3);
             threeControls.update();
-            threeControls.autoRotate = true;
+            threeControls.autoRotate=true;
         }
-    }, function (xhr) {
-        if (xhr.lengthComputable) { const p = Math.round(xhr.loaded / xhr.total * 100); if (pb) pb.style.width = p + '%'; if (pp) pp.innerText = p + '%'; }
-    }, function (err) { console.error(err); document.getElementById('ar-loading').style.display = 'none'; });
+    },function(xhr){
+        if(xhr.lengthComputable){const p=Math.round(xhr.loaded/xhr.total*100);if(pb)pb.style.width=p+'%';if(pp)pp.innerText=p+'%';}
+    },function(err){console.error(err);document.getElementById('ar-loading').style.display='none';});
 }
 
-function resizeRenderer() {
-    if (!threeRenderer || !threeCamera) return;
-    const c = document.getElementById('viewer-3d'); if (!c.clientWidth || !c.clientHeight) return;
-    threeRenderer.setSize(c.clientWidth, c.clientHeight); threeCamera.aspect = c.clientWidth / c.clientHeight; threeCamera.updateProjectionMatrix();
+function resizeRenderer(){
+    if(!threeRenderer||!threeCamera)return;
+    const c=document.getElementById('viewer-3d');if(!c.clientWidth||!c.clientHeight)return;
+    threeRenderer.setSize(c.clientWidth,c.clientHeight);threeCamera.aspect=c.clientWidth/c.clientHeight;threeCamera.updateProjectionMatrix();
 }
 
-function updateViewerUI(id) {
-    const item = menuData[id]; arQty = 1;
-    document.getElementById('ar-qty-num').innerText = '1';
-    document.getElementById('ar-food-name').innerText = item.name;
-    document.getElementById('ar-food-price').innerText = '£' + item.price;
-    document.getElementById('ar-detail-name').innerText = item.name;
-    document.getElementById('ar-detail-price').innerText = '£' + item.price;
-    document.getElementById('ar-detail-desc').innerText = item.desc;
-    document.getElementById('ar-cal-row').innerHTML = `<div class="cal-badge">🔥 ${item.calories}</div><div class="cal-badge">⏱️ ${item.time}</div><div class="cal-badge">⭐ ${item.rating}</div>`;
-    const sr = document.getElementById('ar-size-row'); if (sr) sr.innerHTML = `<div class="size-badge">📏 ${item.size}</div><div class="size-badge">👥 ${item.serves}</div><div class="size-badge">⚖️ ${item.weight}</div>`;
-    document.getElementById('menu-page').style.display = 'none'; document.getElementById('bottom-nav').style.display = 'none';
-    document.getElementById('cart-bar').classList.remove('visible'); document.getElementById('ar-topbar').style.display = 'flex';
-    document.getElementById('ar-bottombar').style.display = 'flex'; document.getElementById('back-btn').classList.add('visible');
+function updateViewerUI(id){
+    const item=menuData[id];arQty=1;
+    document.getElementById('ar-qty-num').innerText='1';
+    document.getElementById('ar-food-name').innerText=item.name;
+    document.getElementById('ar-food-price').innerText='£'+item.price;
+    document.getElementById('ar-detail-name').innerText=item.name;
+    document.getElementById('ar-detail-price').innerText='£'+item.price;
+    document.getElementById('ar-detail-desc').innerText=item.desc;
+    document.getElementById('ar-cal-row').innerHTML=`<div class="cal-badge">🔥 ${item.calories}</div><div class="cal-badge">⏱️ ${item.time}</div><div class="cal-badge">⭐ ${item.rating}</div>`;
+    const sr=document.getElementById('ar-size-row');if(sr)sr.innerHTML=`<div class="size-badge">📏 ${item.size}</div><div class="size-badge">👥 ${item.serves}</div><div class="size-badge">⚖️ ${item.weight}</div>`;
+    document.getElementById('menu-page').style.display='none';document.getElementById('bottom-nav').style.display='none';
+    document.getElementById('cart-bar').classList.remove('visible');document.getElementById('ar-topbar').style.display='flex';
+    document.getElementById('ar-bottombar').style.display='flex';document.getElementById('back-btn').classList.add('visible');
 }
 
-function open3D(id) {
-    currentModel = id; viewerMode = '3d'; updateViewerUI(id);
-    document.getElementById('viewer-3d').style.display = 'block'; document.getElementById('viewer-ar').style.display = 'none';
-    document.getElementById('ar-hint-bar').innerText = '☝️ Drag to rotate · 🤏 Pinch to zoom';
-    if (!threeRenderer) initThreeJS(); else startRendering();
-    resizeRenderer(); loadGLBModel(menuData[id].model); history.pushState({ page: '3d' }, '');
+function open3D(id){
+    currentModel=id;viewerMode='3d';updateViewerUI(id);
+    document.getElementById('viewer-3d').style.display='block';document.getElementById('viewer-ar').style.display='none';
+    document.getElementById('ar-hint-bar').innerText='☝️ Drag to rotate · 🤏 Pinch to zoom';
+    if(!threeRenderer)initThreeJS();else startRendering();
+    resizeRenderer();loadGLBModel(menuData[id].model);history.pushState({page:'3d'},'');
 }
 
-function openAR(id) {
-    currentModel = id; viewerMode = 'ar'; updateViewerUI(id); stopRendering();
-    document.getElementById('viewer-ar').style.display = 'block'; document.getElementById('viewer-3d').style.display = 'none';
-    document.getElementById('ar-hint-bar').innerText = '📷 Scan image · ☝️ Rotate · 🤏 Zoom';
+function openAR(id){
+    currentModel=id;viewerMode='ar';updateViewerUI(id);stopRendering();
+    document.getElementById('viewer-ar').style.display='block';document.getElementById('viewer-3d').style.display='none';
+    document.getElementById('ar-hint-bar').innerText='📷 Scan image · ☝️ Rotate · 🤏 Zoom';
     document.getElementById('scan-overlay').classList.remove('hidden');
-    arRotY = 0; arRotX = 0; arScale = menuData[id].arScale;
+    arRotY=0;arRotX=0;arScale=menuData[id].arScale;
 
     // Hide all models first — use different variable name to avoid conflict
-    ['ar-pizza', 'ar-burger', 'ar-drink', 'ar-pasta', 'ar-sushi'].forEach(function (arId) {
+    ['ar-pizza','ar-burger','ar-drink','ar-pasta','ar-sushi'].forEach(function(arId) {
         const el = document.getElementById(arId);
         if (el) el.setAttribute('scale', '0 0 0');
     });
@@ -544,7 +544,7 @@ function openAR(id) {
     }
 
     // Fix 2: Trigger resize so model appears without opening inspect
-    setTimeout(function () {
+    setTimeout(function(){
         window.dispatchEvent(new Event('resize'));
         fixVideo();
     }, 500);
@@ -552,21 +552,21 @@ function openAR(id) {
     setTimeout(fixVideo, 3000);
 
     // Attach MindAR events
-    setTimeout(function () {
-        const t = document.querySelector('[mindar-image-target]');
-        if (t) { t.removeEventListener('targetFound', onFound); t.removeEventListener('targetLost', onLost); t.addEventListener('targetFound', onFound); t.addEventListener('targetLost', onLost); }
-    }, 1000);
-    history.pushState({ page: 'ar' }, '');
+    setTimeout(function(){
+        const t=document.querySelector('[mindar-image-target]');
+        if(t){t.removeEventListener('targetFound',onFound);t.removeEventListener('targetLost',onLost);t.addEventListener('targetFound',onFound);t.addEventListener('targetLost',onLost);}
+    },1000);
+    history.pushState({page:'ar'},'');
 }
 
-function onFound() {
+function onFound(){
     document.getElementById('scan-overlay').classList.add('hidden');
-    const det = document.getElementById('ar-detected'); if (det) { det.style.display = 'flex'; setTimeout(() => { det.style.display = 'none'; }, 2000); }
+    const det=document.getElementById('ar-detected');if(det){det.style.display='flex';setTimeout(()=>{det.style.display='none';},2000);}
 
     // Place model flat on menu - no floating
-    if (currentModel && menuData[currentModel]) {
+    if(currentModel && menuData[currentModel]){
         const el = document.getElementById(menuData[currentModel].arId);
-        if (el) {
+        if(el){
             el.setAttribute('rotation', AR_ROTATION[currentModel] || '0 0 0');
             el.setAttribute('position', '0 0 0');
             const real = getRealScale(el, REAL_SIZE_CM[currentModel]) || menuData[currentModel].arScale;
@@ -577,105 +577,105 @@ function onFound() {
         }
     }
 }
-function onLost() { document.getElementById('scan-overlay').classList.remove('hidden'); }
+function onLost(){document.getElementById('scan-overlay').classList.remove('hidden');}
 
-function fixVideo() {
-    document.querySelectorAll('video').forEach(v => { v.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;'; });
-    document.querySelectorAll('#viewer-ar canvas').forEach(c => { c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;'; });
+function fixVideo(){
+    document.querySelectorAll('video').forEach(v=>{v.style.cssText='position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:1!important;display:block!important;';});
+    document.querySelectorAll('#viewer-ar canvas').forEach(c=>{c.style.cssText='position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:2!important;background:transparent!important;';});
 }
-setInterval(() => { if (document.getElementById('viewer-ar').style.display === 'block') fixVideo(); }, 1000);
+setInterval(()=>{if(document.getElementById('viewer-ar').style.display==='block')fixVideo();},1000);
 
-function closeViewer() {
-    currentModel = null; viewerMode = null;
+function closeViewer(){
+    currentModel=null;viewerMode=null;
     removeSteamEffect();
     stopRendering();
-    const t = document.querySelector('[mindar-image-target]');
-    if (t) { t.removeEventListener('targetFound', onFound); t.removeEventListener('targetLost', onLost); }
-    document.getElementById('viewer-3d').style.display = 'none'; document.getElementById('viewer-ar').style.display = 'none';
-    document.getElementById('ar-topbar').style.display = 'none'; document.getElementById('ar-bottombar').style.display = 'none';
+    const t=document.querySelector('[mindar-image-target]');
+    if(t){t.removeEventListener('targetFound',onFound);t.removeEventListener('targetLost',onLost);}
+    document.getElementById('viewer-3d').style.display='none';document.getElementById('viewer-ar').style.display='none';
+    document.getElementById('ar-topbar').style.display='none';document.getElementById('ar-bottombar').style.display='none';
     document.getElementById('back-btn').classList.remove('visible');
-    document.getElementById('menu-page').style.display = 'flex'; document.getElementById('bottom-nav').style.display = 'flex';
+    document.getElementById('menu-page').style.display='flex';document.getElementById('bottom-nav').style.display='flex';
     updateCartBar();
 }
 
-function resetModel() {
-    if (viewerMode === '3d' && threeControls) {
-        const THREE = getThree();
-        if (THREE && loadedModel) {
-            const b = new THREE.Box3().setFromObject(loadedModel);
-            const c = b.getCenter(new THREE.Vector3());
+function resetModel(){
+    if(viewerMode==='3d'&&threeControls){
+        const THREE=getThree();
+        if(THREE&&loadedModel){
+            const b=new THREE.Box3().setFromObject(loadedModel);
+            const c=b.getCenter(new THREE.Vector3());
             threeControls.target.copy(c);
             threeCamera.position.set(c.x, c.y + 0.4, 3);
             threeControls.update();
         } else {
             threeControls.reset();
         }
-        threeControls.autoRotate = true;
+        threeControls.autoRotate=true;
     }
-    if (viewerMode === 'ar') { arRotY = 0; arRotX = 0; const el = document.getElementById(menuData[currentModel].arId); if (el) el.setAttribute('rotation', '0 0 0'); }
+    if(viewerMode==='ar'){arRotY=0;arRotX=0;const el=document.getElementById(menuData[currentModel].arId);if(el)el.setAttribute('rotation','0 0 0');}
 }
 
-function quickAdd(id) { addItemToCart(id, 1); showToast('✅', menuData[id].name + ' added!', '£' + menuData[id].price); }
-function addToCart() { if (!currentModel) return; addItemToCart(currentModel, arQty); showToast('🛒', menuData[currentModel].name + ' ×' + arQty, '£' + (menuData[currentModel].price * arQty)); }
-function addItemToCart(id, qty) { cart[id] ? cart[id].qty += qty : cart[id] = { qty }; updateCartBar(); }
-function removeFromCart(id) { if (!cart[id]) return; cart[id].qty--; if (cart[id].qty <= 0) delete cart[id]; renderCartPage(); updateCartBar(); }
-function addFromCart(id) { if (cart[id]) cart[id].qty++; renderCartPage(); updateCartBar(); }
-function getCartCount() { return Object.values(cart).reduce((s, v) => s + v.qty, 0); }
-function getCartTotal() { return Object.entries(cart).reduce((s, [id, v]) => s + menuData[id].price * v.qty, 0); }
-function updateCartBar() {
-    const n = getCartCount(), t = getCartTotal(), b = document.getElementById('cart-bar');
-    if (n > 0) { b.classList.add('visible'); document.getElementById('cart-count').innerText = n + ' item' + (n > 1 ? 's' : ''); document.getElementById('cart-total').innerText = '£' + t; }
+function quickAdd(id){addItemToCart(id,1);showToast('✅',menuData[id].name+' added!','£'+menuData[id].price);}
+function addToCart(){if(!currentModel)return;addItemToCart(currentModel,arQty);showToast('🛒',menuData[currentModel].name+' ×'+arQty,'£'+(menuData[currentModel].price*arQty));}
+function addItemToCart(id,qty){cart[id]?cart[id].qty+=qty:cart[id]={qty};updateCartBar();}
+function removeFromCart(id){if(!cart[id])return;cart[id].qty--;if(cart[id].qty<=0)delete cart[id];renderCartPage();updateCartBar();}
+function addFromCart(id){if(cart[id])cart[id].qty++;renderCartPage();updateCartBar();}
+function getCartCount(){return Object.values(cart).reduce((s,v)=>s+v.qty,0);}
+function getCartTotal(){return Object.entries(cart).reduce((s,[id,v])=>s+menuData[id].price*v.qty,0);}
+function updateCartBar(){
+    const n=getCartCount(),t=getCartTotal(),b=document.getElementById('cart-bar');
+    if(n>0){b.classList.add('visible');document.getElementById('cart-count').innerText=n+' item'+(n>1?'s':'');document.getElementById('cart-total').innerText='£'+t;}
     else b.classList.remove('visible');
 }
-function changeQty(d) { arQty = Math.max(1, Math.min(10, arQty + d)); document.getElementById('ar-qty-num').innerText = arQty; }
-function orderNow() { if (!currentModel) return; addItemToCart(currentModel, arQty); closeViewer(); setTimeout(placeOrder, 300); }
-function openCart() { renderCartPage(); document.getElementById('cart-page').classList.add('open'); history.pushState({ page: 'cart' }, ''); }
-function closeCart() { document.getElementById('cart-page').classList.remove('open'); }
-function renderCartPage() {
-    const c = document.getElementById('cart-items'), e = document.getElementById('empty-cart'), k = Object.keys(cart);
-    if (!k.length) { c.innerHTML = ''; e.style.display = 'flex'; }
-    else { e.style.display = 'none'; c.innerHTML = k.map(id => { const m = menuData[id], q = cart[id].qty; return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">£${m.price} × ${q} = £${m.price * q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`; }).join(''); }
-    const s = getCartTotal(), tax = Math.round(s * 0.05);
-    document.getElementById('summary-subtotal').innerText = '£' + s; document.getElementById('summary-tax').innerText = '£' + tax; document.getElementById('summary-total').innerText = '£' + (s + tax);
+function changeQty(d){arQty=Math.max(1,Math.min(10,arQty+d));document.getElementById('ar-qty-num').innerText=arQty;}
+function orderNow(){if(!currentModel)return;addItemToCart(currentModel,arQty);closeViewer();setTimeout(placeOrder,300);}
+function openCart(){renderCartPage();document.getElementById('cart-page').classList.add('open');history.pushState({page:'cart'},'');}
+function closeCart(){document.getElementById('cart-page').classList.remove('open');}
+function renderCartPage(){
+    const c=document.getElementById('cart-items'),e=document.getElementById('empty-cart'),k=Object.keys(cart);
+    if(!k.length){c.innerHTML='';e.style.display='flex';}
+    else{e.style.display='none';c.innerHTML=k.map(id=>{const m=menuData[id],q=cart[id].qty;return `<div class="cart-item"><div class="cart-item-icon">${m.icon}</div><div class="cart-item-info"><div class="cart-item-name">${m.name}</div><div class="cart-item-price">£${m.price} × ${q} = £${m.price*q}</div></div><div class="qty-controls"><button class="qty-btn" onclick="removeFromCart('${id}')">−</button><div class="qty-num">${q}</div><button class="qty-btn" onclick="addFromCart('${id}')">+</button></div></div>`;}).join('');}
+    const s=getCartTotal(),tax=Math.round(s*0.05);
+    document.getElementById('summary-subtotal').innerText='£'+s;document.getElementById('summary-tax').innerText='£'+tax;document.getElementById('summary-total').innerText='£'+(s+tax);
 }
-function placeOrder() { if (!getCartCount()) return; document.getElementById('order-id-text').innerText = 'Order #' + Math.floor(1000 + Math.random() * 9000); cart = {}; updateCartBar(); document.getElementById('cart-page').classList.remove('open'); document.getElementById('order-success').classList.add('open'); }
-function backToMenu() { document.getElementById('order-success').classList.remove('open'); showMenu(); }
-function showMenu() { document.getElementById('menu-page').style.display = 'flex'; document.getElementById('bottom-nav').style.display = 'flex'; }
-function showToast(icon, msg, sub) { document.getElementById('toast-icon').innerText = icon; document.getElementById('toast-msg').innerText = msg; document.getElementById('toast-sub').innerText = sub; const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 1800); }
+function placeOrder(){if(!getCartCount())return;document.getElementById('order-id-text').innerText='Order #'+Math.floor(1000+Math.random()*9000);cart={};updateCartBar();document.getElementById('cart-page').classList.remove('open');document.getElementById('order-success').classList.add('open');}
+function backToMenu(){document.getElementById('order-success').classList.remove('open');showMenu();}
+function showMenu(){document.getElementById('menu-page').style.display='flex';document.getElementById('bottom-nav').style.display='flex';}
+function showToast(icon,msg,sub){document.getElementById('toast-icon').innerText=icon;document.getElementById('toast-msg').innerText=msg;document.getElementById('toast-sub').innerText=sub;const t=document.getElementById('toast');t.style.display='block';setTimeout(()=>{t.style.display='none';},1800);}
 
-window.addEventListener('popstate', function () {
-    if (document.getElementById('viewer-3d').style.display === 'block' || document.getElementById('viewer-ar').style.display === 'block') { closeViewer(); return; }
-    if (document.getElementById('cart-page').classList.contains('open')) { closeCart(); return; }
-    if (document.getElementById('order-success').classList.contains('open')) { backToMenu(); return; }
+window.addEventListener('popstate',function(){
+    if(document.getElementById('viewer-3d').style.display==='block'||document.getElementById('viewer-ar').style.display==='block'){closeViewer();return;}
+    if(document.getElementById('cart-page').classList.contains('open')){closeCart();return;}
+    if(document.getElementById('order-success').classList.contains('open')){backToMenu();return;}
 });
-history.pushState({ page: 'menu' }, '');
-window.addEventListener('resize', resizeRenderer);
+history.pushState({page:'menu'},'');
+window.addEventListener('resize',resizeRenderer);
 
 // AR Touch Controls
-let arRotY = 0, arRotX = 0, arScale = 0.3;
-let arLastX = null, arLastY = null, arLastPinch = null;
-function getArEl() { return currentModel ? document.getElementById(menuData[currentModel].arId) : null; }
-function pd(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
-const arMaxScale = 6.0; // bigger zoom limit
-let arRealScale = null; // the computed real-world scale for the current model; pinch clamps are relative to this
-document.addEventListener('touchstart', e => {
-    if (viewerMode !== 'ar') return;
-    if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
-    if (e.touches.length === 1) { arLastX = e.touches[0].clientX; arLastY = e.touches[0].clientY; arLastPinch = null; }
-    else if (e.touches.length === 2) { arLastPinch = pd(e.touches); arLastX = null; arLastY = null; }
-}, { passive: true });
-document.addEventListener('touchmove', e => {
-    if (viewerMode !== 'ar') return;
-    if (e.target.closest('#ar-bottombar') || e.target.closest('#back-btn')) return;
-    const el = getArEl(); if (!el) return;
-    if (e.touches.length === 1 && arLastX !== null) {
-        const dx = e.touches[0].clientX - arLastX;
-        const dy = e.touches[0].clientY - arLastY;
-        arRotY += dx; // left/right rotation
-        arRotX += dy; // up/down rotation
-        el.setAttribute('rotation', `${arRotX} ${arRotY} 0`);
-        arLastX = e.touches[0].clientX; arLastY = e.touches[0].clientY;
-    } else if (e.touches.length === 2 && arLastPinch !== null) {
+let arRotY=0,arRotX=0,arScale=0.3;
+let arLastX=null,arLastY=null,arLastPinch=null;
+function getArEl(){return currentModel?document.getElementById(menuData[currentModel].arId):null;}
+function pd(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+const arMaxScale=6.0; // bigger zoom limit
+let arRealScale=null; // the computed real-world scale for the current model; pinch clamps are relative to this
+document.addEventListener('touchstart',e=>{
+    if(viewerMode!=='ar')return;
+    if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
+    if(e.touches.length===1){arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;arLastPinch=null;}
+    else if(e.touches.length===2){arLastPinch=pd(e.touches);arLastX=null;arLastY=null;}
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+    if(viewerMode!=='ar')return;
+    if(e.target.closest('#ar-bottombar')||e.target.closest('#back-btn'))return;
+    const el=getArEl();if(!el)return;
+    if(e.touches.length===1&&arLastX!==null){
+        const dx=e.touches[0].clientX-arLastX;
+        const dy=e.touches[0].clientY-arLastY;
+        arRotY+=dx; // left/right rotation
+        arRotX+=dy; // up/down rotation
+        el.setAttribute('rotation',`${arRotX} ${arRotY} 0`);
+        arLastX=e.touches[0].clientX;arLastY=e.touches[0].clientY;
+    }else if(e.touches.length===2&&arLastPinch!==null){
         // There used to be TWO lines here both adjusting arScale — the pinch
         // delta got applied twice, and the lower clamp was 0.05 (about 2% of
         // real size), which is why the pizza collapsed to almost nothing.
@@ -683,16 +683,16 @@ document.addEventListener('touchmove', e => {
         // shrink to half real size, or grow to 3x.
         const base = arRealScale || 1;
         const nd = pd(e.touches);
-        arScale = Math.max(base * 0.5, Math.min(base * 3, arScale + (nd - arLastPinch) * 0.015));
-        el.setAttribute('scale', `${arScale} ${arScale} ${arScale}`); arLastPinch = nd;
+        arScale = Math.max(base*0.5, Math.min(base*3, arScale+(nd-arLastPinch)*0.015));
+        el.setAttribute('scale',`${arScale} ${arScale} ${arScale}`);arLastPinch=nd;
     }
-}, { passive: true });
-document.addEventListener('touchend', () => { arLastX = null; arLastY = null; arLastPinch = null; });
+},{passive:true});
+document.addEventListener('touchend',()=>{arLastX=null;arLastY=null;arLastPinch=null;});
 
 // Height buttons removed — final grounding offset (-5) is now baked
 // permanently into openAR()/onFound() above.
 const _origCloseViewer2 = closeViewer;
-closeViewer = function () {
+closeViewer = function() {
     _origCloseViewer2();
 };
 
@@ -710,10 +710,10 @@ function addSteamEffect() {
     const offsets = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 0.8;
-        positions[i * 3 + 1] = Math.random() * 1.5;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
-        speeds[i] = 0.004 + Math.random() * 0.008;
+        positions[i*3]   = (Math.random() - 0.5) * 0.8;
+        positions[i*3+1] = Math.random() * 1.5;
+        positions[i*3+2] = (Math.random() - 0.5) * 0.8;
+        speeds[i]  = 0.004 + Math.random() * 0.008;
         offsets[i] = Math.random() * Math.PI * 2;
     }
 
@@ -740,13 +740,13 @@ function addSteamEffect() {
         frame++;
         const pos = steamParticles.geometry.attributes.position;
         for (let i = 0; i < count; i++) {
-            pos.array[i * 3 + 1] += speeds[i];
-            pos.array[i * 3] += Math.sin(frame * 0.02 + offsets[i]) * 0.002;
-            pos.array[i * 3 + 2] += Math.cos(frame * 0.02 + offsets[i]) * 0.002;
-            if (pos.array[i * 3 + 1] > 2.5) {
-                pos.array[i * 3] = (Math.random() - 0.5) * 0.8;
-                pos.array[i * 3 + 1] = 0;
-                pos.array[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
+            pos.array[i*3+1] += speeds[i];
+            pos.array[i*3]   += Math.sin(frame * 0.02 + offsets[i]) * 0.002;
+            pos.array[i*3+2] += Math.cos(frame * 0.02 + offsets[i]) * 0.002;
+            if (pos.array[i*3+1] > 2.5) {
+                pos.array[i*3]   = (Math.random() - 0.5) * 0.8;
+                pos.array[i*3+1] = 0;
+                pos.array[i*3+2] = (Math.random() - 0.5) * 0.8;
             }
         }
         pos.needsUpdate = true;
