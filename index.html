@@ -290,25 +290,17 @@ html,body{background:var(--bg)!important}
   *{transition:none!important}
 }
 :focus-visible{outline:2px solid var(--gold)!important;outline-offset:3px!important}
+
+/* ══ Sold out (set from the owner dashboard) ═══════════════ */
+.food-card.sold-out .card-img-placeholder img{filter:grayscale(1);opacity:.45}
+.food-card.sold-out .card-price{font-family:var(--sans)!important;font-size:12px!important;
+  font-weight:700!important;letter-spacing:.14em!important;text-transform:uppercase;color:var(--mute)!important}
+.food-card.sold-out .card-add-btn{opacity:.35!important;cursor:not-allowed!important}
+#place-order-btn[disabled]{opacity:.6!important}
 </style>
 
 
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
-    <script>
-    window.addEventListener('load', function() {
-        if (window.AFRAME && window.AFRAME.THREE) {
-            if (window.OrbitControls) window.AFRAME.THREE.OrbitControls = window.OrbitControls;
-            if (window.GLTFLoader) window.AFRAME.THREE.GLTFLoader = window.GLTFLoader;
-            if (window.DRACOLoader) window.AFRAME.THREE.DRACOLoader = window.DRACOLoader;
-        }
-    });
-    </script>
 </head>
 <body>
 
@@ -350,26 +342,6 @@ html,body{background:var(--bg)!important}
         alt="Dish preview">
             <button slot="ar-button" id="ar-launch">Place on your table</button>
         </model-viewer>
-
-    <!-- Scanning Guide - no text -->
-    <div id="scan-overlay" style="display:none!important">
-        <div id="scan-box">
-            <div class="scan-corner tl"></div>
-            <div class="scan-corner tr"></div>
-            <div class="scan-corner bl"></div>
-            <div class="scan-corner br"></div>
-            <div id="scan-line"></div>
-        </div>
-    </div>
-    <div id="ar-detected" style="display:none!important">
-        <div id="ar-detected-icon">✅</div>
-        <div id="ar-detected-text">Image Detected!</div>
-    </div>
-
-    <!-- Height adjustment buttons -->
-    <!-- Removed — grounding offset confirmed by live testing on the real
-         table and permanently baked in at 3.0 in script.js -->
-    <div id="height-controls" style="display:none!important"></div>
 </div>
 
 <!-- BOTTOM BAR -->
@@ -418,7 +390,7 @@ html,body{background:var(--bg)!important}
     <div class="section-title">Our Menu</div>
     <div class="section-sub">See your food before you order</div>
     <div id="grid">
-        <div class="food-card">
+        <div class="food-card" data-dish="pizza">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
                 <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
@@ -433,7 +405,7 @@ html,body{background:var(--bg)!important}
                 </div>
             </div>
         </div>
-        <div class="food-card">
+        <div class="food-card" data-dish="burger">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
                 <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
@@ -448,7 +420,7 @@ html,body{background:var(--bg)!important}
                 </div>
             </div>
         </div>
-        <div class="food-card">
+        <div class="food-card" data-dish="drink">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
                 <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
@@ -463,7 +435,7 @@ html,body{background:var(--bg)!important}
                 </div>
             </div>
         </div>
-        <div class="food-card">
+        <div class="food-card" data-dish="pasta">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
                 <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
@@ -478,7 +450,7 @@ html,body{background:var(--bg)!important}
                 </div>
             </div>
         </div>
-        <div class="food-card">
+        <div class="food-card" data-dish="sushi">
             <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
                 <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
             </div>
@@ -534,93 +506,10 @@ html,body{background:var(--bg)!important}
     <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script>
-// ════════════════════════════════════════════════════════════════
-// SMOOTH-FOLLOW — the actual shake fix.
-//
-// Why earlier attempts couldn't work: MindAR re-estimates the target's pose
-// from the camera image every single frame, and that estimate always carries
-// noise (a millimetre here, a fraction of a degree there). Anything parented
-// INSIDE the target entity inherits that noise directly — no filter setting
-// damps it from within, because it's the parent itself that's moving.
-//
-// So: the target entity is now empty and only carries the raw pose. This
-// component reads that pose each frame and eases the visible stage toward it
-// instead of snapping to it:
-//   - exponential smoothing on position (frame-rate independent)
-//   - spherical interpolation (slerp) on rotation
-//   - a dead zone: movement below a threshold is ignored entirely, so a still
-//     phone gives a genuinely still model instead of micro-wobble
-// ════════════════════════════════════════════════════════════════
-AFRAME.registerComponent('smooth-follow', {
-    schema: {
-        target:      { type: 'selector' },
-        // Response time in ms. This is the "stuck to the paper" dial.
-        // Raised from 45 to 90 — trades a touch of extra lag when the phone
-        // moves fast for a noticeably steadier model when the phone (and
-        // model) are held still, which is what "still shaking" complaints
-        // are actually about.
-        tau:         { type: 'number', default: 90 },
-        // Widened further — at rest, tiny camera-pose noise between frames
-        // was still sneaking past the old thresholds and reading as a
-        // faint shake. These are deliberately generous: real intentional
-        // phone movement is far larger than this and still passes through
-        // immediately.
-        posDeadZone: { type: 'number', default: 0.018 },
-        rotDeadZone: { type: 'number', default: 0.04 }
-    },
-    init: function () {
-        const THREE = AFRAME.THREE;
-        this.rawPos   = new THREE.Vector3();
-        this.rawQuat  = new THREE.Quaternion();
-        this.rawScale = new THREE.Vector3();
-        this.heldPos  = new THREE.Vector3();
-        this.heldQuat = new THREE.Quaternion();
-        this.primed   = false;
-
-        // On re-detection, snap to the new pose rather than gliding to it
-        // across the screen from wherever it was last seen.
-        this.el.sceneEl.addEventListener('targetLost', () => { this.primed = false; });
-    },
-    tick: function (time, dt) {
-        const targetEl = this.data.target;
-        if (!targetEl || !dt) return;
-        const src = targetEl.object3D;
-        const dst = this.el.object3D;
-
-        // Mirror the target's visibility — no target found, nothing shown.
-        dst.visible = src.visible;
-        if (!src.visible) { this.primed = false; return; }
-
-        src.updateMatrixWorld(true);
-        src.matrixWorld.decompose(this.rawPos, this.rawQuat, this.rawScale);
-
-        if (!this.primed) {
-            this.heldPos.copy(this.rawPos);      // first frame: adopt exactly
-            this.heldQuat.copy(this.rawQuat);
-            this.primed = true;
-        } else {
-            // Dead zone: if the new estimate is within noise range of what's
-            // already on screen, hold perfectly still. This is what makes it
-            // read as "stuck to the paper" instead of quietly vibrating.
-            const moved  = this.heldPos.distanceTo(this.rawPos);
-            const turned = this.heldQuat.angleTo(this.rawQuat);
-            if (moved >= this.data.posDeadZone || turned >= this.data.rotDeadZone) {
-                // Frame-rate independent smoothing: same steadiness at 30 or 60fps.
-                const alpha = 1 - Math.exp(-dt / this.data.tau);
-                this.heldPos.lerp(this.rawPos, alpha);
-                this.heldQuat.slerp(this.rawQuat, alpha);
-            }
-        }
-
-        dst.position.copy(this.heldPos);
-        dst.quaternion.copy(this.heldQuat);
-        dst.scale.copy(this.rawScale);
-    }
-});
-
-</script>
-<script src="script.js?v=12"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=2"></script>
+<script src="script.js?v=14"></script>
+<script src="data.js?v=1"></script>
 
 <div id="ar-wait"><div class="spin"></div><div>Opening camera…</div></div>
 
@@ -652,8 +541,6 @@ html, body,
 </style>
 
 <script>
-/* Replaces the old MindAR openAR(). Runs after script.js, so it wins. */
-
 /* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
    contains a loaded <img>. Building it up front avoids that prompt. */
 (function () {
@@ -667,64 +554,6 @@ html, body,
   document.body.appendChild(a);
   window.__arLink = a;
 })();
-
-window.openAR = function (id) {
-  var base  = location.href.replace(/[^/]*$/, '');
-  var V     = '?v=25';   // bump this number whenever you replace a model file
-  var glb   = base + id + '.glb'  + V;
-  var usdz  = base + id + '.usdz' + V;
-
-  var ua    = navigator.userAgent;
-  var iOS   = /iPad|iPhone|iPod/.test(ua) ||
-              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  var android = /Android/.test(ua);
-
-  /* ---- iPhone: Quick Look, fires instantly, no model load needed ---- */
-  if (iOS) {
-    /* Apple only allows AR Quick Look from Safari. Chrome/Edge/Firefox on iOS
-       honour the x-safari- prefix, so bounce the page across automatically. */
-    if (/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)) {
-      var target = location.href.split('#')[0];
-      var jumped = false;
-      var t = setTimeout(function () {
-        if (!jumped) alert('Please open this page in Safari to view dishes on your table.');
-      }, 1200);
-      window.addEventListener('pagehide', function () { jumped = true; clearTimeout(t); });
-      location.href = 'x-safari-' + target;
-      return;
-    }
-    /* allowsContentScaling=0 locks true size so the dish can't be pinched bigger */
-    window.__arLink.href = usdz + '#allowsContentScaling=0';
-    window.__arLink.click();
-    return;
-  }
-
-  /* ---- Android: Scene Viewer straight through, ar_only, real size ---- */
-  if (android) {
-    location.href = 'intent://arvr.google.com/scene-viewer/1.0?file='
-      + encodeURIComponent(glb)
-      + '&mode=ar_only&resizable=false&title=' + encodeURIComponent(id)
-      + '#Intent;scheme=https;package=com.google.ar.core;'
-      + 'action=android.intent.action.VIEW;'
-      + 'S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end;';
-    return;
-  }
-
-  /* ---- Desktop: no camera, so show the spin preview instead ---- */
-  var mv = document.getElementById('ar-mv');
-  mv.dataset.dish = id;
-  mv.setAttribute('ios-src', usdz);
-  if (mv.getAttribute('src') !== id + '.glb') mv.setAttribute('src', id + '.glb');
-
-  var m = document.getElementById('menu-page'); if (m) m.style.display = 'none';
-  var v = document.getElementById('viewer-3d'); if (v) v.style.display = 'none';
-  var w = document.getElementById('viewer-ar'); if (w) w.style.display = 'block';
-  var b = document.getElementById('back-btn');  if (b) b.classList.add('visible');
-
-  ['updateDetailCard','setDishDetails','fillDetails','showDetails'].forEach(function(fn){
-    if (typeof window[fn] === 'function') { try { window[fn](id); } catch(e){} }
-  });
-};
 
 (function(){
   var mv = document.getElementById('ar-mv');
@@ -767,6 +596,6 @@ window.openAR = function (id) {
 })();
 </script>
 <!-- Sensory layer: sound, description, steam, haptics, instructions -->
-<script src="sensory.js?v=2"></script>
+<script src="sensory.js?v=4"></script>
 </body>
 </html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Kitchen Dashboard</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0E0D; --card:#181614; --card2:#211d1a; --line:#332F2A;
+  --gold:#D4AF37; --gold-dim:rgba(212,175,55,.3);
+  --ivory:#F5F0E8; --warm:#A99F91; --mute:#70695F;
+  --new:#E8833A; --prep:#D4AF37; --ready:#6BBF7A; --bad:#D9655B;
+  --serif:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ivory);font-family:var(--sans);font-size:14px;
+  -webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hidden{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── Login ─────────────────────────────────── */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.login-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:28px 22px}
+.login-card h1{font-family:var(--serif);font-weight:500;font-size:34px;line-height:1.05;margin-bottom:6px}
+.login-card h1 em{color:var(--gold)}
+.login-card p{color:var(--warm);font-size:13px;margin-bottom:22px}
+label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mute);margin:0 0 6px}
+input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;font-size:14px}
+input:focus,textarea:focus{border-color:var(--gold);outline:none}
+textarea{resize:vertical;min-height:62px;line-height:1.4}
+.field{margin-bottom:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;
+  border-radius:9px;border:1px solid var(--line);background:transparent;font-weight:600;font-size:13px;
+  white-space:nowrap}
+.btn:hover{border-color:var(--warm)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#17140D}
+.btn.primary:hover{background:#c19f2f}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%;height:46px}
+.err{color:var(--bad);font-size:13px;min-height:18px;margin-top:10px}
+
+/* ── App shell ─────────────────────────────── */
+header{position:sticky;top:0;z-index:10;background:rgba(15,14,13,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)}
+.bar{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-size:24px;font-weight:600;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand small{font-family:var(--sans);font-size:11px;color:var(--mute);font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;margin-left:8px}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;
+  user-select:none;text-transform:none;letter-spacing:0;margin:0;color:var(--ivory)}
+.switch input{position:absolute;opacity:0;width:1px;height:1px}
+.switch .track{width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;
+  transition:background .15s;flex:0 0 38px}
+.switch .track::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--ivory);transition:transform .15s}
+.switch input:checked+.track{background:var(--ready)}
+.switch input:checked+.track::after{transform:translateX(16px)}
+.switch input:focus-visible+.track{outline:2px solid var(--gold);outline-offset:2px}
+nav.tabs{max-width:1280px;margin:0 auto;display:flex;gap:4px;padding:0 16px;overflow-x:auto}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:10px 12px;
+  font-weight:600;color:var(--mute);display:flex;align-items:center;gap:6px}
+nav.tabs button[aria-selected="true"]{color:var(--ivory);border-bottom-color:var(--gold)}
+.count{background:var(--new);color:#17140D;font-size:11px;font-weight:700;border-radius:9px;
+  padding:1px 7px;min-width:20px;text-align:center}
+main{max-width:1280px;margin:0 auto;padding:18px 16px 60px}
+h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
+.sub{color:var(--mute);font-size:13px;margin-bottom:16px}
+.banner{background:rgba(217,101,91,.12);border:1px solid rgba(217,101,91,.4);color:#f0b4ae;
+  border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px}
+
+/* ── Orders ────────────────────────────────── */
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.col h3{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--warm);
+  display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.col h3 .dot{width:8px;height:8px;border-radius:50%}
+.col .empty{color:var(--mute);font-size:13px;border:1px dashed var(--line);border-radius:12px;
+  padding:18px;text-align:center}
+.order{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:12px;padding:14px;margin-bottom:10px}
+.order[data-status="new"]{border-left-color:var(--new)}
+.order[data-status="preparing"]{border-left-color:var(--prep)}
+.order[data-status="ready"]{border-left-color:var(--ready)}
+.order.fresh{animation:fresh 1.2s ease-in-out 3}
+@keyframes fresh{50%{box-shadow:0 0 0 3px rgba(232,131,58,.45)}}
+.o-top{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.o-no{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1}
+.o-table{font-weight:700;font-size:13px;color:var(--gold)}
+.o-time{margin-left:auto;color:var(--mute);font-size:12px}
+.o-items{list-style:none;margin:0 0 8px}
+.o-items li{display:flex;gap:8px;padding:3px 0;font-size:14px}
+.o-items .q{font-weight:700;min-width:26px}
+.o-items .p{margin-left:auto;color:var(--warm)}
+.o-note{background:var(--card2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--warm);margin-bottom:8px}
+.o-total{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;
+  margin-bottom:12px;font-weight:600}
+.o-actions{display:flex;gap:8px}
+.o-actions .btn.primary{flex:1}
+.status-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  border-radius:6px;padding:3px 8px;border:1px solid var(--line);color:var(--warm)}
+.status-pill.cancelled{color:var(--bad);border-color:rgba(217,101,91,.4)}
+.status-pill.served{color:var(--ready);border-color:rgba(107,191,122,.4)}
+.done-list .order{border-left-color:var(--line);opacity:.85}
+.done-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:130px}
+.stat b{display:block;font-family:var(--serif);font-size:26px;font-weight:600;line-height:1.1}
+.stat span{font-size:11px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Menu editor ───────────────────────────── */
+.dishes{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.dish{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.dish.off{opacity:.75}
+.dish-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.dish-head .ic{font-size:26px}
+.dish-head .nm{font-family:var(--serif);font-size:22px;font-weight:600;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
+.price-wrap{position:relative}
+.price-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mute)}
+.price-wrap input{padding-left:26px;font-size:18px;font-weight:600;color:var(--gold)}
+.dish-foot{display:flex;align-items:center;gap:10px;margin-top:4px}
+.saved{font-size:12px;color:var(--ready);margin-right:auto}
+.saved.err{color:var(--bad);margin-top:0;min-height:0}
+.form-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:560px}
+
+/* ── Toast ─────────────────────────────────── */
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;background:var(--card2);
+  border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:calc(100% - 32px)}
+
+@media (max-width:900px){ .board{grid-template-columns:1fr} }
+@media (max-width:420px){ .dishes{grid-template-columns:1fr} .grid3{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion:reduce){ .order.fresh{animation:none;box-shadow:0 0 0 2px rgba(232,131,58,.45)} *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<!-- ═══ Login ═══ -->
+<section id="login" class="hidden">
+  <form class="login-card" id="login-form">
+    <h1>Kitchen <em>Dashboard</em></h1>
+    <p>Sign in with the owner account.</p>
+    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+    <button class="btn primary block" type="submit" id="login-btn">Sign in</button>
+    <div class="err" id="login-err" role="alert"></div>
+  </form>
+</section>
+
+<!-- ═══ App ═══ -->
+<section id="app" class="hidden">
+  <header>
+    <div class="bar">
+      <div class="brand" id="brand">Dashboard<small>Owner</small></div>
+      <label class="switch" title="When off, customers can't place orders">
+        <input type="checkbox" id="accepting"><span class="track"></span><span id="accepting-label">Taking orders</span>
+      </label>
+      <button class="btn" id="logout">Sign out</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="orders" aria-selected="true">Live orders <span class="count num hidden" id="new-count">0</span></button>
+      <button role="tab" data-tab="done" aria-selected="false">Completed today</button>
+      <button role="tab" data-tab="menu" aria-selected="false">Menu &amp; prices</button>
+      <button role="tab" data-tab="info" aria-selected="false">Restaurant</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="banner hidden" id="offline">Live connection lost — reconnecting… New orders will appear once it's back.</div>
+
+    <!-- Live orders -->
+    <div data-panel="orders">
+      <div class="stats">
+        <div class="stat"><b class="num" id="st-orders">0</b><span>Orders today</span></div>
+        <div class="stat"><b class="num" id="st-revenue">£0.00</b><span>Revenue today</span></div>
+        <div class="stat"><b class="num" id="st-open">0</b><span>In progress</span></div>
+      </div>
+      <div class="board">
+        <div class="col"><h3><span class="dot" style="background:var(--new)"></span>New</h3><div id="col-new"></div></div>
+        <div class="col"><h3><span class="dot" style="background:var(--prep)"></span>Preparing</h3><div id="col-preparing"></div></div>
+        <div class="col"><h3><span class="dot" style="background:var(--ready)"></span>Ready to serve</h3><div id="col-ready"></div></div>
+      </div>
+    </div>
+
+    <!-- Completed -->
+    <div data-panel="done" class="hidden">
+      <h2>Completed today</h2>
+      <p class="sub">Served and cancelled orders since midnight.</p>
+      <div class="done-list" id="done-list"></div>
+    </div>
+
+    <!-- Menu -->
+    <div data-panel="menu" class="hidden">
+      <h2>Menu &amp; prices</h2>
+      <p class="sub">Changes appear on customers' phones straight away. Switch a dish off to mark it sold out.</p>
+      <div class="dishes" id="dishes"></div>
+    </div>
+
+    <!-- Restaurant -->
+    <div data-panel="info" class="hidden">
+      <h2>Restaurant</h2>
+      <p class="sub">Shown at the top of the customer menu.</p>
+      <form class="form-card" id="info-form">
+        <div class="field"><label for="r-name">Restaurant name</label><input id="r-name" maxlength="60" required></div>
+        <div class="field"><label for="r-tagline">Tagline / address</label><input id="r-tagline" maxlength="120"></div>
+        <div class="field"><label for="r-badge">Menu intro text</label><textarea id="r-badge" maxlength="200"></textarea></div>
+        <div class="grid2">
+          <div class="field"><label for="r-currency">Currency symbol</label><input id="r-currency" maxlength="4" required></div>
+          <div class="field"><label for="r-tax">Tax / service %</label><input id="r-tax" type="number" min="0" max="99" step="0.01" required></div>
+        </div>
+        <div class="dish-foot">
+          <span class="saved" id="info-status" role="status"></span>
+          <button class="btn primary" type="submit">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</section>
+
+<div id="toast" class="hidden" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="config.js?v=2"></script>
+<script src="dashboard.js?v=1"></script>
+</body>
+</html>

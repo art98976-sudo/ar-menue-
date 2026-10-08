@@ -17,6 +17,7 @@
 
   var MODEL_VERSION = '?v=25'; // keep in step with your model cache number
   var SHOW_DESCRIPTION = false; // description card switched off
+  var PLAY_SOUND = false;       // dish sounds switched off
 
   // iPhone sound inside AR: add a dish here once you've made its .reality
   // file (Reality Composer) and uploaded it next to index.html, e.g. ['burger']
@@ -163,7 +164,7 @@
   var ctx = null, soundOn = true, bus = null;
 
   function unlockAudio() {
-    if (!AC) return;
+    if (!AC || !PLAY_SOUND) return;
     try {
       if (!ctx) ctx = new AC();
       if (ctx.state === 'suspended') ctx.resume();
@@ -276,7 +277,7 @@
   }
 
   function playDishSound(id) {
-    if (!soundOn || !ctx || !SENSORY[id]) return;
+    if (!PLAY_SOUND || !soundOn || !ctx || !SENSORY[id]) return;
     try {
       if (ctx.state === 'suspended') ctx.resume();
       stopSound();
@@ -383,7 +384,7 @@
     hide(loading);
     fillDesc(currentDish);
     if (SHOW_DESCRIPTION) show(desc);
-    show(rotate); show(soundBtn);
+    show(rotate); if (PLAY_SOUND) show(soundBtn);
     placeSteam(currentDish);
     startBreathing();
     playDishSound(currentDish);
@@ -494,6 +495,14 @@
     }
 
     try { history.pushState({ page: 'ar' }, ''); } catch (e) {}
+  };
+
+  /* ⟳ button — put the dish back to its starting view */
+  window.resetModel = function () {
+    yaw = 0;
+    mv.setAttribute('orientation', '0deg 0deg 0deg');
+    mv.cameraOrbit = '0deg 72deg 105%';
+    if (mv.resetTurntableRotation) mv.resetTurntableRotation();
   };
 
   /* ── 12. Clean up when leaving the dish ──────────────────────────── */
