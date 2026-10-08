@@ -1,544 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AR Cafe Menu</title>
-    <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0E0C0B">
+<meta name="color-scheme" content="dark">
+<title>The Cozy Cup — Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-/* ══ MenuVision — premium dark menu. Overrides style.css. ══ */
-:root{
-  --bg:#0F0E0D;          /* warm charcoal page      */
-  --card:#181614;        /* card surface            */
-  --line:#332F2A;        /* borders                 */
-  --gold:#D4AF37;        /* champagne gold          */
-  --gold-dim:rgba(212,175,55,.30);
-  --ivory:#F5F0E8;       /* primary text            */
-  --warm:#A99F91;        /* secondary text          */
-  --mute:#70695F;        /* muted detail text       */
-  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
-  --sans:'Inter',system-ui,-apple-system,sans-serif;
-  --pad:18px;            /* one padding value, used everywhere */
-  --r:14px;              /* one radius value                   */
-}
-html,body{background:var(--bg)!important}
-#menu-page{background:var(--bg)!important;background-image:none!important;
-  color:var(--ivory)!important;padding-bottom:150px!important}
-
-/* ══ Header ════════════════════════════════════════════════
-   #menu-page is a flex column, so #header is a flex item and
-   was collapsing below its content. flex:0 0 auto is the fix. */
-#header{
-  flex:0 0 auto!important;
-  position:relative!important;display:block!important;box-sizing:border-box!important;
-  width:100%!important;height:auto!important;min-height:0!important;
-  background:linear-gradient(180deg,#151311 0%,var(--bg) 100%)!important;
-  padding:52px var(--pad) 46px!important;margin:0!important;
-  text-align:left!important;border:none!important;border-radius:0!important;
-  box-shadow:none!important;overflow:hidden!important;
-}
-#header .mv-eyebrow{
-  display:inline-block;font-family:var(--serif);font-style:italic;
-  font-size:16px;line-height:1.2;color:var(--gold);margin:0 0 18px;
-}
-#header .mv-eyebrow::after{
-  content:'';display:block;width:24px;height:1px;background:var(--gold-dim);margin-top:8px;
-}
-#header h1{
-  font-family:var(--serif)!important;
-  font-size:clamp(42px,11.5vw,58px)!important;line-height:1.02!important;
-  font-weight:500!important;letter-spacing:.005em!important;
-  color:var(--ivory)!important;margin:0 0 18px!important;padding:0!important;
-  text-align:left!important;
-}
-#header h1 em{font-style:italic;font-weight:400;color:var(--gold)}
-#header .mv-hair{
-  display:block;height:3px;width:100%;margin:0 0 18px;
-  border-top:1px solid var(--line);border-bottom:1px solid rgba(51,47,42,.5);
-}
-#header p{
-  font-family:var(--sans)!important;font-size:12.5px!important;line-height:1.5!important;
-  font-weight:400!important;color:var(--warm)!important;
-  margin:0 0 22px!important;padding:0!important;
-  text-align:left!important;letter-spacing:.04em!important;
-}
-#header .ar-badge{
-  display:block!important;box-sizing:border-box!important;max-width:34ch!important;
-  background:none!important;border:none!important;border-left:2px solid var(--gold)!important;
-  border-radius:0!important;padding:1px 0 1px 14px!important;margin:0!important;gap:0!important;
-  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
-  line-height:1.55!important;color:var(--warm)!important;letter-spacing:0!important;
-  text-align:left!important;
-}
-#header .mv-rule{
-  display:block;position:absolute;left:0;right:0;bottom:0;height:13px;
-  background-image:
-    repeating-linear-gradient(to right,rgba(245,240,232,.22) 0 1px,transparent 1px 44px),
-    repeating-linear-gradient(to right,rgba(245,240,232,.10) 0 1px,transparent 1px 8.8px);
-  background-size:100% 9px,100% 5px;
-  background-position:left bottom,left bottom;background-repeat:repeat-x;
-}
-
-/* ══ Section heading ═══════════════════════════════════════ */
-.section-title{
-  font-family:var(--serif)!important;font-size:25px!important;font-weight:500!important;
-  font-style:normal!important;text-transform:none!important;text-align:left!important;
-  color:var(--ivory)!important;letter-spacing:.01em!important;
-  padding:32px var(--pad) 0!important;margin:0!important;
-}
-.section-sub{
-  font-family:var(--sans);font-size:12.5px;font-weight:400;color:var(--mute);
-  letter-spacing:.02em;padding:5px var(--pad) 0;margin:0 0 4px;
-}
-
-/* ══ Cards ═════════════════════════════════════════════════ */
-#grid{padding:16px var(--pad) 0!important;gap:16px!important}
-.food-card{
-  display:block!important;background:var(--card)!important;
-  border:1px solid var(--line)!important;border-radius:var(--r)!important;
-  overflow:hidden!important;box-shadow:none!important;
-  opacity:0;transform:translateY(12px);
-  animation:mvIn .55s cubic-bezier(.22,.7,.3,1) forwards;
-}
-.food-card:nth-child(1){animation-delay:.03s}
-.food-card:nth-child(2){animation-delay:.09s}
-.food-card:nth-child(3){animation-delay:.15s}
-.food-card:nth-child(4){animation-delay:.21s}
-.food-card:nth-child(5){animation-delay:.27s}
-@keyframes mvIn{to{opacity:1;transform:none}}
-
-.card-img-placeholder{
-  width:100%!important;min-width:0!important;height:210px!important;min-height:0!important;
-  position:relative!important;background:#211d1a!important;border-radius:0!important;
-}
-.card-img-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important}
-.card-img-placeholder::after{
-  content:'';position:absolute;inset:auto 0 -1px 0;height:44%;
-  background:linear-gradient(to top,#181614 5%,rgba(24,22,20,.45) 55%,transparent);
-  pointer-events:none;
-}
-.ar-tag{
-  position:absolute!important;top:12px!important;right:12px!important;z-index:2!important;
-  background:rgba(15,14,13,.78)!important;backdrop-filter:blur(8px)!important;
-  border:1px solid var(--gold-dim)!important;color:var(--gold)!important;
-  font-family:var(--sans)!important;font-size:9.5px!important;font-weight:700!important;
-  letter-spacing:.16em!important;padding:5px 9px!important;border-radius:4px!important;
-  line-height:1!important;
-}
-
-.card-body{
-  padding:14px var(--pad) var(--pad)!important;position:relative!important;z-index:2!important;
-  display:block!important;
-}
-.card-name{
-  font-family:var(--serif)!important;font-size:26px!important;font-weight:600!important;
-  line-height:1.06!important;color:var(--ivory)!important;
-  margin:0 0 5px!important;letter-spacing:.004em!important;
-}
-.card-desc{
-  font-family:var(--sans)!important;font-size:13px!important;font-weight:400!important;
-  color:var(--warm)!important;line-height:1.4!important;margin:0 0 7px!important;
-}
-.card-size{
-  font-family:var(--sans)!important;font-size:11px!important;font-weight:400!important;
-  color:var(--mute)!important;letter-spacing:.04em!important;margin:0 0 12px!important;
-}
-.card-meta{
-  display:flex!important;align-items:center!important;justify-content:space-between!important;
-  padding-top:12px!important;margin:0 0 14px!important;
-  border-top:1px solid var(--line)!important;
-}
-.card-cal{
-  background:none!important;padding:0!important;border-radius:0!important;
-  font-family:var(--sans)!important;font-size:11px!important;
-  color:var(--mute)!important;letter-spacing:.04em!important;
-}
-.card-price{
-  background:none!important;padding:0!important;border-radius:0!important;
-  font-family:var(--serif)!important;font-size:30px!important;font-weight:600!important;
-  color:var(--gold)!important;line-height:1!important;letter-spacing:.004em!important;
-}
-
-/* ══ Buttons — identical box on every card ═════════════════ */
-.card-btns{display:flex!important;gap:10px!important;align-items:stretch!important}
-.card-ar-btn{
-  flex:1 1 auto!important;display:inline-flex!important;
-  align-items:center!important;justify-content:center!important;gap:8px!important;
-  height:48px!important;padding:0 14px!important;box-sizing:border-box!important;
-  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
-  border:1px solid var(--gold)!important;border-radius:10px!important;
-  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
-  letter-spacing:.01em!important;line-height:1!important;box-shadow:none!important;
-  cursor:pointer!important;transition:transform .12s ease,background .15s ease!important;
-}
-.card-ar-btn .mv-ic{width:17px;height:17px;flex:0 0 17px;display:block}
-.card-ar-btn:active{transform:scale(.98)!important;background:#c19f2f!important}
-.card-add-btn{
-  flex:0 0 48px!important;width:48px!important;height:48px!important;
-  display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  padding:0!important;box-sizing:border-box!important;
-  background:transparent!important;background-image:none!important;
-  border:1px solid var(--line)!important;color:var(--ivory)!important;
-  border-radius:10px!important;font-family:var(--sans)!important;
-  font-size:21px!important;font-weight:400!important;line-height:1!important;
-  box-shadow:none!important;cursor:pointer!important;transition:border-color .15s ease!important;
-}
-.card-add-btn:active{border-color:var(--gold)!important;color:var(--gold)!important}
-
-/* ══ Cart bar ══════════════════════════════════════════════ */
-#cart-bar{
-  background:rgba(24,22,20,.96)!important;background-image:none!important;
-  backdrop-filter:blur(14px)!important;border-top:1px solid var(--line)!important;
-  box-shadow:none!important;
-}
-#cart-count{font-family:var(--sans)!important;font-size:12px!important;color:var(--mute)!important}
-#cart-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--ivory)!important}
-#cart-checkout-btn{
-  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
-  border:none!important;border-radius:10px!important;height:48px!important;
-  font-family:var(--sans)!important;font-size:14px!important;font-weight:700!important;
-  box-shadow:none!important;
-}
-
-/* ══ Bottom nav ════════════════════════════════════════════ */
-#bottom-nav{
-  background:rgba(15,14,13,.97)!important;backdrop-filter:blur(14px)!important;
-  border-top:1px solid var(--line)!important;box-shadow:none!important;
-}
-#bottom-nav .nav-item{
-  font-family:var(--sans)!important;font-size:10px!important;font-weight:500!important;
-  color:var(--mute)!important;letter-spacing:.05em!important;
-  display:flex!important;flex-direction:column!important;
-  align-items:center!important;justify-content:center!important;gap:4px!important;
-}
-#bottom-nav .nav-icon{
-  font-size:0!important;line-height:0!important;margin:0!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-}
-#bottom-nav .nav-icon svg{width:21px;height:21px;display:block}
-#bottom-nav .nav-item.active{color:var(--gold)!important;font-weight:600!important}
-
-/* ══ AR detail card & cart page ════════════════════════════ */
-#ar-detail-card{background:rgba(15,14,13,.96)!important;backdrop-filter:blur(16px)!important;
-  border-top:1px solid var(--line)!important}
-#ar-detail-name{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--ivory)!important}
-#ar-detail-price{font-family:var(--serif)!important;font-size:27px!important;font-weight:600!important;color:var(--gold)!important}
-#ar-detail-desc{font-family:var(--sans)!important;font-size:13px!important;color:var(--warm)!important}
-.cal-badge,.size-badge{
-  background:#211d1a!important;border:1px solid var(--line)!important;color:var(--mute)!important;
-  font-family:var(--sans)!important;font-size:11px!important;border-radius:7px!important;
-}
-.ar-qty-btn{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
-#ar-qty-label,#ar-qty-num{font-family:var(--sans)!important;color:var(--ivory)!important}
-#ar-order-btn,#place-order-btn{
-  background:var(--gold)!important;background-image:none!important;color:#17140D!important;
-  border:none!important;border-radius:10px!important;
-  font-family:var(--sans)!important;font-weight:700!important;
-}
-#ar-cart-btn,#ar-reset-btn{
-  background:transparent!important;background-image:none!important;
-  border:1px solid var(--line)!important;color:var(--ivory)!important;
-  border-radius:10px!important;font-family:var(--sans)!important;font-weight:600!important;
-}
-#cart-page{background:var(--bg)!important;color:var(--ivory)!important}
-#cart-header h2,#cart-items,#cart-summary{font-family:var(--sans)!important;color:var(--ivory)!important}
-#cart-back{background:transparent!important;border:1px solid var(--line)!important;color:var(--ivory)!important;border-radius:9px!important}
-.summary-row{font-family:var(--sans)!important;color:var(--warm)!important}
-.summary-row.total{color:var(--ivory)!important}
-#summary-total{font-family:var(--serif)!important;font-size:24px!important;font-weight:600!important;color:var(--gold)!important}
-
-/* ══ Numerals ══════════════════════════════════════════════
-   Serif display uses old-style figures; data uses lining
-   tabular figures so columns of numbers align.             */
-#menu-page,#header{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-#header h1,.card-name,.card-price,#cart-total,#summary-total,
-#ar-detail-name,#ar-detail-price,#header .mv-eyebrow{
-  font-variant-numeric:oldstyle-nums proportional-nums;
-  font-feature-settings:'onum' 1,'pnum' 1,'kern' 1,'liga' 1;
-}
-.card-cal,.card-size,#cart-count,.cal-badge,.size-badge,
-#summary-subtotal,#summary-tax,#ar-qty-num,.ar-tag{
-  font-variant-numeric:lining-nums tabular-nums;
-  font-feature-settings:'lnum' 1,'tnum' 1;
-  font-variant-ligatures:none;
-}
-#header h1,.card-name{text-wrap:balance;font-kerning:normal}
-.card-desc,#header p,#header .ar-badge{text-wrap:pretty}
-
-/* ══ Larger screens ════════════════════════════════════════ */
-@media(min-width:640px){
-  #header{padding:80px 26px 60px!important}
-  #header h1{font-size:66px!important}
-  #header .mv-hair{max-width:520px}
-  #grid{grid-template-columns:1fr 1fr!important;max-width:960px;margin:0 auto!important;padding:18px 26px 0!important}
-  .section-title,.section-sub{max-width:960px;margin-left:auto!important;margin-right:auto!important;padding-left:26px!important;padding-right:26px!important}
-  .card-img-placeholder{height:225px!important}
-}
-@media(min-width:1024px){#grid{grid-template-columns:repeat(3,1fr)!important}}
-
-/* landscape phones: style.css hides the strapline */
-@media(max-height:500px) and (orientation:landscape){
-  #header{padding:24px var(--pad) 26px!important}
-  #header h1{font-size:32px!important;margin-bottom:0!important}
-  #header .mv-eyebrow{margin-bottom:10px}
-  #header .mv-hair,#header .mv-rule{display:none!important}
-}
-@media(prefers-reduced-motion:reduce){
-  .food-card{opacity:1!important;transform:none!important;animation:none!important}
-  *{transition:none!important}
-}
-:focus-visible{outline:2px solid var(--gold)!important;outline-offset:3px!important}
-
-/* ══ Sold out (set from the owner dashboard) ═══════════════ */
-.food-card.sold-out .card-img-placeholder img{filter:grayscale(1);opacity:.45}
-.food-card.sold-out .card-price{font-family:var(--sans)!important;font-size:12px!important;
-  font-weight:700!important;letter-spacing:.14em!important;text-transform:uppercase;color:var(--mute)!important}
-.food-card.sold-out .card-add-btn{opacity:.35!important;cursor:not-allowed!important}
-#place-order-btn[disabled]{opacity:.6!important}
-</style>
-
-
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=20">
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>
 
-<button id="back-btn" onclick="closeViewer()" ontouchend="event.preventDefault();closeViewer();">← Menu</button>
+<!-- Icons, reused with <use href="#i-…"> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.5h2" stroke-linecap="round"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M6 9v10M18 9v10M5 9l2-4h10l2 4"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4" stroke-linecap="round"/></symbol>
+</svg>
 
-<div id="ar-topbar" style="display:none!important">
-    <div id="ar-food-name">Pizza</div>
-    <div id="ar-food-price">£8.99</div>
-</div>
-
-<!-- 3D VIEWER -->
-<div id="viewer-3d">
-    <canvas id="three-canvas"></canvas>
-    <div id="ar-loading">
-        <div class="loading-icon"></div>
-        <div class="loading-text">Loading 3D Model...</div>
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div class="progress-percent" id="progress-percent">0%</div>
-    </div>
-</div>
-
-<!-- AR VIEWER -->
-<div id="viewer-ar">
-    <model-viewer id="ar-mv"
-        ar
-        ar-modes="scene-viewer quick-look webxr"
-        ar-placement="floor"
-        ar-scale="fixed"
-        camera-controls
-        touch-action="pan-y"
-        shadow-intensity="0"
-        shadow-softness="1"
-        exposure="1.25"
-        tone-mapping="neutral"
-        environment-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAIAAAD4YuoOAAAAIElEQVR42mPcs2cPAy0BEwONwagFoxaMWjBqwagF1AAAvqsCVKW+mPUAAAAASUVORK5CYII="
-        camera-orbit="0deg 72deg 105%"
-        alt="Dish preview">
-            <button slot="ar-button" id="ar-launch">Place on your table</button>
-        </model-viewer>
-</div>
-
-<!-- BOTTOM BAR -->
-<div id="ar-bottombar">
-    <div id="ar-hint-bar" style="display:none!important">☝️ Drag to rotate &middot; 🤏 Pinch to zoom</div>
-    <div id="ar-detail-card">
-        <div id="ar-detail-top">
-            <div id="ar-detail-name">Margherita Pizza</div>
-            <div id="ar-detail-price">£8.99</div>
-        </div>
-        <div id="ar-detail-desc">Fresh tomato sauce, mozzarella and basil.</div>
-        <div id="ar-cal-row">
-            <div class="cal-badge">320 kcal</div>
-            <div class="cal-badge">15 min</div>
-            <div class="cal-badge">4.8</div>
-        </div>
-        <div id="ar-size-row">
-            <div class="size-badge">12 inch</div>
-            <div class="size-badge">2-3 people</div>
-            <div class="size-badge">400g</div>
-        </div>
-        <div id="ar-qty-row">
-            <div id="ar-qty-label">Quantity</div>
-            <button class="ar-qty-btn" onclick="changeQty(-1)" ontouchend="event.preventDefault();changeQty(-1)">−</button>
-            <div id="ar-qty-num">1</div>
-            <button class="ar-qty-btn" onclick="changeQty(1)" ontouchend="event.preventDefault();changeQty(1)">+</button>
-        </div>
-        <div id="ar-action-row">
-            <button id="ar-cart-btn"  onclick="addToCart()"  ontouchend="event.preventDefault();addToCart()">Add to order</button>
-            <button id="ar-order-btn" onclick="orderNow()"   ontouchend="event.preventDefault();orderNow()">Order now</button>
-            <button id="ar-reset-btn" onclick="resetModel()" ontouchend="event.preventDefault();resetModel()">⟳</button>
-        </div>
-    </div>
-</div>
-
-<!-- MENU PAGE -->
+<!-- ═══════════════════ MENU ═══════════════════ -->
 <div id="menu-page">
-    <div id="header">
-        <div class="mv-eyebrow">Table 12</div>
-        <h1>The Cozy <em>Cup</em></h1>
-        <div class="mv-hair" aria-hidden="true"></div>
-        <p>Coffee &amp; kitchen &middot; Leith Walk, Edinburgh</p>
-        <div class="ar-badge">Point your phone at the table &mdash; every dish appears at its real size</div>
-        <div class="mv-rule" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="hero-top">
+      <span class="mono" id="r-mono" aria-hidden="true">C</span>
+      <span class="table-chip" data-table hidden></span>
     </div>
-    <div class="section-title">Our Menu</div>
-    <div class="section-sub">See your food before you order</div>
-    <div id="grid">
-        <div class="food-card" data-dish="pizza">
-            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#ff9a56,#ff6b35)">
-                <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+    <p class="hero-tagline" id="r-tagline">Coffee &amp; kitchen · Leith Walk, Edinburgh</p>
+    <h1 class="hero-title" id="r-name">The Cozy <em>Cup</em></h1>
+    <p class="hero-intro" id="r-badge">Point your phone at the table — every dish appears at its real size</p>
+
+    <ol class="steps" aria-label="How to see a dish on your table">
+      <li><svg><use href="#i-cube"/></svg><span>Tap <b>View on table</b></span></li>
+      <li><svg><use href="#i-phone"/></svg><span>Point at your table</span></li>
+      <li><svg><use href="#i-ruler"/></svg><span>See it at real size</span></li>
+    </ol>
+  </header>
+
+  <nav class="cats" aria-label="Menu sections">
+    <a class="cat-link active" href="#mains">Mains <span>4</span></a>
+    <a class="cat-link" href="#drinks">Drinks <span>1</span></a>
+  </nav>
+
+  <main class="menu">
+
+    <section class="menu-section" id="mains" aria-labelledby="mains-h">
+      <div class="section-head">
+        <h2 id="mains-h">Mains</h2>
+        <p>Freshly made to order</p>
+      </div>
+      <div class="grid">
+
+        <article class="food-card" data-dish="pizza">
+          <div class="card-media">
+            <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=900&q=80&auto=format&fit=crop"
+                 srcset="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=900&q=80&auto=format&fit=crop 900w"
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Margherita pizza with basil" loading="lazy" decoding="async">
+            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+            <span class="sold-pill">Sold out</span>
+          </div>
+          <div class="card-body">
+            <div class="card-head"><h3 class="card-name">Margherita Pizza</h3><span class="card-price">£8.99</span></div>
+            <p class="card-desc">Tomato, mozzarella, fresh basil</p>
+            <p class="card-facts"><span class="card-size">12 inch · 2-3 people</span><span class="card-cal">320 kcal</span></p>
+            <div class="card-btns">
+              <button class="card-ar-btn" onclick="openAR('pizza')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-add-btn" onclick="quickAdd('pizza')" aria-label="Add Margherita Pizza to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
-            <div class="card-body">
-                <div class="card-name">Margherita Pizza</div>
-                <div class="card-desc">Tomato, mozzarella, fresh basil</div>
-                <div class="card-size">12 inch &middot; 2-3 people</div>
-                <div class="card-meta"><div class="card-cal">320 kcal</div><div class="card-price">£8.99</div></div>
-                <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('pizza')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
-                    <button class="card-add-btn" onclick="quickAdd('pizza')">+</button>
-                </div>
+          </div>
+        </article>
+
+        <article class="food-card" data-dish="burger">
+          <div class="card-media">
+            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80&auto=format&fit=crop"
+                 srcset="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80&auto=format&fit=crop 900w"
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Beef burger with cheese and lettuce" loading="lazy" decoding="async">
+            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+            <span class="sold-pill">Sold out</span>
+          </div>
+          <div class="card-body">
+            <div class="card-head"><h3 class="card-name">Classic Burger</h3><span class="card-price">£11.99</span></div>
+            <p class="card-desc">Beef patty, cheese, lettuce</p>
+            <p class="card-facts"><span class="card-size">5 inch · 1 person</span><span class="card-cal">540 kcal</span></p>
+            <div class="card-btns">
+              <button class="card-ar-btn" onclick="openAR('burger')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-add-btn" onclick="quickAdd('burger')" aria-label="Add Classic Burger to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
-        </div>
-        <div class="food-card" data-dish="burger">
-            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f4d03f,#e67e22)">
-                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+          </div>
+        </article>
+
+        <article class="food-card" data-dish="pasta">
+          <div class="card-media">
+            <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=900&q=80&auto=format&fit=crop"
+                 srcset="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=900&q=80&auto=format&fit=crop 900w"
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Creamy pasta with herbs" loading="lazy" decoding="async">
+            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+            <span class="sold-pill">Sold out</span>
+          </div>
+          <div class="card-body">
+            <div class="card-head"><h3 class="card-name">Creamy Pasta</h3><span class="card-price">£9.99</span></div>
+            <p class="card-desc">Herbs, garlic and parmesan</p>
+            <p class="card-facts"><span class="card-size">300g · 1 person</span><span class="card-cal">480 kcal</span></p>
+            <div class="card-btns">
+              <button class="card-ar-btn" onclick="openAR('pasta')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-add-btn" onclick="quickAdd('pasta')" aria-label="Add Creamy Pasta to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
-            <div class="card-body">
-                <div class="card-name">Classic Burger</div>
-                <div class="card-desc">Beef patty, cheese, lettuce</div>
-                <div class="card-size">5 inch &middot; 1 person</div>
-                <div class="card-meta"><div class="card-cal">540 kcal</div><div class="card-price">£11.99</div></div>
-                <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('burger')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
-                    <button class="card-add-btn" onclick="quickAdd('burger')">+</button>
-                </div>
+          </div>
+        </article>
+
+        <article class="food-card" data-dish="sushi">
+          <div class="card-media">
+            <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=900&q=80&auto=format&fit=crop"
+                 srcset="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=900&q=80&auto=format&fit=crop 900w"
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Sushi platter" loading="lazy" decoding="async">
+            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+            <span class="sold-pill">Sold out</span>
+          </div>
+          <div class="card-body">
+            <div class="card-head"><h3 class="card-name">Sushi Platter</h3><span class="card-price">£13.99</span></div>
+            <p class="card-desc">Premium rolls with wasabi</p>
+            <p class="card-facts"><span class="card-size">5 pieces · 1 person</span><span class="card-cal">310 kcal</span></p>
+            <div class="card-btns">
+              <button class="card-ar-btn" onclick="openAR('sushi')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-add-btn" onclick="quickAdd('sushi')" aria-label="Add Sushi Platter to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
-        </div>
-        <div class="food-card" data-dish="drink">
-            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#a8edea,#fed6e3)">
-                <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="menu-section" id="drinks" aria-labelledby="drinks-h">
+      <div class="section-head">
+        <h2 id="drinks-h">Drinks</h2>
+        <p>Pressed and poured fresh</p>
+      </div>
+      <div class="grid">
+
+        <article class="food-card" data-dish="drink">
+          <div class="card-media">
+            <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=900&q=80&auto=format&fit=crop"
+                 srcset="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1544145945-f90425340c7e?w=900&q=80&auto=format&fit=crop 900w"
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Glass of fresh lemonade with mint" loading="lazy" decoding="async">
+            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+            <span class="sold-pill">Sold out</span>
+          </div>
+          <div class="card-body">
+            <div class="card-head"><h3 class="card-name">Fresh Lemonade</h3><span class="card-price">£4.99</span></div>
+            <p class="card-desc">Cold pressed, mint, lime</p>
+            <p class="card-facts"><span class="card-size">350 ml · 1 person</span><span class="card-cal">85 kcal</span></p>
+            <div class="card-btns">
+              <button class="card-ar-btn" onclick="openAR('drink')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-add-btn" onclick="quickAdd('drink')" aria-label="Add Fresh Lemonade to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
-            <div class="card-body">
-                <div class="card-name">Fresh Lemonade</div>
-                <div class="card-desc">Cold pressed, mint, lime</div>
-                <div class="card-size">350 ml &middot; 1 person</div>
-                <div class="card-meta"><div class="card-cal">85 kcal</div><div class="card-price">£4.99</div></div>
-                <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('drink')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
-                    <button class="card-add-btn" onclick="quickAdd('drink')">+</button>
-                </div>
-            </div>
-        </div>
-        <div class="food-card" data-dish="pasta">
-            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#f5cba7,#e59866)">
-                <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
-            </div>
-            <div class="card-body">
-                <div class="card-name">Creamy Pasta</div>
-                <div class="card-desc">Herbs, garlic and parmesan</div>
-                <div class="card-size">300g &middot; 1 person</div>
-                <div class="card-meta"><div class="card-cal">480 kcal</div><div class="card-price">£9.99</div></div>
-                <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('pasta')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
-                    <button class="card-add-btn" onclick="quickAdd('pasta')">+</button>
-                </div>
-            </div>
-        </div>
-        <div class="food-card" data-dish="sushi">
-            <div class="card-img-placeholder" style="background: linear-gradient(135deg,#aed6f1,#2980b9)">
-                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&q=80" onerror="this.style.display='none'" /><div class="ar-tag">AR</div>
-            </div>
-            <div class="card-body">
-                <div class="card-name">Sushi Platter</div>
-                <div class="card-desc">Premium rolls with wasabi</div>
-                <div class="card-size">5 pieces &middot; 1 person</div>
-                <div class="card-meta"><div class="card-cal">310 kcal</div><div class="card-price">£13.99</div></div>
-                <div class="card-btns">
-                    <button class="card-ar-btn" onclick="openAR('sushi')"><svg class="mv-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 3.8 7.5v9L12 21l8.2-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.8 7.5 12 12m0 0 8.2-4.5M12 12v9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>View in AR</span></button>
-                    <button class="card-add-btn" onclick="quickAdd('sushi')">+</button>
-                </div>
-            </div>
-        </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <footer class="menu-foot">
+      <span class="mono small" aria-hidden="true">✦</span>
+      <p>Allergies or dietary needs? Add a note to your order or ask our team.</p>
+    </footer>
+  </main>
+</div>
+
+<!-- Floating order bar -->
+<button id="cart-bar" onclick="openCart()" aria-label="View your order">
+  <span class="cb-count"><svg><use href="#i-bag"/></svg><b id="cart-count">0</b></span>
+  <span class="cb-label">View order</span>
+  <span class="cb-total" id="cart-total">£0.00</span>
+  <svg class="cb-arrow"><use href="#i-arrow"/></svg>
+</button>
+
+<!-- ═══════════════════ ORDER SHEET ═══════════════════ -->
+<section id="cart-page" aria-labelledby="cart-h" role="dialog" aria-modal="true">
+  <div class="sheet-head">
+    <button id="cart-back" class="icon-btn" onclick="history.back()" aria-label="Back to menu"><svg><use href="#i-back"/></svg></button>
+    <h2 id="cart-h">Your order</h2>
+    <span class="table-chip" data-table hidden></span>
+  </div>
+
+  <div class="sheet-body">
+    <ul id="cart-items"></ul>
+
+    <div id="empty-cart">
+      <svg><use href="#i-bag"/></svg>
+      <p>Your order is empty</p>
+      <small>Add a dish from the menu to get started</small>
+      <button class="btn-ghost" onclick="history.back()">Browse the menu</button>
     </div>
-</div>
 
-<div id="cart-bar">
-    <div id="cart-info"><div id="cart-count">0 items</div><div id="cart-total">£0</div></div>
-    <button id="cart-checkout-btn" onclick="openCart()">View Cart →</button>
-</div>
-
-<div id="bottom-nav">
-    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Menu</div>
-    <div class="nav-item" onclick="openCart()"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 5h2.2l2.1 10.2a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.25L20.5 8H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/></svg></div>Cart</div>
-    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="2.4" stroke="currentColor" stroke-width="1.7"/><path d="M9 9h6M9 13h6M9 17h3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Orders</div>
-    <div class="nav-item"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.7"/><path d="M4.8 20c.9-3.7 3.8-5.6 7.2-5.6s6.3 1.9 7.2 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>Profile</div>
-</div>
-
-<div id="cart-page">
-    <div id="cart-header"><button id="cart-back" onclick="closeCart()">← Back</button><h2>Your Cart</h2></div>
-    <div id="cart-items"></div>
-    <div id="empty-cart"><div class="empty-icon"></div><div>Your cart is empty</div><small>Add items from the menu</small></div>
-    <div id="cart-summary">
-        <div class="summary-row"><span id="summary-subtotal">£0</span></div>
-        <div class="summary-row"><span id="summary-tax">£0</span></div>
-        <div class="summary-row total"><span id="summary-total">£0</span></div>
-        <button id="place-order-btn" onclick="placeOrder()">Place Order →</button>
+    <div class="order-extras">
+      <label for="order-note">Notes for the kitchen</label>
+      <textarea id="order-note" maxlength="300" rows="2" placeholder="Allergies, no onions, extra napkins…"></textarea>
     </div>
+  </div>
+
+  <div id="cart-summary">
+    <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">£0.00</span></div>
+    <div class="summary-row"><span id="summary-tax-label">Service &amp; tax</span><span id="summary-tax">£0.00</span></div>
+    <div class="summary-row total"><span>Total</span><span id="summary-total">£0.00</span></div>
+    <button id="place-order-btn" class="btn-gold" onclick="placeOrder()">Place order</button>
+    <p class="summary-hint">Pay at the table when your food arrives</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ CONFIRMATION ═══════════════════ -->
+<section id="order-success" role="dialog" aria-modal="true" aria-labelledby="ok-h">
+  <div class="ok-ring"><svg><use href="#i-check"/></svg></div>
+  <p class="ok-kicker">Order received</p>
+  <h2 id="ok-h">Sent to the kitchen</h2>
+  <div class="ok-ticket">
+    <div><span>Order</span><b id="order-id-text">#0000</b></div>
+    <div class="ok-table" data-table-row><span>Table</span><b data-table-num>—</b></div>
+  </div>
+  <p class="ok-note">We'll bring it to your table as soon as it's ready.</p>
+  <button class="btn-gold" onclick="backToMenu()">Back to menu</button>
+</section>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite">
+  <span class="toast-icon" id="toast-icon">✓</span>
+  <span class="toast-text"><span class="toast-msg" id="toast-msg"></span><span class="toast-sub" id="toast-sub"></span></span>
 </div>
 
-<div id="order-success">
-    <div class="success-icon"></div>
-    <h2>Order Placed!</h2>
-    <p>Your order has been received.<br>We'll have it ready soon.</p>
-    <div class="order-id" id="order-id-text">Order #0000</div>
-    <button onclick="backToMenu()">Back to Menu</button>
+<!-- ═══════════════════ DISH PREVIEW (desktop; phones open the AR camera) ═══════════════════ -->
+<button id="back-btn" class="icon-btn" onclick="closeViewer()" aria-label="Back to menu"><svg><use href="#i-back"/></svg></button>
+
+<div id="viewer-ar">
+  <model-viewer id="ar-mv"
+      ar
+      ar-modes="scene-viewer quick-look webxr"
+      ar-placement="floor"
+      ar-scale="fixed"
+      camera-controls
+      touch-action="pan-y"
+      shadow-intensity="0"
+      shadow-softness="1"
+      exposure="1.25"
+      tone-mapping="neutral"
+      environment-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAIAAAD4YuoOAAAAIElEQVR42mPcs2cPAy0BEwONwagFoxaMWjBqwagF1AAAvqsCVKW+mPUAAAAASUVORK5CYII="
+      camera-orbit="0deg 72deg 105%"
+      alt="3D preview of the dish">
+    <button slot="ar-button" id="ar-launch"><svg><use href="#i-cube"/></svg>Place on your table</button>
+  </model-viewer>
 </div>
 
-<div id="toast">
-    <div class="toast-icon" id="toast-icon">✅</div>
-    <div class="toast-msg" id="toast-msg">Added!</div>
-    <div class="toast-sub" id="toast-sub"></div>
+<div id="ar-bottombar">
+  <div id="ar-detail-card">
+    <div class="ad-info">
+      <div id="ar-detail-name">Margherita Pizza</div>
+      <div id="ar-detail-meta"></div>
+    </div>
+    <div id="ar-detail-price">£8.99</div>
+    <button id="ar-reset-btn" class="icon-btn" onclick="resetModel()" aria-label="Reset view">⟳</button>
+    <button id="ar-cart-btn" class="btn-gold" onclick="addToCart()"><svg><use href="#i-plus"/></svg>Add to order</button>
+  </div>
+  <p id="ar-msg"></p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=2"></script>
-<script src="script.js?v=14"></script>
-<script src="data.js?v=1"></script>
-
-<div id="ar-wait"><div class="spin"></div><div>Opening camera…</div></div>
-
-<!-- ═══ TABLE DETECTION — added, nothing above this line was changed ═══ -->
-<style>
-/* force a solid black stage - beats any cached stylesheet */
-html, body,
-#ar-page, #viewer-ar, #viewer-3d, #three-canvas,
-#viewer-ar model-viewer, #viewer-ar model-viewer::part(default-progress-bar){
-  background:#000!important; background-image:none!important;
-}
-#viewer-ar model-viewer{position:fixed!important;inset:0!important;
-  width:100vw!important;height:100vh!important;z-index:2!important;
-  background:#0f0e0d!important}
-#ar-wait{position:fixed;inset:0;z-index:70;display:none;
-  align-items:center;justify-content:center;flex-direction:column;gap:14px;
-  background:#0f0e0d;color:#f0ebe4;font-size:15px;font-weight:600}
-#ar-wait .spin{width:34px;height:34px;border:3px solid #3a3330;
-  border-top-color:#ff6b35;border-radius:50%;animation:arspin .8s linear infinite}
-@keyframes arspin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){#ar-wait .spin{animation:none}}
-#ar-launch{position:fixed;left:50%;transform:translateX(-50%);bottom:290px;
-  z-index:60;padding:14px 24px;border:none;border-radius:100px;
-  background:#ff6b35!important;color:#fff!important;font-size:15px;font-weight:700;
-  box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}
-#ar-launch[disabled]{opacity:.4}
-#ar-msg{position:fixed;left:0;right:0;bottom:255px;z-index:60;text-align:center;
-  font-size:12.5px;color:#e6a3a3;padding:0 20px}
-</style>
+<script src="script.js?v=20"></script>
+<script src="data.js?v=2"></script>
 
 <script>
 /* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
@@ -558,9 +293,7 @@ html, body,
 (function(){
   var mv = document.getElementById('ar-mv');
   var btn = document.getElementById('ar-launch');
-  var msg = document.createElement('p');
-  msg.id = 'ar-msg';
-  document.body.appendChild(msg);
+  var msg = document.getElementById('ar-msg');
 
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -571,8 +304,8 @@ html, body,
     if (mv.canActivateAR) { btn.disabled = false; msg.textContent = ''; return; }
     btn.disabled = true;
     msg.textContent = isIOS
-      ? 'Table view needs ' + (mv.dataset.dish||'') + '.usdz \u2014 drag the dish to look around it.'
-      : 'This device cannot do AR \u2014 drag the dish to look around it.';
+      ? 'Table view needs ' + (mv.dataset.dish||'') + '.usdz — drag the dish to look around it.'
+      : 'Open this menu on your phone to see the dish on your table. Drag to look around it.';
   });
 
   /* Force every dish fully matte IN THE PREVIEW ONLY.
@@ -591,11 +324,11 @@ html, body,
 
   mv.addEventListener('error', function(){
     btn.disabled = true;
-    msg.textContent = 'Could not load ' + (mv.dataset.dish||'') + '.glb \u2014 check the file name.';
+    msg.textContent = 'Could not load ' + (mv.dataset.dish||'') + '.glb — check the file name.';
   });
 })();
 </script>
-<!-- Sensory layer: sound, description, steam, haptics, instructions -->
-<script src="sensory.js?v=4"></script>
+<!-- Sensory layer: steam, haptics, AR instructions -->
+<script src="sensory.js?v=5"></script>
 </body>
 </html>

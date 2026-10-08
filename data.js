@@ -11,11 +11,12 @@
    ════════════════════════════════════════════════════════════════ */
 (function () {
   var table = (new URLSearchParams(location.search).get('table') || '').trim().slice(0, 20);
-  var eyebrow = document.querySelector('#header .mv-eyebrow');
-  if (eyebrow) {
-    if (table) eyebrow.textContent = 'Table ' + table;
-    else eyebrow.style.display = 'none';
-  }
+  document.querySelectorAll('[data-table]').forEach(function (el) {
+    el.textContent = 'Table ' + table;
+    el.hidden = !table;
+  });
+  document.querySelectorAll('[data-table-num]').forEach(function (el) { el.textContent = table; });
+  document.querySelectorAll('[data-table-row]').forEach(function (el) { el.hidden = !table; });
 
   var cfg = window.MENU_CONFIG;
   if (!cfg || !window.supabase || /^YOUR_/.test(cfg.supabaseUrl)) {
@@ -29,15 +30,17 @@
     if (!r) return;
     currency = r.currency || currency;
     taxRate = Number(r.tax_rate);
-    var h1 = document.querySelector('#header h1');
+    var h1 = document.getElementById('r-name');
     if (h1 && r.name) {
       // last word in gold italics, like the original design
       var words = r.name.trim().split(/\s+/), last = words.pop();
       h1.innerHTML = (words.length ? esc(words.join(' ')) + ' ' : '') + '<em>' + esc(last) + '</em>';
     }
-    var p = document.querySelector('#header p'); if (p) p.textContent = r.tagline;
-    var b = document.querySelector('#header .ar-badge'); if (b) b.textContent = r.badge;
-    if (r.name) document.title = r.name;
+    var mono = document.getElementById('r-mono');
+    if (mono && r.name) mono.textContent = r.name.replace(/^the\s+/i, '').charAt(0).toUpperCase();
+    var p = document.getElementById('r-tagline'); if (p) p.textContent = r.tagline;
+    var b = document.getElementById('r-badge'); if (b) b.textContent = r.badge;
+    if (r.name) document.title = r.name + ' — Menu';
   }
 
   function applyDish(d) {
@@ -54,7 +57,7 @@
     card.querySelector('.card-desc').textContent = d.description;
     card.querySelector('.card-size').textContent = [d.size, d.serves].filter(Boolean).join(' · ');
     card.querySelector('.card-cal').textContent = d.calories;
-    card.querySelector('.card-price').textContent = d.available ? money(d.price) : 'Sold out';
+    card.querySelector('.card-price').textContent = money(d.price);
     card.classList.toggle('sold-out', !d.available);
     card.querySelector('.card-add-btn').disabled = !d.available;
   }
@@ -95,24 +98,22 @@
     sending = true;
     var btn = document.getElementById('place-order-btn');
     var label = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Sending…';
+    btn.disabled = true; btn.textContent = 'Sending to the kitchen…';
+    var note = document.getElementById('order-note');
 
     var items = Object.keys(cart).map(function (id) { return { id: id, qty: cart[id].qty }; });
-    db.rpc('place_order', { p_table: table || null, p_items: items, p_note: null })
+    db.rpc('place_order', { p_table: table || null, p_items: items, p_note: note ? note.value : null })
       .then(function (res) {
         if (res.error) throw res.error;
-        document.getElementById('order-id-text').innerText = 'Order #' + res.data.order_no;
-        cart = {}; updateCartBar();
-        document.getElementById('cart-page').classList.remove('open');
-        document.getElementById('order-success').classList.add('open');
+        showOrderSuccess(res.data.order_no);
       })
       .catch(function (e) {
         var msg = String(e && e.message || '');
-        if (msg.indexOf('NOT_ACCEPTING') !== -1) showToast('⏸️', 'Not taking orders right now', 'Please ask a member of staff');
-        else if (msg.indexOf('UNAVAILABLE') !== -1) { showToast('⛔', 'Something in your cart sold out', 'Please check your cart'); loadAll(); }
-        else showToast('⚠️', 'Order not sent', 'Check your connection and try again');
+        if (msg.indexOf('NOT_ACCEPTING') !== -1) showToast('!', 'Not taking orders right now', 'Please ask a member of staff');
+        else if (msg.indexOf('UNAVAILABLE') !== -1) { showToast('!', 'Something in your order sold out', 'Please check your order'); loadAll(); }
+        else showToast('!', 'Order not sent', 'Check your connection and try again');
         console.error('Order failed:', e);
       })
-      .then(function () { sending = false; btn.disabled = false; btn.textContent = label; });
+      .then(function () { sending = false; btn.textContent = label; btn.disabled = !getCartCount(); });
   };
 })();
