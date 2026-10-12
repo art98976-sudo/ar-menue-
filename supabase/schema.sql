@@ -57,6 +57,9 @@ create table if not exists public.dishes (
   price_band  text not null default 'mid',
   meal_part   text not null default 'unspecified',
   promote     boolean not null default false,
+  ingredients text[] not null default '{}',
+  calories_per_100g numeric(8,2) not null default 0 check (calories_per_100g >= 0),
+  portion_grams numeric(8,2) not null default 0 check (portion_grams >= 0),
   available   boolean not null default true,
   sort        int not null default 0,
   updated_at  timestamptz not null default now()
@@ -72,6 +75,13 @@ alter table public.dishes add column if not exists allergen_info_verified boolea
 alter table public.dishes add column if not exists price_band text not null default 'mid';
 alter table public.dishes add column if not exists meal_part text not null default 'unspecified';
 alter table public.dishes add column if not exists promote boolean not null default false;
+alter table public.dishes add column if not exists ingredients text[] not null default '{}';
+alter table public.dishes add column if not exists calories_per_100g numeric(8,2) not null default 0;
+alter table public.dishes add column if not exists portion_grams numeric(8,2) not null default 0;
+alter table public.dishes drop constraint if exists dishes_calories_per_100g_check;
+alter table public.dishes add constraint dishes_calories_per_100g_check check (calories_per_100g >= 0);
+alter table public.dishes drop constraint if exists dishes_portion_grams_check;
+alter table public.dishes add constraint dishes_portion_grams_check check (portion_grams >= 0);
 
 alter table public.dishes drop constraint if exists dishes_category_check;
 alter table public.dishes add constraint dishes_category_check
@@ -314,14 +324,137 @@ create policy "owner: updates orders" on public.orders for update to authenticat
 drop policy if exists "owner: sees own owner row" on public.owners;
 create policy "owner: sees own owner row" on public.owners for select to authenticated using (user_id = auth.uid());
 
--- ── Placing an order (called by the customer menu) ──────────────
--- Prices and discounts are recalculated in the database, not trusted from the browser.
+-- ── Tables in the restaurant ────────────────────────────────────
+-- qr_key is the table's secret. Customers can never read this table; they can
+-- only ask check_table() whether a table number and code match.
+create table if not exists public.restaurant_tables (
+  label      text primary key check (label ~ '^[A-Za-z0-9_-]{1,20}$'),
+  qr_key     text not null default replace(gen_random_uuid()::text, '-', '') check (length(qr_key) >= 24),
+  active     boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.restaurant_tables enable row level security;
+drop policy if exists "owner: manages tables" on public.restaurant_tables;
+create policy "owner: manages tables" on public.restaurant_tables for all to authenticated
+  using (public.is_owner()) with check (public.is_owner());
+
+create or replace function public.check_table(p_table text, p_key text)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.restaurant_tables t
+     where t.label = btrim(p_table) and t.active and t.qr_key = p_key
+  );
+$$;
+revoke all on function public.check_table(text, text) from public;
+grant execute on function public.check_table(text, text) to anon, authenticated;
+
+-- Short-lived shared table board. The QR key is required for every operation.
+create table if not exists public.table_sessions (
+  id uuid primary key default gen_random_uuid(),
+  table_label text not null references public.restaurant_tables(label) on delete cascade,
+  started_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '6 hours'),
+  status text not null default 'open' check (status in ('open', 'closed'))
+);
+create index if not exists table_sessions_lookup_idx on public.table_sessions (table_label, status, expires_at desc);
+create unique index if not exists table_sessions_one_open_idx on public.table_sessions (table_label) where status = 'open';
+
+create table if not exists public.table_session_items (
+  session_id uuid not null references public.table_sessions(id) on delete cascade,
+  dish_id text not null references public.dishes(id) on delete cascade,
+  qty int not null check (qty between 1 and 20),
+  updated_at timestamptz not null default now(),
+  primary key (session_id, dish_id)
+);
+alter table public.table_sessions enable row level security;
+alter table public.table_session_items enable row level security;
+
+create or replace function public.get_table_board(p_table text, p_key text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_session uuid; v_started timestamptz;
+begin
+  if not exists (select 1 from public.restaurant_tables where label = btrim(p_table) and active and qr_key = p_key) then raise exception 'BAD_TABLE'; end if;
+  update public.table_sessions set status = 'closed' where table_label = btrim(p_table) and status = 'open' and expires_at <= now();
+  select id, started_at into v_session, v_started from public.table_sessions where table_label = btrim(p_table) and status = 'open' and expires_at > now() order by started_at desc limit 1;
+  if v_session is null then
+    begin
+      insert into public.table_sessions (table_label) values (btrim(p_table)) returning id, started_at into v_session, v_started;
+    exception when unique_violation then
+      select id, started_at into v_session, v_started from public.table_sessions where table_label = btrim(p_table) and status = 'open' order by started_at desc limit 1;
+    end;
+  end if;
+  return jsonb_build_object('session_id', v_session, 'table', btrim(p_table),
+    'basket', coalesce((select jsonb_agg(jsonb_build_object('id', i.dish_id, 'name', d.name, 'qty', i.qty, 'price', d.price) order by d.sort) from public.table_session_items i join public.dishes d on d.id = i.dish_id where i.session_id = v_session), '[]'::jsonb),
+    'orders', coalesce((select jsonb_agg(jsonb_build_object('order_no', o.order_no, 'status', o.status, 'total', o.total, 'created_at', o.created_at) order by o.created_at) from public.orders o where o.table_label = btrim(p_table) and o.created_at >= v_started and o.status <> 'cancelled'), '[]'::jsonb));
+end $$;
+
+create or replace function public.add_table_board_items(p_table text, p_key text, p_session_id uuid, p_items jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_req int; v_ok int;
+begin
+  if not exists (select 1 from public.restaurant_tables where label = btrim(p_table) and active and qr_key = p_key) then raise exception 'BAD_TABLE'; end if;
+  if not exists (select 1 from public.table_sessions where id = p_session_id and table_label = btrim(p_table) and status = 'open' and expires_at > now()) then raise exception 'BAD_SESSION'; end if;
+  if jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) = 0 or jsonb_array_length(p_items) > 50 then raise exception 'BAD_ITEMS'; end if;
+  with req as (select x.id, sum(x.qty)::int qty from jsonb_to_recordset(p_items) as x(id text, qty int) group by x.id)
+  select count(*), count(d.id) filter (where d.available and req.qty between 1 and 20) into v_req, v_ok from req left join public.dishes d on d.id = req.id;
+  if v_ok <> v_req then raise exception 'UNAVAILABLE'; end if;
+  insert into public.table_session_items (session_id, dish_id, qty) select p_session_id, x.id, x.qty from jsonb_to_recordset(p_items) as x(id text, qty int)
+  on conflict (session_id, dish_id) do update set qty = least(20, table_session_items.qty + excluded.qty), updated_at = now();
+  return public.get_table_board(p_table, p_key);
+end $$;
+
+create or replace function public.consume_table_board_items(p_table text, p_key text, p_session_id uuid, p_items jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.restaurant_tables where label = btrim(p_table) and active and qr_key = p_key) then raise exception 'BAD_TABLE'; end if;
+  if not exists (select 1 from public.table_sessions where id = p_session_id and table_label = btrim(p_table)) then raise exception 'BAD_SESSION'; end if;
+  update public.table_session_items i set qty = i.qty - x.qty, updated_at = now() from jsonb_to_recordset(p_items) as x(id text, qty int) where i.session_id = p_session_id and i.dish_id = x.id;
+  delete from public.table_session_items where session_id = p_session_id and qty <= 0;
+  return public.get_table_board(p_table, p_key);
+end $$;
+revoke all on function public.get_table_board(text, text) from public, anon, authenticated;
+revoke all on function public.add_table_board_items(text, text, uuid, jsonb) from public, anon, authenticated;
+revoke all on function public.consume_table_board_items(text, text, uuid, jsonb) from public, anon, authenticated;
+grant execute on function public.get_table_board(text, text) to anon, authenticated;
+grant execute on function public.add_table_board_items(text, text, uuid, jsonb) to anon, authenticated;
+grant execute on function public.consume_table_board_items(text, text, uuid, jsonb) to anon, authenticated;
+
+-- ── Order type ──────────────────────────────────────────────────
+-- Orders placed before this update were all made at the restaurant.
+alter table public.orders add column if not exists order_type text not null default 'dine_in';
+alter table public.orders drop constraint if exists orders_order_type_check;
+alter table public.orders add constraint orders_order_type_check
+  check (order_type in ('dine_in', 'delivery', 'collection'));
+
+-- ── New order columns ───────────────────────────────────────────
+-- client_request_id: random id the phone creates for each checkout attempt.
+--   Sending the same attempt twice (double tap, retry after a timeout)
+--   returns the first order instead of creating a second one.
+-- paid_at / refunded_at: set by the owner in the dashboard.
+alter table public.orders add column if not exists client_request_id uuid;
+alter table public.orders add column if not exists paid_at timestamptz;
+alter table public.orders add column if not exists refunded_at timestamptz;
+create unique index if not exists orders_client_request_id_key
+  on public.orders (client_request_id) where client_request_id is not null;
+alter table public.orders drop constraint if exists orders_refund_needs_payment_check;
+alter table public.orders add constraint orders_refund_needs_payment_check
+  check (refunded_at is null or paid_at is not null);
+
+-- ── Placing an order ────────────────────────────────────────────
+-- Duplicate-proof. Dine-in needs a real table and its secret code; home orders
+-- carry their customer details in the checkout note for the owner dashboard.
 drop function if exists public.place_order(text, jsonb, text);
+drop function if exists public.place_order(text, jsonb, text, jsonb);
+drop function if exists public.place_order(text, jsonb, text, jsonb, uuid);
 create or replace function public.place_order(
   p_table text,
   p_items jsonb,
   p_note text default null,
-  p_bundle jsonb default null
+  p_bundle jsonb default null,
+  p_request_id uuid default null,
+  p_order_type text default 'dine_in',
+  p_table_key text default null
 )
 returns jsonb
 language plpgsql security definer set search_path = public as $$
@@ -348,12 +481,41 @@ declare
   v_id    uuid;
   v_no    bigint;
   v_total numeric;
+  v_table text;
 begin
+  -- Same checkout attempt sent again: hand back the order it already created.
+  if p_request_id is not null then
+    select o.id, o.order_no, o.total, o.bundle_discount
+      into v_id, v_no, v_total, v_bundle_discount
+      from public.orders o where o.client_request_id = p_request_id;
+    if found then
+      return jsonb_build_object('id', v_id, 'order_no', v_no, 'total', v_total,
+                                'bundle_discount', v_bundle_discount, 'duplicate', true);
+    end if;
+  end if;
+
   select accepting_orders, tax_rate, bundles_enabled, bundle_discount_percent
     into v_open, v_rate, v_bundles_enabled, v_discount_percent
     from restaurant where id = 1;
   if not coalesce(v_open, false) then
     raise exception 'NOT_ACCEPTING' using hint = 'The kitchen is not taking orders right now';
+  end if;
+
+  if p_order_type not in ('dine_in', 'delivery', 'collection') then
+    raise exception 'ORDER_TYPE_UNAVAILABLE' using hint = 'This order type is not available';
+  end if;
+  if p_order_type = 'dine_in' then
+    select t.label into v_table
+      from public.restaurant_tables t
+     where t.label = btrim(p_table) and t.active and t.qr_key = p_table_key;
+    if v_table is null then
+      raise exception 'BAD_TABLE' using hint = 'This table code is not recognised';
+    end if;
+  else
+    v_table := null;
+    if length(coalesce(btrim(p_note), '')) < 20 then
+      raise exception 'CUSTOMER_DETAILS_REQUIRED' using hint = 'Name and contact details are required';
+    end if;
   end if;
 
   if jsonb_typeof(p_items) is distinct from 'array' then
@@ -460,17 +622,99 @@ begin
 
   v_tax := round((v_sub - v_bundle_discount) * v_rate, 2);
 
-  insert into orders (table_label, note, items, subtotal, bundle_discount, tax, total)
-  values (left(nullif(btrim(p_table), ''), 20), left(nullif(btrim(p_note), ''), 300),
-          v_items, v_sub, v_bundle_discount, v_tax, v_sub - v_bundle_discount + v_tax)
-  returning id, order_no, total into v_id, v_no, v_total;
+  begin
+    insert into orders (table_label, note, items, subtotal, bundle_discount, tax, total, client_request_id, order_type)
+    values (v_table, left(nullif(btrim(p_note), ''), 300),
+            v_items, v_sub, v_bundle_discount, v_tax, v_sub - v_bundle_discount + v_tax, p_request_id, p_order_type)
+    returning id, order_no, total into v_id, v_no, v_total;
+  exception when unique_violation then
+    -- Two copies of the same attempt arrived at the same moment: the other one won.
+    select o.id, o.order_no, o.total, o.bundle_discount
+      into v_id, v_no, v_total, v_bundle_discount
+      from public.orders o where o.client_request_id = p_request_id;
+    return jsonb_build_object('id', v_id, 'order_no', v_no, 'total', v_total,
+                              'bundle_discount', v_bundle_discount, 'duplicate', true);
+  end;
 
-  -- The id is unguessable, so it doubles as the customer's private key for order_status().
-  return jsonb_build_object('id', v_id, 'order_no', v_no, 'total', v_total, 'bundle_discount', v_bundle_discount);
+  -- The id is unguessable, so it doubles as the customer's private key for order_statuses().
+  return jsonb_build_object('id', v_id, 'order_no', v_no, 'total', v_total,
+                            'bundle_discount', v_bundle_discount, 'duplicate', false);
 end $$;
 
-revoke all on function public.place_order(text, jsonb, text, jsonb) from public;
-grant execute on function public.place_order(text, jsonb, text, jsonb) to anon, authenticated;
+revoke all on function public.place_order(text, jsonb, text, jsonb, uuid, text, text) from public;
+grant execute on function public.place_order(text, jsonb, text, jsonb, uuid, text, text) to anon, authenticated;
+
+-- ── Status of the orders a phone placed ─────────────────────────
+-- Customers cannot read the orders table. A phone sends the private ids of
+-- its own orders (at most 20) and gets back only those orders.
+drop function if exists public.order_statuses(uuid[]);
+create or replace function public.order_statuses(p_order_ids uuid[])
+returns table (id uuid, order_no bigint, status text, total numeric, paid boolean, refunded boolean,
+               updated_at timestamptz, order_type text, table_label text)
+language plpgsql stable security definer set search_path = public as $$
+#variable_conflict use_column
+begin
+  if coalesce(cardinality(p_order_ids), 0) > 20 then
+    raise exception 'TOO_MANY_ORDERS';
+  end if;
+  return query
+    select o.id, o.order_no, o.status, o.total, o.paid_at is not null, o.refunded_at is not null, o.updated_at,
+           o.order_type, o.table_label
+      from public.orders o
+     where o.id = any(coalesce(p_order_ids, array[]::uuid[]))
+       and o.created_at > now() - interval '12 hours';
+end $$;
+revoke all on function public.order_statuses(uuid[]) from public;
+grant execute on function public.order_statuses(uuid[]) to anon, authenticated;
+
+-- ── Find an order after the page reloaded mid-checkout ──────────
+-- Only the phone that created the random request id can know it.
+create or replace function public.recover_order(p_request_id uuid)
+returns table (id uuid, order_no bigint, total numeric, status text)
+language sql stable security definer set search_path = public as $$
+  select o.id, o.order_no, o.total, o.status
+    from public.orders o
+   where p_request_id is not null
+     and o.client_request_id = p_request_id
+     and o.created_at > now() - interval '1 hour';
+$$;
+revoke all on function public.recover_order(uuid) from public;
+grant execute on function public.recover_order(uuid) to anon, authenticated;
+
+-- ── Quiet error log from customer phones ────────────────────────
+-- Phones can add a short entry; only the owner can read them.
+create table if not exists public.client_errors (
+  id         bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  context    text not null,
+  message    text not null,
+  page       text,
+  user_agent text
+);
+create index if not exists client_errors_created_at_idx on public.client_errors (created_at desc);
+alter table public.client_errors enable row level security;
+drop policy if exists "owner: reads client errors" on public.client_errors;
+create policy "owner: reads client errors" on public.client_errors for select to authenticated
+  using (public.is_owner());
+
+create or replace function public.log_client_error(
+  p_context text, p_message text, p_page text default null, p_user_agent text default null
+) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  -- Guard against floods: at most 60 entries a minute across all phones.
+  if (select count(*) from public.client_errors where created_at > now() - interval '1 minute') >= 60 then
+    return;
+  end if;
+  insert into public.client_errors (context, message, page, user_agent)
+  values (left(coalesce(nullif(btrim(p_context), ''), 'unknown'), 60),
+          left(coalesce(p_message, ''), 500),
+          left(p_page, 200),
+          left(p_user_agent, 200));
+  delete from public.client_errors where created_at < now() - interval '30 days';
+end $$;
+revoke all on function public.log_client_error(text, text, text, text) from public;
+grant execute on function public.log_client_error(text, text, text, text) to anon, authenticated;
 
 -- ── Order status for the customer who placed it ─────────────────
 -- Customers cannot read the orders table. Knowing an order's private id
@@ -503,6 +747,20 @@ insert into public.dishes (id, name, description, price, calories, prep_time, ra
   ('pasta',  'Creamy Pasta',     'Rich creamy pasta with herbs, garlic and parmesan cheese.', 9.99,  '480 kcal', '12 min', '4.6', '300g',     '1 person',   '300g', '🍝', 4),
   ('sushi',  'Sushi Platter',    'Fresh sushi rolls with premium ingredients and wasabi.',    13.99, '310 kcal', '8 min',  '4.9', '5 pieces', '1 person',   '200g', '🍣', 5)
 on conflict (id) do nothing;
+
+-- Starter nutrition and ingredient data. Owners can replace these values after
+-- confirming the recipe and serving size with the kitchen.
+update public.dishes set
+  ingredients = case id
+    when 'pizza' then array['wheat flour','tomato','mozzarella','basil','olive oil']
+    when 'burger' then array['beef','brioche bun','cheddar','lettuce','tomato','sauce']
+    when 'drink' then array['lemon','lime','mint','water','sugar']
+    when 'pasta' then array['wheat pasta','cream','parmesan','garlic','herbs']
+    when 'sushi' then array['rice','nori','salmon','avocado','cucumber','wasabi']
+    else ingredients end,
+  calories_per_100g = case id when 'pizza' then 80 when 'burger' then 216 when 'drink' then 24.2857 when 'pasta' then 160 when 'sushi' then 155 else calories_per_100g end,
+  portion_grams = case id when 'pizza' then 400 when 'burger' then 250 when 'drink' then 350 when 'pasta' then 300 when 'sushi' then 200 else portion_grams end
+where id in ('pizza','burger','drink','pasta','sushi');
 
 -- Explicit starter tags. Dietary tags and meal timing are left unconfirmed
 -- unless the source menu provides evidence; owners can verify them in the dashboard.

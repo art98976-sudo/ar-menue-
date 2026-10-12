@@ -259,6 +259,22 @@
       <label for="order-note">Notes for the kitchen</label>
       <textarea id="order-note" maxlength="300" rows="2" placeholder="Allergies, no onions, extra napkins…"></textarea>
     </div>
+    <section id="home-order-fields" class="home-order-fields" hidden aria-labelledby="home-order-title">
+      <h3 id="home-order-title">How would you like your order?</h3>
+      <label for="order-type-select">Order type</label>
+      <select id="order-type-select">
+        <option value="collection">Collection</option>
+        <option value="delivery">Delivery</option>
+      </select>
+      <label for="customer-name">Name</label>
+      <input id="customer-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+      <label for="customer-phone">Phone number</label>
+      <input id="customer-phone" type="tel" maxlength="30" autocomplete="tel" placeholder="07...">
+      <div id="delivery-address-field" hidden>
+        <label for="delivery-address">Delivery address</label>
+        <textarea id="delivery-address" maxlength="240" rows="2" autocomplete="street-address" placeholder="House number, street, postcode"></textarea>
+      </div>
+    </section>
     <section id="table-board" class="table-board" hidden aria-labelledby="table-board-title">
       <div class="table-board-head"><div><h3 id="table-board-title">Shared table order</h3><p>See what your table is planning and what the kitchen has received.</p></div><button type="button" class="btn-ghost" id="table-board-refresh">Refresh</button></div>
       <div id="table-board-content" aria-live="polite"><p class="sub">Loading shared table order...</p></div>
@@ -275,7 +291,7 @@
     <div class="summary-row total"><span>Total</span><span id="summary-total">£0.00</span></div>
     <p class="order-mode-note" id="order-mode-note" role="status" hidden></p>
     <button id="place-order-btn" class="btn-gold" onclick="placeOrder()">Place order</button>
-    <p class="summary-hint">Pay at the table when your food arrives</p>
+    <p class="summary-hint" id="summary-hint">Pay at the table when your food arrives</p>
   </div>
 </section>
 

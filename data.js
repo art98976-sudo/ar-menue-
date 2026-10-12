@@ -12,16 +12,15 @@
 (function () {
   /* ── Ordering mode ────────────────────────────────────────────
      A table QR code opens the menu as  index.html?table=5&k=<secret>  → DINE-IN.
-     Opened with no table → HOME. Until delivery and collection exist (Phase 2),
-     home visitors can browse but not order. The database makes the final
-     decision, so a table typed in by hand is refused there too. */
+     Opened with no table → HOME. Home visitors can choose collection or
+     delivery; dine-in still requires a real table QR code. */
   var params = new URLSearchParams(location.search);
   var table = (params.get('table') || '').trim().slice(0, 20);
   var tableKey = (params.get('k') || '').trim().slice(0, 64);
   var MODE_TEXT = {
     checking: 'Checking your table…',
     bad_table: "We don't recognise this table code. Please ask a member of staff for help.",
-    home: "You're browsing from home. Delivery and collection are coming soon. To order now, scan the QR code on your table."
+    home: 'Choose collection or delivery below to place your order.'
   };
   // status: 'checking' | 'ready' | 'bad_table' | 'home'
   window.orderingMode = { type: table ? 'dine_in' : 'home', table: table || null, status: table ? 'checking' : 'home' };
@@ -42,9 +41,41 @@
     }
     var note = document.getElementById('order-mode-note');
     if (note) { note.textContent = MODE_TEXT[status] || ''; note.hidden = dineIn; }
+    var hint = document.getElementById('summary-hint');
+    if (hint) hint.textContent = dineIn ? 'Pay at the table when your food arrives' : 'We will confirm your collection or delivery order in the kitchen';
     if (typeof window.refreshOrderButton === 'function') window.refreshOrderButton();
   }
-  window.canPlaceOrder = function () { return window.orderingMode.status === 'ready'; };
+  function homeOrderType() {
+    var select = document.getElementById('order-type-select');
+    return select && select.value === 'delivery' ? 'delivery' : 'collection';
+  }
+  function updateHomeOrderFields() {
+    var fields = document.getElementById('home-order-fields');
+    var address = document.getElementById('delivery-address-field');
+    var delivery = homeOrderType() === 'delivery';
+    if (fields) fields.hidden = !!table || window.orderingMode.status !== 'home';
+    if (address) address.hidden = !delivery;
+    var note = document.getElementById('order-mode-note');
+    if (note && window.orderingMode.status === 'home') note.textContent = MODE_TEXT.home;
+  }
+  function homeOrderDetails() {
+    var name = (document.getElementById('customer-name') || {}).value || '';
+    var phone = (document.getElementById('customer-phone') || {}).value || '';
+    var address = (document.getElementById('delivery-address') || {}).value || '';
+    var type = homeOrderType();
+    if (!name.trim() || !phone.trim() || (type === 'delivery' && !address.trim())) {
+      showToast('!', 'Complete your order details', type === 'delivery' ? 'Name, phone and delivery address are required' : 'Name and phone number are required', 5000);
+      return null;
+    }
+    return '[Customer] ' + name.trim().slice(0, 80) + ' | Phone: ' + phone.trim().slice(0, 30) +
+      (type === 'delivery' ? ' | Delivery address: ' + address.trim().slice(0, 240) : ' | Collection') +
+      ' | ' + ((document.getElementById('order-note') || {}).value || '').trim().slice(0, 120);
+  }
+  window.canPlaceOrder = function () { return window.orderingMode.status === 'ready' || window.orderingMode.status === 'home'; };
+  document.addEventListener('change', function (event) {
+    if (event.target && event.target.id === 'order-type-select') { updateHomeOrderFields(); if (typeof window.refreshOrderButton === 'function') window.refreshOrderButton(); }
+  });
+  updateHomeOrderFields();
   setOrderingStatus(window.orderingMode.status);
 
   var cfg = window.MENU_CONFIG;
@@ -348,13 +379,13 @@
   // the kitchen returns the first order instead of making a second one.
   var sending = false;
   // Longer codes first: 'UNAVAILABLE' is also part of the other two names.
-  var REJECTIONS = ['NOT_ACCEPTING', 'BAD_TABLE', 'ORDER_TYPE_UNAVAILABLE', 'BUNDLE_UNAVAILABLE', 'UNAVAILABLE', 'BAD_ITEMS', 'BAD_BUNDLE'];
+  var REJECTIONS = ['NOT_ACCEPTING', 'BAD_TABLE', 'ORDER_TYPE_UNAVAILABLE', 'CUSTOMER_DETAILS_REQUIRED', 'BUNDLE_UNAVAILABLE', 'UNAVAILABLE', 'BAD_ITEMS', 'BAD_BUNDLE'];
   window.placeOrder = function () {
     if (!getCartCount() || sending) return;
     if (!window.canPlaceOrder()) {
       var why = window.orderingMode.status;
-      showToast('!', why === 'home' ? 'Ordering from home is coming soon' : why === 'checking' ? 'Checking your table…' : 'Table not recognised',
-        why === 'home' ? 'Scan the QR code on your table to order' : why === 'checking' ? 'One moment, please' : 'Please ask a member of staff', 4000);
+      showToast('!', why === 'home' ? 'Choose delivery or collection' : why === 'checking' ? 'Checking your table…' : 'Table not recognised',
+        why === 'home' ? 'Complete the order details below' : why === 'checking' ? 'One moment, please' : 'Please ask a member of staff', 4000);
       return;
     }
     sending = true;
@@ -362,18 +393,26 @@
     var label = btn.textContent;
     btn.disabled = true; btn.textContent = 'Sending to the kitchen…';
     var note = document.getElementById('order-note');
+    var customerNote = table ? (note ? note.value : null) : homeOrderDetails();
+    if (!customerNote) { sending = false; btn.disabled = false; btn.textContent = label; return; }
 
     var items = Object.keys(cart).map(function (id) { return { id: id, qty: cart[id].qty }; });
     var requestId = typeof window.beginOrderRequest === 'function' ? window.beginOrderRequest(items) : null;
-    withTimeout(db.rpc('place_order', {
-      p_table: table || null,
+    var orderRequest = table ? db.rpc('place_order', {
+      p_table: table,
       p_items: items,
-      p_note: note ? note.value : null,
+      p_note: customerNote,
       p_bundle: typeof window.getBundleOrderPayload === 'function' ? window.getBundleOrderPayload() : null,
       p_request_id: requestId,
       p_order_type: 'dine_in',
       p_table_key: tableKey || null
-    }), 20000)
+    }) : db.rpc('place_order_home', {
+      p_items: items,
+      p_note: customerNote,
+      p_request_id: requestId,
+      p_order_type: homeOrderType()
+    });
+    withTimeout(orderRequest, 20000)
       .then(function (res) {
         if (res.error) throw res.error;
         if (typeof window.endOrderRequest === 'function') window.endOrderRequest();
@@ -393,6 +432,7 @@
           if (rejection === 'NOT_ACCEPTING') showToast('!', 'Not taking orders right now', 'Please ask a member of staff');
           else if (rejection === 'BAD_TABLE') { setOrderingStatus('bad_table'); showToast('!', 'Table not recognised', 'Please ask a member of staff', 5000); }
           else if (rejection === 'ORDER_TYPE_UNAVAILABLE') showToast('!', 'This kind of order is not available yet', 'Please ask a member of staff', 5000);
+          else if (rejection === 'CUSTOMER_DETAILS_REQUIRED') showToast('!', 'Complete your order details', 'Name, phone and address are required', 5000);
           else if (rejection === 'BUNDLE_UNAVAILABLE') { showToast('!', 'Combo deal changed', 'Please review your basket and try again'); loadAll(); }
           else if (rejection === 'UNAVAILABLE') { showToast('!', 'Something in your order sold out', 'Please check your order'); loadAll(); }
           else showToast('!', 'Order not sent', 'Please check your order and try again');
