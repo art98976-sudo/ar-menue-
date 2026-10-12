@@ -116,6 +116,32 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
 .status-pill.cancelled{color:var(--bad);border-color:rgba(217,101,91,.4)}
 .status-pill.served{color:var(--ready);border-color:rgba(107,191,122,.4)}
 .done-list .order{border-left-color:var(--line);opacity:.85}
+.o-type{font-weight:700;font-size:12px;letter-spacing:.04em;padding:2px 8px;border-radius:6px}
+.o-type.dine_in{color:var(--gold);background:rgba(212,175,55,.12)}
+.table-add{display:flex;gap:8px;margin:0 0 16px;max-width:460px}
+.table-add input{flex:1;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2)}
+.tables-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.table-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.table-card.off{opacity:.6}
+.table-card .tc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.table-card .tc-head b{font-family:var(--serif);font-size:22px}
+.table-card .tc-qr{background:#fff;border-radius:10px;padding:8px;margin-bottom:10px}
+.table-card .tc-qr svg{display:block;width:100%;height:auto}
+.table-card .tc-actions{display:flex;flex-wrap:wrap;gap:6px}
+.table-card .tc-actions .btn{height:34px;padding:0 10px;font-size:12.5px}
+.o-pay{display:flex;align-items:center;gap:8px;margin-top:8px}
+.o-pay:empty{display:none}
+.o-pay .btn{padding:6px 10px;font-size:12.5px}
+.pay-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:3px 8px;border:1px solid var(--line)}
+.pay-pill.paid,.pay-pill.refunded{color:var(--ready);border-color:rgba(107,191,122,.4)}
+.pay-pill.refund-due{color:var(--bad);border-color:rgba(217,101,91,.5)}
+.done-list .order[data-status="cancelled"]:has(.refund-due){opacity:1;border-left-color:var(--bad)}
+.err-box{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.err-box summary{cursor:pointer;font-weight:600}
+.err-list{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.err-list li{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding-top:8px}
+.err-list .err-time{color:var(--mute)}
+.err-list b{color:var(--gold)}
 .done-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:130px}
@@ -178,6 +204,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
       <button role="tab" data-tab="orders" aria-selected="true">Live orders <span class="count num hidden" id="new-count">0</span></button>
       <button role="tab" data-tab="done" aria-selected="false">Completed today</button>
       <button role="tab" data-tab="menu" aria-selected="false">Menu &amp; prices</button>
+      <button role="tab" data-tab="tables" aria-selected="false">Tables &amp; QR</button>
       <button role="tab" data-tab="info" aria-selected="false">Restaurant</button>
     </nav>
   </header>
@@ -204,16 +231,31 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
       <h2>Completed today</h2>
       <p class="sub">Served and cancelled orders since midnight.</p>
       <div class="done-list" id="done-list"></div>
+      <details class="err-box" id="client-errors-box">
+        <summary>Problems reported by customer phones, last 7 days <span id="err-count"></span></summary>
+        <div id="client-errors"><p class="sub">Loading…</p></div>
+      </details>
     </div>
 
     <!-- Menu -->
     <div data-panel="menu" class="hidden">
       <h2>Menu &amp; prices</h2>
-      <p class="sub">Changes appear on customers' phones straight away. Tag each dish so recommendations can match its category, flavours and dietary options. Confirm dietary and allergen information only when checked with the kitchen or supplier; unknown allergen information is treated as unsafe for affected customers. Chef's picks get a ranking boost. Switch a dish off to mark it sold out.</p>
+      <p class="sub">Changes appear on customers' phones straight away. Add verified ingredients and nutrition values: calories per 100g multiplied by portion grams becomes the exact displayed portion calories. Confirm dietary and allergen information only when checked with the kitchen or supplier; unknown allergen information is treated as unsafe for affected customers.</p>
       <div class="dishes" id="dishes"></div>
     </div>
 
     <!-- Restaurant -->
+    <!-- Tables & QR codes -->
+    <div data-panel="tables" class="hidden">
+      <h2>Tables &amp; QR codes</h2>
+      <p class="sub">Each table has its own QR code with a secret code inside, so only people at a real table can place a dine-in order. Print a code for every table. If a code is copied or lost, press <b>New code</b>: the old one stops working at once.</p>
+      <form class="table-add" id="table-form">
+        <input id="table-label" maxlength="20" placeholder="Table number, e.g. 5 or Patio1" aria-label="Table number" required>
+        <button class="btn primary" type="submit">Add table</button>
+      </form>
+      <div class="tables-list" id="tables-list"><p class="sub">Loading…</p></div>
+    </div>
+
     <div data-panel="info" class="hidden">
       <h2>Restaurant</h2>
       <p class="sub">Shown at the top of the customer menu.</p>
@@ -261,6 +303,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=2"></script>
-<script src="dashboard.js?v=5"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="dashboard.js?v=6"></script>
 </body>
 </html>

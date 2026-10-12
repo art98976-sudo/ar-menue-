@@ -92,6 +92,8 @@
         }
         $('login').classList.add('hidden');
         $('app').classList.remove('hidden');
+        loadClientErrors();
+        loadTables();
         return Promise.all([loadRestaurant(), loadDishes(), loadOrders()]).then(subscribe);
       });
     });
@@ -137,6 +139,136 @@
       });
   }
 
+  /* ── Tables & QR codes ───────────────────────────────────── */
+  // Each table has a secret code (qr_key). Its QR code opens the menu as
+  // index.html?table=5&k=<secret>, and the database only accepts a dine-in
+  // order when the table and its secret match.
+  var tables = [];
+  function menuLinkFor(t) {
+    var url = new URL('index.html', location.href);
+    url.searchParams.set('table', t.label);
+    url.searchParams.set('k', t.qr_key);
+    return url.toString();
+  }
+  function qrSvg(text) {
+    if (typeof window.qrcode !== 'function') return '<p class="sub">QR code library did not load. Check your connection.</p>';
+    var qr = window.qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    return qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+  }
+  function newKey() {
+    var bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.prototype.map.call(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function byLabel(a, b) { return a.label.localeCompare(b.label, undefined, { numeric: true }); }
+
+  function loadTables() {
+    return db.from('restaurant_tables').select('*').then(function (res) {
+      if (res.error) {
+        $('tables-list').innerHTML = '<p class="sub">Tables are not set up yet: ' + esc(res.error.message) +
+          '. Run supabase/phase1-dine-in.sql in Supabase first.</p>';
+        return;
+      }
+      tables = res.data.sort(byLabel);
+      renderTables();
+    });
+  }
+  function renderTables() {
+    $('tables-list').innerHTML = tables.length ? tables.map(function (t) {
+      return '<article class="table-card' + (t.active ? '' : ' off') + '" data-label="' + esc(t.label) + '">' +
+        '<div class="tc-head"><b>Table ' + esc(t.label) + '</b>' +
+          '<label class="switch"><input type="checkbox" data-table-act="active"' + (t.active ? ' checked' : '') + '>' +
+          '<span class="track"></span><span>' + (t.active ? 'Taking orders' : 'Switched off') + '</span></label></div>' +
+        '<div class="tc-qr">' + qrSvg(menuLinkFor(t)) + '</div>' +
+        '<div class="tc-actions">' +
+          '<button class="btn" data-table-act="print">Print QR</button>' +
+          '<button class="btn" data-table-act="newkey">New code</button>' +
+          '<button class="btn danger" data-table-act="delete">Delete</button>' +
+        '</div></article>';
+    }).join('') : '<p class="sub">No tables yet. Add your first table above.</p>';
+  }
+  function updateTable(label, patch, done) {
+    db.from('restaurant_tables').update(patch).eq('label', label).select().maybeSingle().then(function (res) {
+      if (res.error || !res.data) { toast('Could not save table — ' + (res.error ? res.error.message : 'no permission')); loadTables(); return; }
+      tables = tables.map(function (t) { return t.label === label ? res.data : t; });
+      renderTables();
+      if (done) done(res.data);
+    });
+  }
+  function printTable(t) {
+    var w = window.open('', '_blank');
+    if (!w) { toast('Allow pop-ups to print QR codes'); return; }
+    w.document.write('<!doctype html><meta charset="utf-8"><title>Table ' + esc(t.label) + ' QR code</title>' +
+      '<style>body{font-family:system-ui,sans-serif;text-align:center;padding:40px}svg{width:320px;height:320px}' +
+      'h1{font-size:40px;margin:0 0 4px}p{font-size:18px;color:#444}</style>' +
+      '<h1>Table ' + esc(t.label) + '</h1><p>Scan to see the menu and order</p>' + qrSvg(menuLinkFor(t)) +
+      '<script>window.onload=function(){window.print();}<\/script>');
+    w.document.close();
+  }
+  $('table-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var label = $('table-label').value.trim();
+    if (!/^[A-Za-z0-9_-]{1,20}$/.test(label)) { toast('Use letters, numbers, - or _ (up to 20)'); return; }
+    db.from('restaurant_tables').insert({ label: label }).select().maybeSingle().then(function (res) {
+      if (res.error || !res.data) {
+        toast(res.error && res.error.code === '23505' ? 'Table ' + label + ' already exists' :
+          'Could not add table — ' + (res.error ? res.error.message : 'no permission'));
+        return;
+      }
+      $('table-label').value = '';
+      tables.push(res.data); tables.sort(byLabel); renderTables();
+      toast('Table ' + label + ' added — print its QR code');
+    });
+  });
+  $('tables-list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-table-act]');
+    if (!b || b.getAttribute('data-table-act') === 'active') return;
+    var label = b.closest('.table-card').getAttribute('data-label');
+    var t = tables.filter(function (x) { return x.label === label; })[0];
+    if (!t) return;
+    var act = b.getAttribute('data-table-act');
+    if (act === 'print') printTable(t);
+    if (act === 'newkey' && confirm('Make a new QR code for table ' + label + '? The old printed code will stop working straight away.')) {
+      updateTable(label, { qr_key: newKey() }, function () { toast('New code for table ' + label + ' — print it again'); });
+    }
+    if (act === 'delete' && confirm('Delete table ' + label + '? Its QR code will stop working. Past orders are kept.')) {
+      db.from('restaurant_tables').delete().eq('label', label).then(function (res) {
+        if (res.error) { toast('Could not delete — ' + res.error.message); return; }
+        tables = tables.filter(function (x) { return x.label !== label; }); renderTables();
+      });
+    }
+  });
+  $('tables-list').addEventListener('change', function (e) {
+    if (e.target.getAttribute('data-table-act') !== 'active') return;
+    var label = e.target.closest('.table-card').getAttribute('data-label');
+    updateTable(label, { active: e.target.checked });
+  });
+
+  // Problems customer phones reported quietly (see log_client_error in schema.sql).
+  function loadClientErrors() {
+    var box = $('client-errors');
+    if (!box) return;
+    var since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    db.from('client_errors').select('created_at,context,message,page').gte('created_at', since)
+      .order('created_at', { ascending: false }).limit(50).then(function (res) {
+        if (res.error) { box.innerHTML = '<p class="sub">Error log not available yet: ' + esc(res.error.message) + '</p>'; return; }
+        $('err-count').textContent = res.data.length ? '(' + res.data.length + ')' : '(none)';
+        box.innerHTML = res.data.length ? '<ul class="err-list">' + res.data.map(function (e) {
+          return '<li><span class="err-time">' + esc(new Date(e.created_at).toLocaleString()) + '</span>' +
+            '<b>' + esc(e.context) + '</b><span>' + esc(e.message) + '</span></li>';
+        }).join('') + '</ul>' : '<p class="sub">No problems reported in the last 7 days.</p>';
+      });
+  }
+
+  // 'Dine-in · Table 5'. Delivery and collection arrive in Phase 2.
+  function orderPlace(o) {
+    var type = o.order_type || 'dine_in';
+    if (type === 'delivery') return 'Delivery';
+    if (type === 'collection') return 'Collection';
+    return 'Dine-in · ' + (o.table_label ? 'Table ' + esc(o.table_label) : 'no table');
+  }
+
   function orderCard(o, fresh) {
     var items = (o.items || []).map(function (it) {
       if (it.type === 'discount') {
@@ -147,6 +279,14 @@
              '<span class="p num">' + money(it.price * it.qty) + '</span></li>';
     }).join('');
     var next = NEXT[o.status];
+    var refundDue = o.status === 'cancelled' && o.paid_at && !o.refunded_at;
+    var payment = '<div class="o-pay">' +
+      (o.refunded_at ? '<span class="pay-pill refunded">Refunded</span>'
+        : refundDue ? '<span class="pay-pill refund-due">Refund due</span>' +
+            '<button class="btn" data-act="refund" data-id="' + o.id + '">Mark refunded</button>'
+        : o.paid_at ? '<span class="pay-pill paid">Paid</span>'
+        : o.status !== 'cancelled' ? '<button class="btn" data-act="paid" data-id="' + o.id + '">Mark paid</button>' : '') +
+      '</div>';
     var actions = next
       ? '<div class="o-actions">' +
           '<button class="btn primary" data-act="advance" data-id="' + o.id + '" data-to="' + next.to + '">' + next.label + '</button>' +
@@ -155,12 +295,12 @@
       : '<span class="status-pill ' + o.status + '">' + o.status + '</span>';
     return '<article class="order' + (fresh ? ' fresh' : '') + '" data-status="' + o.status + '">' +
       '<div class="o-top"><span class="o-no num">#' + o.order_no + '</span>' +
-        '<span class="o-table">' + (o.table_label ? 'Table ' + esc(o.table_label) : 'No table') + '</span>' +
+        '<span class="o-type ' + esc(o.order_type || 'dine_in') + '">' + orderPlace(o) + '</span>' +
         '<span class="o-time" data-ts="' + o.created_at + '">' + ago(o.created_at) + '</span></div>' +
       '<ul class="o-items">' + items + '</ul>' +
       (o.note ? '<div class="o-note">“' + esc(o.note) + '”</div>' : '') +
       '<div class="o-total"><span>Total</span><span class="num">' + money(o.total) + '</span></div>' +
-      actions + '</article>';
+      actions + payment + '</article>';
   }
 
   function renderOrders(freshIds) {
@@ -191,6 +331,22 @@
     document.title = (n ? '(' + n + ') ' : '') + 'Kitchen Dashboard';
   }
 
+  // Payment is recorded separately from kitchen status, so a paid order that is
+  // later cancelled shows "Refund due" until staff mark the refund.
+  function setPayment(id, field) {
+    var o = orders[id];
+    if (!o) return;
+    var prev = o[field];
+    var patch = {}; patch[field] = new Date().toISOString();
+    o[field] = patch[field]; renderOrders();
+    db.from('orders').update(patch).eq('id', id).select().maybeSingle().then(function (res) {
+      if (res.error || !res.data) {
+        o[field] = prev; renderOrders();
+        toast('Could not save payment — ' + (res.error ? res.error.message : 'no permission'));
+      } else { orders[id] = res.data; renderOrders(); }
+    });
+  }
+
   function setStatus(id, status) {
     var prev = orders[id] && orders[id].status;
     if (!prev) return;
@@ -208,7 +364,14 @@
     if (!b) return;
     var id = b.getAttribute('data-id');
     if (b.getAttribute('data-act') === 'advance') setStatus(id, b.getAttribute('data-to'));
-    if (b.getAttribute('data-act') === 'cancel' && confirm('Cancel order #' + orders[id].order_no + '?')) setStatus(id, 'cancelled');
+    if (b.getAttribute('data-act') === 'cancel') {
+      var paid = orders[id].paid_at;
+      if (confirm(paid ? 'Order #' + orders[id].order_no + ' has been paid. Cancel it? The customer will be told a refund is due.'
+                       : 'Cancel order #' + orders[id].order_no + '?')) setStatus(id, 'cancelled');
+    }
+    if (b.getAttribute('data-act') === 'paid') setPayment(id, 'paid_at');
+    if (b.getAttribute('data-act') === 'refund' &&
+        confirm('Confirm the refund for order #' + orders[id].order_no + ' has been given?')) setPayment(id, 'refunded_at');
   });
 
   setInterval(function () {   // keep "x min ago" current
@@ -296,7 +459,7 @@
   });
 
   /* ── Menu & prices ───────────────────────────────────────── */
-  var FIELDS = ['name', 'icon', 'description', 'price', 'calories', 'prep_time', 'rating', 'size', 'serves', 'weight'];
+  var FIELDS = ['name', 'icon', 'description', 'price', 'calories', 'prep_time', 'rating', 'size', 'serves', 'weight', 'calories_per_100g', 'portion_grams'];
 
   function loadDishes() {
     return db.from('dishes').select('*').order('sort').then(function (res) {
@@ -360,6 +523,11 @@
           input(d, 'calories', 'Calories', 'maxlength="20"') + input(d, 'prep_time', 'Prep time', 'maxlength="20"') + input(d, 'rating', 'Rating', 'maxlength="6"') +
           input(d, 'size', 'Size', 'maxlength="20"') + input(d, 'serves', 'Serves', 'maxlength="20"') + input(d, 'weight', 'Weight', 'maxlength="20"') +
         '</div>' +
+        input({ id: d.id, ingredients: (d.ingredients || []).join(', ') }, 'ingredients', 'Ingredients (comma-separated)', 'maxlength="300" placeholder="e.g. tomato, basil, mozzarella"') +
+        '<div class="grid2">' +
+          input(d, 'calories_per_100g', 'Calories per 100g', 'type="number" min="0" step="0.01" inputmode="decimal"') +
+          input(d, 'portion_grams', 'Portion size (grams)', 'type="number" min="0" step="0.01" inputmode="decimal"') +
+        '</div>' +
         '<div class="grid3">' +
           select(d, 'category', 'Category', ['main', 'side', 'drink', 'dessert']) +
           select(d, 'price_band', 'Price band', ['budget', 'mid', 'premium']) +
@@ -415,8 +583,11 @@
     var form = e.target, patch = {};
     FIELDS.forEach(function (f) {
       var el = form.querySelector('[data-f="' + f + '"]'); if (!el) return;
-      patch[f] = f === 'price' ? Math.round(Number(el.value) * 100) / 100 : el.value.trim();
+      patch[f] = ['price', 'calories_per_100g', 'portion_grams'].indexOf(f) !== -1 ? Math.round(Number(el.value) * 100) / 100 : el.value.trim();
     });
+    patch.ingredients = form.querySelector('[data-f="ingredients"]').value.split(',').map(function (tag) {
+      return tag.trim().toLowerCase();
+    }).filter(Boolean);
     patch.category = form.querySelector('[data-f="category"]').value;
     patch.flavour = form.querySelector('[data-f="flavour"]').value.split(',').map(function (tag) {
       return tag.trim().toLowerCase();
