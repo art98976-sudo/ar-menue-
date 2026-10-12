@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=25">
+<link rel="stylesheet" href="style.css?v=26">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>
@@ -280,9 +280,20 @@
     <div><span>Order</span><b id="order-id-text">#0000</b></div>
     <div class="ok-table" data-table-row><span>Table</span><b data-table-num>—</b></div>
   </div>
-  <p class="ok-note">We'll bring it to your table as soon as it's ready.</p>
+  <ol class="ok-steps" id="order-steps" aria-label="Order progress" hidden>
+    <li><span class="ok-dot"></span>Received</li>
+    <li><span class="ok-dot"></span>Preparing</li>
+    <li><span class="ok-dot"></span>Ready</li>
+    <li><span class="ok-dot"></span>Served</li>
+  </ol>
+  <p class="ok-note" id="order-status-note" aria-live="polite">We'll bring it to your table as soon as it's ready.</p>
   <button class="btn-gold" onclick="backToMenu()">Back to menu</button>
 </section>
+
+<!-- Live order status, shown on the menu after ordering -->
+<button id="order-tracker" type="button" onclick="openOrderStatus()" hidden>
+  <span class="ot-dot" aria-hidden="true"></span><span id="order-tracker-text">Order</span>
+</button>
 
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite">
@@ -330,8 +341,9 @@
 <script src="safety-preferences.js?v=1"></script>
 <script src="customer-history.js?v=1"></script>
 <script src="recommendations.js?v=5"></script>
-<script src="script.js?v=27"></script>
-<script src="data.js?v=7"></script>
+<script src="order-status.js?v=1"></script>
+<script src="script.js?v=28"></script>
+<script src="data.js?v=8"></script>
 
 <script>
 /* Safari shows its own "View in AR?" dialog unless the rel="ar" link already

@@ -99,6 +99,7 @@ function updateCartBar(){
     setText('cart-count',n);
     setText('cart-total',money(getCartTotal()));
     b.classList.toggle('visible',n>0&&$id('menu-page').style.display!=='none');
+    updateOrderTracker();
     // quantity bubble on each dish card
     document.querySelectorAll('.food-card[data-dish]').forEach(card=>{
         const q=cart[card.dataset.dish]?cart[card.dataset.dish].qty:0;
@@ -583,7 +584,7 @@ function renderCartPage(){
 // Without a database (config.js not filled in) this just shows the confirmation.
 // data.js replaces it with the real one that sends the order to the kitchen.
 function placeOrder(){if(!getCartCount())return;showOrderSuccess(Math.floor(1000+Math.random()*9000));}
-function showOrderSuccess(orderNo){
+function showOrderSuccess(orderNo,orderId){
     const orderedItems=Object.keys(cart).map(id=>({id:id,qty:cart[id].qty}));
     let savedHistory;
     try{
@@ -597,13 +598,125 @@ function showOrderSuccess(orderNo){
         renderCustomerHistory();
     }
     setText('order-id-text','#'+orderNo);
+    startOrderTracking(orderNo,orderId);
     cart={};activeBundle=null;updateCartBar();
     const note=$id('order-note');if(note)note.value='';
     closeCart();
     $id('order-success').classList.add('open');
 }
-function backToMenu(){$id('order-success').classList.remove('open');showMenu();}
+function backToMenu(){$id('order-success').classList.remove('open');showMenu();updateOrderTracker();}
 function showMenu(){$id('menu-page').style.display='flex';updateCartBar();}
+/* ── Live order status ───────────────────────────────────────────
+   The phone that placed an order keeps its private id (order-status.js)
+   and checks the kitchen status every few seconds while the page is open. */
+const orderStatusStore=window.MenuOrderStatus;
+let trackedOrder=null,trackedStatus=null,orderPollTimer=null,orderPollBusy=false;
+function safeStorage(){try{return window.localStorage;}catch(error){return null;}}
+function startOrderTracking(orderNo,orderId){
+    stopOrderPolling();
+    trackedStatus=null;
+    trackedOrder=null;
+    if(!orderStatusStore||!orderId){renderOrderStatus(null);return;}
+    const table=(new URLSearchParams(location.search).get('table')||'').trim().slice(0,20)||null;
+    trackedOrder={id:String(orderId),orderNo:Number(orderNo),table:table,placedAt:Date.now()};
+    const storage=safeStorage();
+    if(storage){
+        const saved=orderStatusStore.save(storage,trackedOrder);
+        if(!saved.saved)console.error('Could not remember this order for live status:',saved.error);
+    }
+    renderOrderStatus('new');
+    startOrderPolling();
+}
+function startOrderPolling(){
+    stopOrderPolling();
+    pollOrderStatus();
+    orderPollTimer=setInterval(pollOrderStatus,8000);
+}
+function stopOrderPolling(){if(orderPollTimer){clearInterval(orderPollTimer);orderPollTimer=null;}}
+function pollOrderStatus(){
+    if(!trackedOrder||orderPollBusy||document.hidden||typeof window.fetchOrderStatus!=='function')return;
+    const order=trackedOrder;
+    orderPollBusy=true;
+    window.fetchOrderStatus(order.id).then(function(row){
+        if(trackedOrder!==order)return;
+        if(!row){forgetTrackedOrder();return;}
+        if(row.status!==trackedStatus){
+            const first=trackedStatus===null;
+            renderOrderStatus(row.status);
+            if(!first)announceOrderStatus(row.status);
+        }
+        if(orderStatusStore.describe(row.status).finished){
+            stopOrderPolling();
+            const storage=safeStorage();
+            if(storage)orderStatusStore.clear(storage);
+        }
+    }).catch(function(error){
+        console.error('Could not check order status:',error);
+    }).then(function(){orderPollBusy=false;});
+}
+function announceOrderStatus(status){
+    const info=orderStatusStore.describe(status);
+    showToast(status==='cancelled'?'!':'✓','Order #'+trackedOrder.orderNo+': '+info.label,info.note);
+    if(status==='ready'&&navigator.vibrate){try{navigator.vibrate([120,80,120]);}catch(error){}}
+}
+function renderOrderStatus(status){
+    trackedStatus=status;
+    const steps=$id('order-steps'),note=$id('order-status-note');
+    if(!status||!orderStatusStore){
+        if(steps)steps.hidden=true;
+        if(note)note.textContent="We'll bring it to your table as soon as it's ready.";
+        updateOrderTracker();
+        return;
+    }
+    const info=orderStatusStore.describe(status);
+    if(steps){
+        steps.hidden=false;
+        steps.classList.toggle('cancelled',status==='cancelled');
+        steps.querySelectorAll('li').forEach(function(li,index){
+            li.classList.toggle('done',info.step>index);
+            li.classList.toggle('current',info.step===index);
+            if(info.step===index)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');
+        });
+    }
+    if(note)note.textContent=info.note;
+    updateOrderTracker();
+}
+function updateOrderTracker(){
+    const pill=$id('order-tracker');if(!pill)return;
+    const onMenu=$id('menu-page').style.display!=='none'&&!$id('order-success').classList.contains('open')&&
+        !$id('cart-page').classList.contains('open');
+    if(!trackedOrder||!trackedStatus||!onMenu){pill.hidden=true;return;}
+    const info=orderStatusStore.describe(trackedStatus);
+    setText('order-tracker-text','Order #'+trackedOrder.orderNo+' · '+info.label);
+    pill.dataset.status=info.status;
+    pill.classList.toggle('lifted',$id('cart-bar').classList.contains('visible'));
+    pill.hidden=false;
+}
+function openOrderStatus(){
+    if(!trackedOrder)return;
+    setText('order-id-text','#'+trackedOrder.orderNo);
+    document.querySelectorAll('[data-table-num]').forEach(el=>el.textContent=trackedOrder.table||'');
+    document.querySelectorAll('[data-table-row]').forEach(el=>el.hidden=!trackedOrder.table);
+    $id('order-success').classList.add('open');
+    updateOrderTracker();
+    if(!orderPollTimer&&!orderStatusStore.describe(trackedStatus).finished)startOrderPolling();
+}
+function forgetTrackedOrder(){
+    stopOrderPolling();
+    trackedOrder=null;trackedStatus=null;
+    const storage=safeStorage();
+    if(storage&&orderStatusStore)orderStatusStore.clear(storage);
+    renderOrderStatus(null);
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&orderPollTimer)pollOrderStatus();});
+// Resume tracking after a reload. Runs once data.js has connected to the kitchen.
+document.addEventListener('DOMContentLoaded',function(){
+    const storage=safeStorage();
+    const saved=storage&&orderStatusStore?orderStatusStore.load(storage,Date.now()):null;
+    if(!saved||typeof window.fetchOrderStatus!=='function')return;
+    trackedOrder=saved;
+    startOrderPolling();
+});
 window.getBundleOrderPayload=function(){
     const bundle=getActiveBundle();
     return bundle?{

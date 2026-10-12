@@ -345,6 +345,7 @@ declare
   v_dessert_count int;
   v_cart_bundle_count int;
   v_tax   numeric;
+  v_id    uuid;
   v_no    bigint;
   v_total numeric;
 begin
@@ -462,13 +463,28 @@ begin
   insert into orders (table_label, note, items, subtotal, bundle_discount, tax, total)
   values (left(nullif(btrim(p_table), ''), 20), left(nullif(btrim(p_note), ''), 300),
           v_items, v_sub, v_bundle_discount, v_tax, v_sub - v_bundle_discount + v_tax)
-  returning order_no, total into v_no, v_total;
+  returning id, order_no, total into v_id, v_no, v_total;
 
-  return jsonb_build_object('order_no', v_no, 'total', v_total, 'bundle_discount', v_bundle_discount);
+  -- The id is unguessable, so it doubles as the customer's private key for order_status().
+  return jsonb_build_object('id', v_id, 'order_no', v_no, 'total', v_total, 'bundle_discount', v_bundle_discount);
 end $$;
 
 revoke all on function public.place_order(text, jsonb, text, jsonb) from public;
 grant execute on function public.place_order(text, jsonb, text, jsonb) to anon, authenticated;
+
+-- ── Order status for the customer who placed it ─────────────────
+-- Customers cannot read the orders table. Knowing an order's private id
+-- (returned only to the phone that placed it) reveals just its number and status.
+create or replace function public.order_status(p_order_id uuid)
+returns table (order_no bigint, status text, updated_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select o.order_no, o.status, o.updated_at
+    from public.orders o
+   where o.id = p_order_id
+     and o.created_at > now() - interval '12 hours';
+$$;
+revoke all on function public.order_status(uuid) from public;
+grant execute on function public.order_status(uuid) to anon, authenticated;
 
 -- ── Live updates (dashboard gets new orders instantly; menu gets price changes) ──
 do $$ begin

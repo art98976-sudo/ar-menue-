@@ -34,6 +34,13 @@
       return res.data.dish_ids;
     });
   };
+  // Status of an order this phone placed. The private order id is the only key.
+  window.fetchOrderStatus = function (orderId) {
+    return db.rpc('order_status', { p_order_id: orderId }).then(function (res) {
+      if (res.error) throw res.error;
+      return Array.isArray(res.data) && res.data.length ? res.data[0] : null;
+    });
+  };
   window.loadPopularPairings = function (dishIds) {
     var ids = Array.from(new Set(dishIds.map(String))).slice(0, 50);
     var key = ids.slice().sort().join('\u001f');
@@ -224,7 +231,7 @@
     })
       .then(function (res) {
         if (res.error) throw res.error;
-        showOrderSuccess(res.data.order_no);
+        showOrderSuccess(res.data.order_no, res.data.id);
       })
       .catch(function (e) {
         var msg = String(e && e.message || '');
