@@ -394,7 +394,7 @@
     btn.disabled = true; btn.textContent = 'Sending to the kitchen…';
     var note = document.getElementById('order-note');
     var customerNote = table ? (note ? note.value : null) : homeOrderDetails();
-    if (!customerNote) { sending = false; btn.disabled = false; btn.textContent = label; return; }
+    if (!table && !customerNote) { sending = false; btn.disabled = false; btn.textContent = label; return; }
 
     var items = Object.keys(cart).map(function (id) { return { id: id, qty: cart[id].qty }; });
     var requestId = typeof window.beginOrderRequest === 'function' ? window.beginOrderRequest(items) : null;
