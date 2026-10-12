@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=26">
+<link rel="stylesheet" href="style.css?v=28">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>
@@ -45,6 +45,8 @@
       <li><svg><use href="#i-ruler"/></svg><span>See it at real size</span></li>
     </ol>
   </header>
+
+  <p class="mode-banner" id="mode-banner" role="status" hidden></p>
 
   <nav class="cats" aria-label="Menu sections">
     <a class="cat-link active" href="#mains">Mains <span>4</span></a>
@@ -257,6 +259,11 @@
       <label for="order-note">Notes for the kitchen</label>
       <textarea id="order-note" maxlength="300" rows="2" placeholder="Allergies, no onions, extra napkins…"></textarea>
     </div>
+    <section id="table-board" class="table-board" hidden aria-labelledby="table-board-title">
+      <div class="table-board-head"><div><h3 id="table-board-title">Shared table order</h3><p>See what your table is planning and what the kitchen has received.</p></div><button type="button" class="btn-ghost" id="table-board-refresh">Refresh</button></div>
+      <div id="table-board-content" aria-live="polite"><p class="sub">Loading shared table order...</p></div>
+      <button type="button" class="btn" id="table-board-add">Add my basket to the table order</button>
+    </section>
   </div>
 
   <div id="cart-summary">
@@ -266,6 +273,7 @@
     </div>
     <div class="summary-row"><span id="summary-tax-label">Service &amp; tax</span><span id="summary-tax">£0.00</span></div>
     <div class="summary-row total"><span>Total</span><span id="summary-total">£0.00</span></div>
+    <p class="order-mode-note" id="order-mode-note" role="status" hidden></p>
     <button id="place-order-btn" class="btn-gold" onclick="placeOrder()">Place order</button>
     <p class="summary-hint">Pay at the table when your food arrives</p>
   </div>
@@ -274,19 +282,15 @@
 <!-- ═══════════════════ CONFIRMATION ═══════════════════ -->
 <section id="order-success" role="dialog" aria-modal="true" aria-labelledby="ok-h">
   <div class="ok-ring"><svg><use href="#i-check"/></svg></div>
-  <p class="ok-kicker">Order received</p>
+  <p class="ok-kicker" id="ok-kicker">Order received</p>
   <h2 id="ok-h">Sent to the kitchen</h2>
   <div class="ok-ticket">
     <div><span>Order</span><b id="order-id-text">#0000</b></div>
     <div class="ok-table" data-table-row><span>Table</span><b data-table-num>—</b></div>
   </div>
-  <ol class="ok-steps" id="order-steps" aria-label="Order progress" hidden>
-    <li><span class="ok-dot"></span>Received</li>
-    <li><span class="ok-dot"></span>Preparing</li>
-    <li><span class="ok-dot"></span>Ready</li>
-    <li><span class="ok-dot"></span>Served</li>
-  </ol>
-  <p class="ok-note" id="order-status-note" aria-live="polite">We'll bring it to your table as soon as it's ready.</p>
+  <p class="ok-warning" id="order-tracking-warning" role="alert" hidden>We can't reach the kitchen right now. Please check with staff.</p>
+  <div class="order-groups" id="order-groups" aria-live="polite"></div>
+  <div class="order-bill" id="order-bill" hidden></div>
   <button class="btn-gold" onclick="backToMenu()">Back to menu</button>
 </section>
 
@@ -294,6 +298,12 @@
 <button id="order-tracker" type="button" onclick="openOrderStatus()" hidden>
   <span class="ot-dot" aria-hidden="true"></span><span id="order-tracker-text">Order</span>
 </button>
+
+<!-- Undo after clearing an order -->
+<div id="undo-bar" role="status" hidden>
+  <span id="undo-text">Order cleared</span>
+  <button type="button" onclick="undoClear()">Undo</button>
+</div>
 
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite">
@@ -341,9 +351,9 @@
 <script src="safety-preferences.js?v=1"></script>
 <script src="customer-history.js?v=1"></script>
 <script src="recommendations.js?v=5"></script>
-<script src="order-status.js?v=1"></script>
-<script src="script.js?v=28"></script>
-<script src="data.js?v=8"></script>
+<script src="order-status.js?v=3"></script>
+<script src="script.js?v=30"></script>
+<script src="data.js?v=10"></script>
 
 <script>
 /* Safari shows its own "View in AR?" dialog unless the rel="ar" link already
