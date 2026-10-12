@@ -139,6 +139,10 @@
 
   function orderCard(o, fresh) {
     var items = (o.items || []).map(function (it) {
+      if (it.type === 'discount') {
+        return '<li class="order-discount"><span>' + esc(it.name) + '</span>' +
+          '<span class="p num">−' + money(it.amount) + '</span></li>';
+      }
       return '<li><span class="q num">' + esc(it.qty) + '×</span><span>' + esc(it.name) + '</span>' +
              '<span class="p num">' + money(it.price * it.qty) + '</span></li>';
     }).join('');
@@ -245,6 +249,10 @@
     $('brand').innerHTML = esc(r.name) + '<small>Owner</small>';
     $('accepting').checked = r.accepting_orders;
     $('accepting-label').textContent = r.accepting_orders ? 'Taking orders' : 'Orders paused';
+    $('recommendations-enabled').checked = r.recommendations_enabled !== false;
+    $('ai-recommendations-enabled').checked = r.ai_recommendations_enabled === true;
+    $('bundles-enabled').checked = r.bundles_enabled === true;
+    $('bundle-discount-percent').value = Number(r.bundle_discount_percent || 0).toFixed(2);
     if (fillForm !== false) {
       $('r-name').value = r.name; $('r-tagline').value = r.tagline; $('r-badge').value = r.badge;
       $('r-currency').value = r.currency; $('r-tax').value = +(Number(r.tax_rate) * 100).toFixed(2);
@@ -275,7 +283,11 @@
     var tax = Number($('r-tax').value);
     db.from('restaurant').update({
       name: $('r-name').value.trim(), tagline: $('r-tagline').value.trim(), badge: $('r-badge').value.trim(),
-      currency: $('r-currency').value.trim(), tax_rate: Math.round(tax * 100) / 10000
+      currency: $('r-currency').value.trim(), tax_rate: Math.round(tax * 100) / 10000,
+      recommendations_enabled: $('recommendations-enabled').checked,
+      ai_recommendations_enabled: $('ai-recommendations-enabled').checked,
+      bundles_enabled: $('bundles-enabled').checked,
+      bundle_discount_percent: Math.round(Number($('bundle-discount-percent').value) * 100) / 100
     }).eq('id', 1).select().maybeSingle().then(function (res) {
       if (res.error || !res.data) { st.className = 'saved err'; st.textContent = res.error ? res.error.message : 'No permission'; return; }
       applyRestaurant(res.data); renderDishes();
@@ -298,6 +310,38 @@
       '<input id="' + d.id + '-' + f + '" data-f="' + f + '" value="' + esc(d[f]) + '" ' + (attrs || '') + '></div>';
   }
 
+  function select(d, f, label, options) {
+    return '<div class="field"><label for="' + d.id + '-' + f + '">' + label + '</label><select id="' + d.id + '-' + f + '" data-f="' + f + '">' +
+      options.map(function (value) {
+        return '<option value="' + value + '"' + (d[f] === value ? ' selected' : '') + '>' +
+          value.charAt(0).toUpperCase() + value.slice(1) + '</option>';
+      }).join('') + '</select></div>';
+  }
+
+  function dietaryOptions(d) {
+    return '<fieldset class="field"><legend>Dietary tags</legend><div class="tag-options">' +
+      ['veg', 'vegan', 'halal'].map(function (tag) {
+        return '<label><input type="checkbox" data-dietary value="' + tag + '"' +
+          ((d.dietary || []).indexOf(tag) !== -1 ? ' checked' : '') + '>' + tag + '</label>';
+      }).join('') + '</div></fieldset>';
+  }
+
+  var ALLERGEN_TAGS = [
+    ['celery', 'Celery'], ['dairy', 'Dairy'], ['eggs', 'Eggs'], ['fish', 'Fish'],
+    ['gluten', 'Gluten'], ['mustard', 'Mustard'], ['nuts', 'Nuts'],
+    ['peanuts', 'Peanuts'], ['sesame', 'Sesame'], ['shellfish', 'Shellfish'],
+    ['soy', 'Soy'], ['sulphites', 'Sulphites'], ['wheat', 'Wheat']
+  ];
+
+  function allergenOptions(d, field, label) {
+    var selected = d[field] || [];
+    return '<fieldset class="field"><legend>' + label + '</legend><div class="tag-options">' +
+      ALLERGEN_TAGS.map(function (tag) {
+        return '<label><input type="checkbox" data-' + field + ' value="' + tag[0] + '"' +
+          (selected.indexOf(tag[0]) !== -1 ? ' checked' : '') + '>' + tag[1] + '</label>';
+      }).join('') + '</div></fieldset>';
+  }
+
   function renderDishes() {
     $('dishes').innerHTML = dishes.map(function (d) {
       return '<form class="dish' + (d.available ? '' : ' off') + '" data-id="' + esc(d.id) + '">' +
@@ -316,6 +360,21 @@
           input(d, 'calories', 'Calories', 'maxlength="20"') + input(d, 'prep_time', 'Prep time', 'maxlength="20"') + input(d, 'rating', 'Rating', 'maxlength="6"') +
           input(d, 'size', 'Size', 'maxlength="20"') + input(d, 'serves', 'Serves', 'maxlength="20"') + input(d, 'weight', 'Weight', 'maxlength="20"') +
         '</div>' +
+        '<div class="grid3">' +
+          select(d, 'category', 'Category', ['main', 'side', 'drink', 'dessert']) +
+          select(d, 'price_band', 'Price band', ['budget', 'mid', 'premium']) +
+          select(d, 'meal_part', 'Meal part', ['breakfast', 'lunch', 'dinner', 'any', 'unspecified']) +
+        '</div>' +
+        input({ id: d.id, flavour: (d.flavour || []).join(', ') }, 'flavour', 'Flavours (comma-separated)', 'maxlength="160" placeholder="e.g. citrus, spicy, creamy"') +
+        dietaryOptions(d) +
+        allergenOptions(d, 'allergens', 'Contains these allergens') +
+        allergenOptions(d, 'may_contain_allergens', 'May contain (cross-contact)') +
+        '<div class="field"><label><input type="checkbox" data-allergen-verified' +
+          (d.allergen_info_verified ? ' checked' : '') +
+          ' style="width:auto;margin-right:8px">Allergen information checked with the kitchen or supplier</label>' +
+          '<p class="sub">Leave unchecked until ingredients and cross-contact information have been verified. Customers with selected allergies will not receive unverified dishes as recommendations.</p></div>' +
+        '<div class="field"><label><input type="checkbox" data-promote' + (d.promote ? ' checked' : '') +
+          ' style="width:auto;margin-right:8px">Chef&#39;s pick</label></div>' +
         '<div class="dish-foot"><span class="saved" role="status"></span>' +
           '<button class="btn primary" type="submit" disabled>Save</button></div>' +
       '</form>';
@@ -339,7 +398,14 @@
 
   // Enable "Save" only when something changed
   $('dishes').addEventListener('input', function (e) {
-    var form = e.target.closest('form.dish'); if (!form || e.target.hasAttribute('data-avail')) return;
+    var form = e.target.closest('form.dish');
+    if (!form || e.target.hasAttribute('data-avail')) return;
+    form.querySelector('button[type=submit]').disabled = false;
+    form.querySelector('.saved').textContent = '';
+  });
+  $('dishes').addEventListener('change', function (e) {
+    var form = e.target.closest('form.dish');
+    if (!form || e.target.hasAttribute('data-avail')) return;
     form.querySelector('button[type=submit]').disabled = false;
     form.querySelector('.saved').textContent = '';
   });
@@ -351,6 +417,23 @@
       var el = form.querySelector('[data-f="' + f + '"]'); if (!el) return;
       patch[f] = f === 'price' ? Math.round(Number(el.value) * 100) / 100 : el.value.trim();
     });
+    patch.category = form.querySelector('[data-f="category"]').value;
+    patch.flavour = form.querySelector('[data-f="flavour"]').value.split(',').map(function (tag) {
+      return tag.trim().toLowerCase();
+    }).filter(Boolean);
+    patch.dietary = Array.prototype.map.call(form.querySelectorAll('[data-dietary]:checked'), function (el) {
+      return el.value;
+    });
+    patch.allergens = Array.prototype.map.call(form.querySelectorAll('[data-allergens]:checked'), function (el) {
+      return el.value;
+    });
+    patch.may_contain_allergens = Array.prototype.map.call(form.querySelectorAll('[data-may_contain_allergens]:checked'), function (el) {
+      return el.value;
+    });
+    patch.allergen_info_verified = form.querySelector('[data-allergen-verified]').checked;
+    patch.price_band = form.querySelector('[data-f="price_band"]').value;
+    patch.meal_part = form.querySelector('[data-f="meal_part"]').value;
+    patch.promote = form.querySelector('[data-promote]').checked;
     if (!(patch.price >= 0) || !patch.name) { form.querySelector('.saved').textContent = 'Check the name and price'; return; }
     var btn = form.querySelector('button[type=submit]'); btn.disabled = true;
     saveDish(form, patch, function (ok, d) {

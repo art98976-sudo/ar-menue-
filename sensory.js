@@ -420,6 +420,7 @@
   /* ── 11. New openAR — shows the sensory preview, then "Place on your table" ── */
   window.openAR = function (id) {
     unlockAudio();
+    if (typeof window.onDishViewed === 'function') window.onDishViewed(id);
 
     var ua = navigator.userAgent;
     var iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=25">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>
@@ -53,12 +53,64 @@
 
   <main class="menu">
 
+    <details id="safety-preferences" class="safety-preferences">
+      <summary>Set your allergy &amp; dietary needs <span id="safety-preference-summary">Not set</span></summary>
+      <p>Saved on this device so recommendations can respect them next time. Dishes without verified allergen details won't be recommended when you've selected an allergy. Always confirm ingredients with restaurant staff.</p>
+      <fieldset class="preference-options">
+        <legend>Allergies</legend>
+        <label><input type="checkbox" data-allergen="celery"> Celery</label>
+        <label><input type="checkbox" data-allergen="dairy"> Dairy</label>
+        <label><input type="checkbox" data-allergen="eggs"> Eggs</label>
+        <label><input type="checkbox" data-allergen="fish"> Fish</label>
+        <label><input type="checkbox" data-allergen="gluten"> Gluten</label>
+        <label><input type="checkbox" data-allergen="mustard"> Mustard</label>
+        <label><input type="checkbox" data-allergen="nuts"> Nuts</label>
+        <label><input type="checkbox" data-allergen="peanuts"> Peanuts</label>
+        <label><input type="checkbox" data-allergen="sesame"> Sesame</label>
+        <label><input type="checkbox" data-allergen="shellfish"> Shellfish</label>
+        <label><input type="checkbox" data-allergen="soy"> Soy</label>
+        <label><input type="checkbox" data-allergen="sulphites"> Sulphites</label>
+        <label><input type="checkbox" data-allergen="wheat"> Wheat</label>
+      </fieldset>
+      <fieldset class="preference-options">
+        <legend>Dietary needs</legend>
+        <label><input type="checkbox" data-dietary-preference="veg"> Vegetarian</label>
+        <label><input type="checkbox" data-dietary-preference="vegan"> Vegan</label>
+        <label><input type="checkbox" data-dietary-preference="halal"> Halal</label>
+      </fieldset>
+      <p id="safety-preference-status" class="safety-preference-status" role="status">Your choices are stored only in this browser.</p>
+    </details>
+
+    <section id="recommendations" class="recommendations" aria-labelledby="recommendations-title" hidden>
+      <div class="recommendations-head">
+        <div>
+          <h2 id="recommendations-title">You might also like</h2>
+          <p id="recommendation-context">Picked for you from this menu</p>
+        </div>
+      </div>
+      <div id="recommendation-bundle" class="recommendation-bundle"></div>
+      <div id="recommendation-list" class="recommendation-grid" aria-live="polite"></div>
+      <p id="recommendation-empty" class="recommendation-empty" role="status" hidden></p>
+    </section>
+
+    <section id="customer-history" class="customer-history" aria-labelledby="customer-history-title" hidden>
+      <h2 id="customer-history-title">Order again</h2>
+      <p id="customer-history-status" role="status"></p>
+      <p id="usual-order-summary" hidden></p>
+      <button id="usual-order-add" class="history-action" type="button" hidden>Add your usual to the cart</button>
+      <div id="usual-taste-suggestion" class="usual-taste-suggestion" hidden>
+        <p>Fancy trying <strong id="usual-taste-name"></strong>?</p>
+        <button id="usual-taste-add" class="history-action" type="button">Add this suggestion</button>
+      </div>
+      <button id="clear-order-history" class="history-clear" type="button" hidden>Clear saved history from this device</button>
+    </section>
+
     <section class="menu-section" id="mains" aria-labelledby="mains-h">
       <div class="section-head">
         <h2 id="mains-h">Mains</h2>
         <p>Freshly made to order</p>
       </div>
-      <div class="grid">
+      <div class="grid" data-category="main">
 
         <article class="food-card" data-dish="pizza">
           <div class="card-media">
@@ -144,7 +196,7 @@
         <h2 id="drinks-h">Drinks</h2>
         <p>Pressed and poured fresh</p>
       </div>
-      <div class="grid">
+      <div class="grid" data-category="drink">
 
         <article class="food-card" data-dish="drink">
           <div class="card-media">
@@ -170,7 +222,7 @@
 
     <footer class="menu-foot">
       <span class="mono small" aria-hidden="true">✦</span>
-      <p>Allergies or dietary needs? Add a note to your order or ask our team.</p>
+      <p>For allergies, always confirm ingredients and cross-contact information with restaurant staff.</p>
     </footer>
   </main>
 </div>
@@ -209,6 +261,9 @@
 
   <div id="cart-summary">
     <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">£0.00</span></div>
+    <div class="summary-row bundle-discount-row" id="bundle-discount-row" hidden>
+      <span>Combo deal savings</span><span id="bundle-discount-amount">−£0.00</span>
+    </div>
     <div class="summary-row"><span id="summary-tax-label">Service &amp; tax</span><span id="summary-tax">£0.00</span></div>
     <div class="summary-row total"><span>Total</span><span id="summary-total">£0.00</span></div>
     <button id="place-order-btn" class="btn-gold" onclick="placeOrder()">Place order</button>
@@ -272,8 +327,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=2"></script>
-<script src="script.js?v=20"></script>
-<script src="data.js?v=2"></script>
+<script src="safety-preferences.js?v=1"></script>
+<script src="customer-history.js?v=1"></script>
+<script src="recommendations.js?v=5"></script>
+<script src="script.js?v=27"></script>
+<script src="data.js?v=7"></script>
 
 <script>
 /* Safari shows its own "View in AR?" dialog unless the rel="ar" link already

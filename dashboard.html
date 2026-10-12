@@ -38,6 +38,10 @@ input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--
 input:focus,textarea:focus{border-color:var(--gold);outline:none}
 textarea{resize:vertical;min-height:62px;line-height:1.4}
 .field{margin-bottom:14px}
+.tag-options{display:flex;gap:12px;flex-wrap:wrap}
+.tag-options label{display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--warm);
+  font-size:12px;letter-spacing:0;text-transform:none}
+.tag-options input{width:auto}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;
   border-radius:9px;border:1px solid var(--line);background:transparent;font-weight:600;font-size:13px;
   white-space:nowrap}
@@ -99,6 +103,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
 .o-time{margin-left:auto;color:var(--mute);font-size:12px}
 .o-items{list-style:none;margin:0 0 8px}
 .o-items li{display:flex;gap:8px;padding:3px 0;font-size:14px}
+.o-items li.order-discount{color:var(--ready);font-weight:600}
 .o-items .q{font-weight:700;min-width:26px}
 .o-items .p{margin-left:auto;color:var(--warm)}
 .o-note{background:var(--card2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--warm);margin-bottom:8px}
@@ -204,7 +209,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
     <!-- Menu -->
     <div data-panel="menu" class="hidden">
       <h2>Menu &amp; prices</h2>
-      <p class="sub">Changes appear on customers' phones straight away. Switch a dish off to mark it sold out.</p>
+      <p class="sub">Changes appear on customers' phones straight away. Tag each dish so recommendations can match its category, flavours and dietary options. Confirm dietary and allergen information only when checked with the kitchen or supplier; unknown allergen information is treated as unsafe for affected customers. Chef's picks get a ranking boost. Switch a dish off to mark it sold out.</p>
       <div class="dishes" id="dishes"></div>
     </div>
 
@@ -220,6 +225,29 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
           <div class="field"><label for="r-currency">Currency symbol</label><input id="r-currency" maxlength="4" required></div>
           <div class="field"><label for="r-tax">Tax / service %</label><input id="r-tax" type="number" min="0" max="99" step="0.01" required></div>
         </div>
+        <div class="field">
+          <label class="switch"><input id="recommendations-enabled" type="checkbox">
+            <span class="track"></span><span>Enable dish recommendations</span>
+          </label>
+          <p class="sub">Turn off to hide suggestions and stop recommendation lookups. The cart and menu keep working.</p>
+        </div>
+        <div class="field">
+          <label class="switch"><input id="ai-recommendations-enabled" type="checkbox">
+            <span class="track"></span><span>Enable optional AI recommendations</span>
+          </label>
+          <p class="sub">Off by default. Requires the Supabase recommendation function and an OpenAI secret.</p>
+        </div>
+        <div class="field">
+          <label class="switch"><input id="bundles-enabled" type="checkbox">
+            <span class="track"></span><span>Enable combo deals</span>
+          </label>
+          <p class="sub">Builds a combo from tagged mains, drinks and desserts. Unsafe or unverified dishes are excluded for customers with saved allergy needs.</p>
+        </div>
+        <div class="field">
+          <label for="bundle-discount-percent">Combo discount (%)</label>
+          <input id="bundle-discount-percent" type="number" min="0" max="100" step="0.5" required>
+          <p class="sub">The database calculates the actual discount at checkout using this setting.</p>
+        </div>
         <div class="dish-foot">
           <span class="saved" id="info-status" role="status"></span>
           <button class="btn primary" type="submit">Save changes</button>
@@ -233,6 +261,6 @@ h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=2"></script>
-<script src="dashboard.js?v=1"></script>
+<script src="dashboard.js?v=5"></script>
 </body>
 </html>
