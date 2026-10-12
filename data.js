@@ -10,20 +10,95 @@
    from the built-in data in script.js (orders are then not sent anywhere).
    ════════════════════════════════════════════════════════════════ */
 (function () {
-  var table = (new URLSearchParams(location.search).get('table') || '').trim().slice(0, 20);
-  document.querySelectorAll('[data-table]').forEach(function (el) {
-    el.textContent = 'Table ' + table;
-    el.hidden = !table;
-  });
-  document.querySelectorAll('[data-table-num]').forEach(function (el) { el.textContent = table; });
-  document.querySelectorAll('[data-table-row]').forEach(function (el) { el.hidden = !table; });
+  /* ── Ordering mode ────────────────────────────────────────────
+     A table QR code opens the menu as  index.html?table=5&k=<secret>  → DINE-IN.
+     Opened with no table → HOME. Until delivery and collection exist (Phase 2),
+     home visitors can browse but not order. The database makes the final
+     decision, so a table typed in by hand is refused there too. */
+  var params = new URLSearchParams(location.search);
+  var table = (params.get('table') || '').trim().slice(0, 20);
+  var tableKey = (params.get('k') || '').trim().slice(0, 64);
+  var MODE_TEXT = {
+    checking: 'Checking your table…',
+    bad_table: "We don't recognise this table code. Please ask a member of staff for help.",
+    home: "You're browsing from home. Delivery and collection are coming soon. To order now, scan the QR code on your table."
+  };
+  // status: 'checking' | 'ready' | 'bad_table' | 'home'
+  window.orderingMode = { type: table ? 'dine_in' : 'home', table: table || null, status: table ? 'checking' : 'home' };
+  function setOrderingStatus(status) {
+    window.orderingMode.status = status;
+    var dineIn = status === 'ready';
+    document.querySelectorAll('[data-table]').forEach(function (el) {
+      el.textContent = 'Dine-in · Table ' + table;
+      el.hidden = !dineIn;
+    });
+    document.querySelectorAll('[data-table-num]').forEach(function (el) { el.textContent = table; });
+    document.querySelectorAll('[data-table-row]').forEach(function (el) { el.hidden = !table; });
+    var banner = document.getElementById('mode-banner');
+    if (banner) {
+      banner.textContent = status === 'checking' ? '' : (MODE_TEXT[status] || '');
+      banner.hidden = !(status === 'bad_table' || status === 'home');
+      banner.dataset.mode = status;
+    }
+    var note = document.getElementById('order-mode-note');
+    if (note) { note.textContent = MODE_TEXT[status] || ''; note.hidden = dineIn; }
+    if (typeof window.refreshOrderButton === 'function') window.refreshOrderButton();
+  }
+  window.canPlaceOrder = function () { return window.orderingMode.status === 'ready'; };
+  setOrderingStatus(window.orderingMode.status);
 
   var cfg = window.MENU_CONFIG;
   if (!cfg || !window.supabase || /^YOUR_/.test(cfg.supabaseUrl)) {
     console.warn('Supabase not configured — menu is using built-in data, orders are not sent.');
+    window.canPlaceOrder = function () { return true; };
     return;
   }
   var db = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+  var tableBoardSessionId = null;
+  window.tableBoard = {
+    load: function () {
+      if (!table || !tableKey) return Promise.resolve(null);
+      return db.rpc('get_table_board', { p_table: table, p_key: tableKey }).then(function (res) {
+        if (res.error) throw res.error;
+        tableBoardSessionId = res.data && res.data.session_id;
+        window.tableBoardSessionId = tableBoardSessionId;
+        return res.data;
+      });
+    },
+    add: function (items) {
+      if (!tableBoardSessionId) return Promise.reject(new Error('Table board is not ready'));
+      return db.rpc('add_table_board_items', { p_table: table, p_key: tableKey, p_session_id: tableBoardSessionId, p_items: items }).then(function (res) {
+        if (res.error) throw res.error;
+        return res.data;
+      });
+    },
+    consume: function (items) {
+      if (!tableBoardSessionId) return Promise.resolve(null);
+      return db.rpc('consume_table_board_items', { p_table: table, p_key: tableKey, p_session_id: tableBoardSessionId, p_items: items }).then(function (res) {
+        if (res.error) throw res.error;
+        return res.data;
+      });
+    }
+  };
+
+  // Ask the database whether this table and its secret code are real.
+  if (table) {
+    db.rpc('check_table', { p_table: table, p_key: tableKey }).then(function (res) {
+      if (res.error) throw res.error;
+      setOrderingStatus(res.data === true ? 'ready' : 'bad_table');
+      window.tableBoard.load().then(function (board) {
+        if (typeof window.renderTableBoard === 'function') window.renderTableBoard(board);
+      }).catch(function (error) {
+        if (typeof window.logClientError === 'function') window.logClientError('table_board', error);
+      });
+    }).catch(function (error) {
+      // Could not check (e.g. offline). Let the customer try: the database still
+      // refuses a wrong table when the order is sent.
+      setOrderingStatus('ready');
+      if (typeof window.logClientError === 'function') window.logClientError('check_table', error);
+    });
+  }
   var pairingCache = Object.create(null);
   window.requestAiRecommendations = function (payload) {
     return db.functions.invoke('recommend', { body: payload }).then(function (res) {
@@ -34,12 +109,54 @@
       return res.data.dish_ids;
     });
   };
-  // Status of an order this phone placed. The private order id is the only key.
-  window.fetchOrderStatus = function (orderId) {
-    return db.rpc('order_status', { p_order_id: orderId }).then(function (res) {
+  // Gives up on a slow request after `ms` so the screen never waits forever.
+  function withTimeout(request, ms) {
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, ms);
+    return request.abortSignal(controller.signal).then(function (res) {
+      clearTimeout(timer);
+      return res;
+    }, function (error) {
+      clearTimeout(timer);
+      throw error;
+    });
+  }
+  function trackingTimeout() {
+    return (window.MenuOrderStatus && window.MenuOrderStatus.timing.timeoutMs) || 10000;
+  }
+
+  // Status of the orders this phone placed. Their private ids are the only key.
+  window.fetchOrderStatuses = function (orderIds) {
+    return withTimeout(db.rpc('order_statuses', { p_order_ids: orderIds }), trackingTimeout()).then(function (res) {
+      if (res.error) throw res.error;
+      return Array.isArray(res.data) ? res.data : [];
+    });
+  };
+  // After a reload mid-checkout: did the kitchen receive the order this phone was sending?
+  window.recoverOrder = function (requestId) {
+    return withTimeout(db.rpc('recover_order', { p_request_id: requestId }), trackingTimeout()).then(function (res) {
       if (res.error) throw res.error;
       return Array.isArray(res.data) && res.data.length ? res.data[0] : null;
     });
+  };
+
+  // Quiet error log for the owner. Never shows anything to the customer and never
+  // sends order ids. At most 15 reports per page load, no repeats within a minute.
+  var reported = Object.create(null), reportCount = 0;
+  window.logClientError = function (context, error) {
+    try {
+      var message = String(error && (error.message || error.details) || error || '').slice(0, 500);
+      var key = context + '|' + message;
+      var now = Date.now();
+      if (reportCount >= 15 || (reported[key] && now - reported[key] < 60000)) return;
+      reported[key] = now; reportCount++;
+      db.rpc('log_client_error', {
+        p_context: String(context).slice(0, 60),
+        p_message: message,
+        p_page: (location.pathname + (table ? '?table=' + encodeURIComponent(table) : '')).slice(0, 200),
+        p_user_agent: String(navigator.userAgent || '').slice(0, 200)
+      }).then(function () {}, function () {});
+    } catch (e) { /* logging must never break the page */ }
   };
   window.loadPopularPairings = function (dishIds) {
     var ids = Array.from(new Set(dishIds.map(String))).slice(0, 50);
@@ -90,6 +207,12 @@
     m.name = d.name; m.desc = d.description; m.price = Number(d.price);
     m.calories = d.calories; m.time = d.prep_time; m.rating = d.rating;
     m.size = d.size; m.serves = d.serves; m.weight = d.weight; m.icon = d.icon;
+    m.ingredients = Array.isArray(d.ingredients) && d.ingredients.length ? d.ingredients : (m.ingredients || []);
+    m.caloriesPer100g = Number(d.calories_per_100g) || Number(m.caloriesPer100g) || 0;
+    m.portionGrams = Number(d.portion_grams) || Number(m.portionGrams) || 0;
+    m.exactCalories = m.caloriesPer100g && m.portionGrams
+      ? Math.round(m.caloriesPer100g * m.portionGrams / 100) + ' kcal'
+      : d.calories || m.exactCalories;
     m.category = d.category;
     m.flavour = d.flavour || [];
     m.dietary = d.dietary || [];
@@ -108,7 +231,14 @@
     card.querySelector('.card-name').textContent = d.name;
     card.querySelector('.card-desc').textContent = d.description;
     card.querySelector('.card-size').textContent = [d.size, d.serves].filter(Boolean).join(' · ');
-    card.querySelector('.card-cal').textContent = d.calories;
+    card.querySelector('.card-cal').textContent = m.exactCalories;
+    var ingredients = card.querySelector('.card-ingredients');
+    if (!ingredients) {
+      ingredients = document.createElement('p');
+      ingredients.className = 'card-ingredients';
+      card.querySelector('.card-body').insertBefore(ingredients, card.querySelector('.card-btns'));
+    }
+    ingredients.textContent = m.ingredients.length ? 'Ingredients: ' + m.ingredients.join(', ') : '';
     card.querySelector('.card-price').textContent = money(d.price);
     card.classList.toggle('sold-out', !d.available);
     card.querySelector('.card-add-btn').disabled = !d.available;
@@ -213,9 +343,20 @@
     .subscribe();
 
   /* ── Send orders to the kitchen ─────────────────────────────── */
+  // Double taps are ignored while an order is being sent. Each checkout attempt
+  // also carries a request id: if the same basket is sent again after a timeout,
+  // the kitchen returns the first order instead of making a second one.
   var sending = false;
+  // Longer codes first: 'UNAVAILABLE' is also part of the other two names.
+  var REJECTIONS = ['NOT_ACCEPTING', 'BAD_TABLE', 'ORDER_TYPE_UNAVAILABLE', 'BUNDLE_UNAVAILABLE', 'UNAVAILABLE', 'BAD_ITEMS', 'BAD_BUNDLE'];
   window.placeOrder = function () {
     if (!getCartCount() || sending) return;
+    if (!window.canPlaceOrder()) {
+      var why = window.orderingMode.status;
+      showToast('!', why === 'home' ? 'Ordering from home is coming soon' : why === 'checking' ? 'Checking your table…' : 'Table not recognised',
+        why === 'home' ? 'Scan the QR code on your table to order' : why === 'checking' ? 'One moment, please' : 'Please ask a member of staff', 4000);
+      return;
+    }
     sending = true;
     var btn = document.getElementById('place-order-btn');
     var label = btn.textContent;
@@ -223,27 +364,46 @@
     var note = document.getElementById('order-note');
 
     var items = Object.keys(cart).map(function (id) { return { id: id, qty: cart[id].qty }; });
-    db.rpc('place_order', {
+    var requestId = typeof window.beginOrderRequest === 'function' ? window.beginOrderRequest(items) : null;
+    withTimeout(db.rpc('place_order', {
       p_table: table || null,
       p_items: items,
       p_note: note ? note.value : null,
-      p_bundle: typeof window.getBundleOrderPayload === 'function' ? window.getBundleOrderPayload() : null
-    })
+      p_bundle: typeof window.getBundleOrderPayload === 'function' ? window.getBundleOrderPayload() : null,
+      p_request_id: requestId,
+      p_order_type: 'dine_in',
+      p_table_key: tableKey || null
+    }), 20000)
       .then(function (res) {
         if (res.error) throw res.error;
-        showOrderSuccess(res.data.order_no, res.data.id);
+        if (typeof window.endOrderRequest === 'function') window.endOrderRequest();
+        showOrderSuccess(res.data.order_no, res.data.id, Number(res.data.total));
+        if (window.tableBoard && typeof window.tableBoard.consume === 'function') {
+          window.tableBoard.consume(items).then(function (board) {
+            if (typeof window.renderTableBoard === 'function') window.renderTableBoard(board);
+          }).catch(function (error) { if (typeof window.logClientError === 'function') window.logClientError('table_board_consume', error); });
+        }
       })
       .catch(function (e) {
         var msg = String(e && e.message || '');
-        if (msg.indexOf('NOT_ACCEPTING') !== -1) showToast('!', 'Not taking orders right now', 'Please ask a member of staff');
-        else if (msg.indexOf('UNAVAILABLE') !== -1) { showToast('!', 'Something in your order sold out', 'Please check your order'); loadAll(); }
-        else if (msg.indexOf('BUNDLE_UNAVAILABLE') !== -1) {
-          showToast('!', 'Combo deal changed', 'Please review your basket and try again');
-          loadAll();
+        var rejection = REJECTIONS.filter(function (code) { return msg.indexOf(code) !== -1; })[0];
+        if (rejection) {
+          // The kitchen definitely refused this basket, so a retry is a fresh attempt.
+          if (typeof window.endOrderRequest === 'function') window.endOrderRequest();
+          if (rejection === 'NOT_ACCEPTING') showToast('!', 'Not taking orders right now', 'Please ask a member of staff');
+          else if (rejection === 'BAD_TABLE') { setOrderingStatus('bad_table'); showToast('!', 'Table not recognised', 'Please ask a member of staff', 5000); }
+          else if (rejection === 'ORDER_TYPE_UNAVAILABLE') showToast('!', 'This kind of order is not available yet', 'Please ask a member of staff', 5000);
+          else if (rejection === 'BUNDLE_UNAVAILABLE') { showToast('!', 'Combo deal changed', 'Please review your basket and try again'); loadAll(); }
+          else if (rejection === 'UNAVAILABLE') { showToast('!', 'Something in your order sold out', 'Please check your order'); loadAll(); }
+          else showToast('!', 'Order not sent', 'Please check your order and try again');
+        } else {
+          // Unknown outcome (offline, timeout): the kitchen may or may not have it.
+          // Tapping again re-sends the same attempt, which can never create a second order.
+          showToast('!', "We couldn't confirm your order", "Tap Place order again. It won't be sent twice.", 5000);
+          window.logClientError('place_order', e);
         }
-        else showToast('!', 'Order not sent', 'Check your connection and try again');
         console.error('Order failed:', e);
       })
-      .then(function () { sending = false; btn.textContent = label; btn.disabled = !getCartCount(); });
+      .then(function () { sending = false; btn.textContent = label; btn.disabled = !getCartCount() || !window.canPlaceOrder(); });
   };
 })();
