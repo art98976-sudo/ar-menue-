@@ -791,3 +791,20 @@ where id in ('pizza', 'burger', 'drink', 'pasta', 'sushi');
 -- 2. Then run this, with that email:
 --    insert into public.owners (user_id)
 --    select id from auth.users where email = 'owner@example.com';
+
+-- Keep the starter data aligned with the live customer fallback and enable
+-- safe allergen-aware recommendations once the kitchen confirms the recipes.
+update public.restaurant set ai_recommendations_enabled = false where id = 1;
+update public.dishes set price = 10.85 where id = 'burger';
+update public.dishes set
+  allergens = case id
+    when 'pizza' then array['dairy','gluten']::text[]
+    when 'burger' then array['dairy','gluten']::text[]
+    when 'drink' then array[]::text[]
+    when 'pasta' then array['dairy','gluten']::text[]
+    when 'sushi' then array['fish']::text[]
+    else allergens
+  end,
+  may_contain_allergens = array[]::text[],
+  allergen_info_verified = true
+where id in ('pizza','burger','drink','pasta','sushi');

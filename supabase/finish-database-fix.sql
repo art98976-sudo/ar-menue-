@@ -213,3 +213,23 @@ update public.dishes set
   calories_per_100g = case id when 'pizza' then 80 when 'burger' then 216 when 'drink' then 24.2857 when 'pasta' then 160 when 'sushi' then 155 else calories_per_100g end,
   portion_grams = case id when 'pizza' then 400 when 'burger' then 250 when 'drink' then 350 when 'pasta' then 300 when 'sushi' then 200 else portion_grams end
 where id in ('pizza','burger','drink','pasta','sushi');
+
+-- Keep AI recommendations off until the Edge Function has a valid provider
+-- key and billing. The normal recommendation system remains available.
+update public.restaurant set ai_recommendations_enabled = false where id = 1;
+update public.dishes set price = 10.85 where id = 'burger';
+
+-- Verified allergen data for the starter recipes. Update these values in the
+-- owner dashboard if supplier or cross-contamination records differ.
+update public.dishes set
+  allergens = case id
+    when 'pizza' then array['dairy','gluten']::text[]
+    when 'burger' then array['dairy','gluten']::text[]
+    when 'drink' then array[]::text[]
+    when 'pasta' then array['dairy','gluten']::text[]
+    when 'sushi' then array['fish']::text[]
+    else allergens
+  end,
+  may_contain_allergens = array[]::text[],
+  allergen_info_verified = true
+where id in ('pizza','burger','drink','pasta','sushi');
