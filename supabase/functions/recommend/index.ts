@@ -24,6 +24,9 @@ type Dish = {
   price_band: string;
   meal_part: string;
   promote: boolean;
+  ingredients: string[];
+  calories_per_100g: number;
+  portion_grams: number;
   available: boolean;
 };
 
@@ -70,7 +73,7 @@ function dbHeaders(serviceKey: string) {
 
 async function readDishes(baseUrl: string, serviceKey: string, ids: string[]): Promise<Dish[]> {
   const url = new URL("/rest/v1/dishes", baseUrl);
-  url.searchParams.set("select", "id,name,category,flavour,dietary,allergens,may_contain_allergens,allergen_info_verified,price_band,meal_part,promote,available");
+  url.searchParams.set("select", "id,name,category,flavour,dietary,allergens,may_contain_allergens,allergen_info_verified,price_band,meal_part,promote,ingredients,calories_per_100g,portion_grams,available");
   url.searchParams.set("id", "in.(" + ids.join(",") + ")");
   const response = await fetch(url, { headers: dbHeaders(serviceKey) });
   if (!response.ok) throw new Error("Could not load dishes for AI recommendations: " + response.status);

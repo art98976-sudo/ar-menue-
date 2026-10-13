@@ -89,7 +89,8 @@
   var tableBoardSessionId = null;
   window.tableBoard = {
     load: function () {
-      if (!table || !tableKey) return Promise.resolve(null);
+      // Only a table the database has accepted has a shared board.
+      if (!table || !tableKey || window.orderingMode.status === 'bad_table') return Promise.resolve(null);
       return db.rpc('get_table_board', { p_table: table, p_key: tableKey }).then(function (res) {
         if (res.error) throw res.error;
         tableBoardSessionId = res.data && res.data.session_id;
@@ -118,6 +119,7 @@
     db.rpc('check_table', { p_table: table, p_key: tableKey }).then(function (res) {
       if (res.error) throw res.error;
       setOrderingStatus(res.data === true ? 'ready' : 'bad_table');
+      if (res.data !== true) return;
       window.tableBoard.load().then(function (board) {
         if (typeof window.renderTableBoard === 'function') window.renderTableBoard(board);
       }).catch(function (error) {

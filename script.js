@@ -10,6 +10,11 @@ const menuData = {
     pasta:  { icon:'🍝', name:'Creamy Pasta',     price:9.99, desc:'Rich creamy pasta with herbs, garlic and parmesan cheese.', calories:'480 kcal', time:'12 min', rating:'4.6', model:'./pasta.glb',  size:'300g',     serves:'1 person',  weight:'300g', category:'main', flavour:['savory','creamy','herby'], dietary:[], price_band:'mid', meal_part:'unspecified', promote:false },
     sushi:  { icon:'🍣', name:'Sushi Platter',    price:13.99, desc:'Fresh sushi rolls with premium ingredients and wasabi.',    calories:'310 kcal', time:'8 min',  rating:'4.9', model:'./sushi.glb',  size:'5 pieces',  serves:'1 person',  weight:'200g', category:'main', flavour:['savory','umami','fresh'], dietary:[], price_band:'premium', meal_part:'unspecified', promote:false },
 };
+Object.assign(menuData.pizza,{ingredients:['wheat flour','tomato','mozzarella','basil','olive oil'],caloriesPer100g:80,portionGrams:400,exactCalories:'320 kcal'});
+Object.assign(menuData.burger,{ingredients:['beef','brioche bun','cheddar','lettuce','tomato','sauce'],caloriesPer100g:216,portionGrams:250,exactCalories:'540 kcal'});
+Object.assign(menuData.drink,{ingredients:['lemon','lime','mint','water','sugar'],caloriesPer100g:24.29,portionGrams:350,exactCalories:'85 kcal'});
+Object.assign(menuData.pasta,{ingredients:['wheat pasta','cream','parmesan','garlic','herbs'],caloriesPer100g:160,portionGrams:300,exactCalories:'480 kcal'});
+Object.assign(menuData.sushi,{ingredients:['rice','nori','salmon','avocado','cucumber','wasabi'],caloriesPer100g:155,portionGrams:200,exactCalories:'310 kcal'});
 
 let cart={}, currentModel=null, arQty=1, viewerMode=null, recommendationDishId=null, activeBundle=null;
 let recommendationBundles=new Map();
@@ -547,8 +552,37 @@ document.addEventListener('click',function(event){
     else quickAdd(target.dataset.recommendationAdd||target.dataset.dishAdd);
 });
 
-function openCart(){renderCartPage();$id('cart-page').classList.add('open');document.body.classList.add('sheet-open');history.pushState({page:'cart'},'');}
-function closeCart(){$id('cart-page').classList.remove('open');document.body.classList.remove('sheet-open');}
+let tableBoardTimer=null,tableBoardLoading=null;
+window.getCurrentCartItems=function(){return Object.keys(cart).map(id=>({id:id,qty:cart[id].qty}));};
+window.renderTableBoard=function(board){
+    const section=$id('table-board'),content=$id('table-board-content');
+    if(!section||!content)return;
+    const dineIn=window.orderingMode&&window.orderingMode.status==='ready';
+    section.hidden=!dineIn;
+    if(!dineIn||!board)return;
+    const basket=Array.isArray(board.basket)?board.basket:[],orders=Array.isArray(board.orders)?board.orders:[];
+    const basketHtml=basket.length?'<div class="table-board-block"><b>Shared basket</b><ul>'+basket.map(item=>'<li><span>'+esc(item.qty)+'× '+esc(item.name)+'</span><span>'+money(Number(item.price)*Number(item.qty))+'</span></li>').join('')+'</ul></div>':'<p class="sub">No items in the shared basket yet.</p>';
+    const ordersHtml=orders.length?'<div class="table-board-block"><b>Sent to kitchen</b><ul>'+orders.map(order=>'<li><span>Order #'+esc(order.order_no)+' · '+esc(order.status)+'</span><span>'+money(order.total)+'</span></li>').join('')+'</ul></div>':'';
+    content.innerHTML=basketHtml+ordersHtml;
+    const add=$id('table-board-add');if(add)add.disabled=!getCartCount();
+};
+window.refreshTableBoard=function(){
+    if(!window.tableBoard||typeof window.tableBoard.load!=='function')return Promise.resolve(null);
+    if(!tableBoardLoading)tableBoardLoading=window.tableBoard.load().then(window.renderTableBoard).catch(function(){ }).then(function(){tableBoardLoading=null;});
+    return tableBoardLoading;
+};
+function openCart(){renderCartPage();$id('cart-page').classList.add('open');document.body.classList.add('sheet-open');history.pushState({page:'cart'},'');window.refreshTableBoard();clearInterval(tableBoardTimer);tableBoardTimer=setInterval(function(){if(!document.hidden&&$id('cart-page').classList.contains('open'))window.refreshTableBoard();},8000);}
+document.addEventListener('click',function(event){
+    if(event.target.closest('#table-board-refresh')){window.refreshTableBoard();return;}
+    if(!event.target.closest('#table-board-add'))return;
+    const items=window.getCurrentCartItems();
+    if(!items.length||!window.tableBoard||typeof window.tableBoard.add!=='function')return;
+    const button=$id('table-board-add');button.disabled=true;button.textContent='Adding to table...';
+    window.tableBoard.add(items).then(window.renderTableBoard).then(function(){showToast('✓','Added to shared table order','Everyone at the table can see it.');})
+        .catch(function(error){showToast('!','Could not update table order',error.message||'Try again.');})
+        .then(function(){button.textContent='Add my basket to the table order';button.disabled=!getCartCount();});
+});
+function closeCart(){clearInterval(tableBoardTimer);$id('cart-page').classList.remove('open');document.body.classList.remove('sheet-open');}
 
 function renderCartPage(){
     const list=$id('cart-items'),empty=$id('empty-cart'),ids=Object.keys(cart);
@@ -578,14 +612,17 @@ function renderCartPage(){
     setText('summary-tax-label','Service & tax ('+(+(taxRate*100).toFixed(2))+'%)');
     setText('summary-tax',money(tax));
     setText('summary-total',money(s+tax));
-    $id('place-order-btn').disabled=!ids.length;
+    window.refreshOrderButton();
 }
 
 // Without a database (config.js not filled in) this just shows the confirmation.
 // data.js replaces it with the real one that sends the order to the kitchen.
+// data.js decides whether this visit may order (a real table, or home mode later).
+window.canPlaceOrder=function(){return true;};
+window.refreshOrderButton=function(){const b=$id('place-order-btn');if(b)b.disabled=!getCartCount()||!window.canPlaceOrder();};
 function placeOrder(){if(!getCartCount())return;showOrderSuccess(Math.floor(1000+Math.random()*9000));}
-function showOrderSuccess(orderNo,orderId){
-    const orderedItems=Object.keys(cart).map(id=>({id:id,qty:cart[id].qty}));
+function showOrderSuccess(orderNo,orderId,total){
+    const orderedItems=window.getCurrentCartItems();
     let savedHistory;
     try{
         savedHistory=customerHistoryStorage.recordOrder(window.localStorage,orderedItems);
@@ -598,7 +635,8 @@ function showOrderSuccess(orderNo,orderId){
         renderCustomerHistory();
     }
     setText('order-id-text','#'+orderNo);
-    startOrderTracking(orderNo,orderId);
+    setStatusScreenMode(true);
+    startOrderTracking(orderNo,orderId,total);
     cart={};activeBundle=null;updateCartBar();
     const note=$id('order-note');if(note)note.value='';
     closeCart();
@@ -607,115 +645,250 @@ function showOrderSuccess(orderNo,orderId){
 function backToMenu(){$id('order-success').classList.remove('open');showMenu();updateOrderTracker();}
 function showMenu(){$id('menu-page').style.display='flex';updateCartBar();}
 /* ── Live order status ───────────────────────────────────────────
-   The phone that placed an order keeps its private id (order-status.js)
-   and checks the kitchen status every few seconds while the page is open. */
+   A phone tracks only the orders it placed, using each order's private id
+   (see order-status.js). Several orders are kept side by side, grouped by
+   table, and checked together every few seconds while the page is open. */
 const orderStatusStore=window.MenuOrderStatus;
-let trackedOrder=null,trackedStatus=null,orderPollTimer=null,orderPollBusy=false;
+let orderState=orderStatusStore?orderStatusStore.emptyState():null;
+let orderPollTimer=null,orderPollBusy=false,orderFailures=0,orderTroubleReported=false;
+let recoveryArmed=false,undoTimer=null,lastCleared=null;
 function safeStorage(){try{return window.localStorage;}catch(error){return null;}}
-function startOrderTracking(orderNo,orderId){
-    stopOrderPolling();
-    trackedStatus=null;
-    trackedOrder=null;
-    if(!orderStatusStore||!orderId){renderOrderStatus(null);return;}
-    const table=(new URLSearchParams(location.search).get('table')||'').trim().slice(0,20)||null;
-    trackedOrder={id:String(orderId),orderNo:Number(orderNo),table:table,placedAt:Date.now()};
+function reportQuietly(context,error){
+    console.error('['+context+']',error);
+    if(typeof window.logClientError==='function')window.logClientError(context,error);
+}
+function persistOrders(){
     const storage=safeStorage();
-    if(storage){
-        const saved=orderStatusStore.save(storage,trackedOrder);
-        if(!saved.saved)console.error('Could not remember this order for live status:',saved.error);
+    if(!storage||!orderStatusStore)return;
+    const result=orderStatusStore.save(storage,orderState);
+    if(!result.saved)reportQuietly('save_orders',result.error);
+}
+function makeRequestId(){
+    if(window.crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID();
+    const b=crypto.getRandomValues(new Uint8Array(16));
+    b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+    const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+    return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+function currentTable(){return (window.orderingMode&&window.orderingMode.table)||null;}
+
+// Called by data.js just before an order is sent, and after it is confirmed or refused.
+window.beginOrderRequest=function(items){
+    if(!orderStatusStore)return null;
+    try{
+        const request=orderStatusStore.requestFor(orderState,items,Date.now(),makeRequestId);
+        orderState=request.state;
+        recoveryArmed=false; // this page is sending it, so it will hear the answer itself
+        persistOrders();
+        return request.requestId;
+    }catch(error){
+        reportQuietly('order_request',error);
+        return null;
     }
-    renderOrderStatus('new');
-    startOrderPolling();
+};
+window.endOrderRequest=function(){
+    if(!orderStatusStore)return;
+    orderState=orderStatusStore.clearPending(orderState);
+    persistOrders();
+};
+
+function startOrderTracking(orderNo,orderId,total){
+    if(!orderStatusStore||!orderId){renderOrders();return;}
+    const result=orderStatusStore.addOrder(orderState,{
+        id:String(orderId).toLowerCase(),orderNo:Number(orderNo),table:currentTable(),
+        placedAt:Date.now(),total:Number.isFinite(total)?total:null,status:'new',
+        orderType:(window.orderingMode&&window.orderingMode.type)||'dine_in'
+    });
+    if(result.error)reportQuietly('track_order',result.error);
+    orderState=result.state;
+    persistOrders();
+    renderOrders();
+    scheduleOrderPoll(0);
 }
-function startOrderPolling(){
-    stopOrderPolling();
-    pollOrderStatus();
-    orderPollTimer=setInterval(pollOrderStatus,8000);
+
+function isTrackingTroubled(){
+    return orderStatusStore.isTroubled(orderFailures,navigator.onLine!==false);
 }
-function stopOrderPolling(){if(orderPollTimer){clearInterval(orderPollTimer);orderPollTimer=null;}}
-function pollOrderStatus(){
-    if(!trackedOrder||orderPollBusy||document.hidden||typeof window.fetchOrderStatus!=='function')return;
-    const order=trackedOrder;
+function hasTrackedOrders(){return Boolean(orderState&&orderState.orders.length);}
+function scheduleOrderPoll(delay){
+    clearTimeout(orderPollTimer);orderPollTimer=null;
+    if(!orderStatusStore||(!hasTrackedOrders()&&!(recoveryArmed&&orderState.pending)))return;
+    orderPollTimer=setTimeout(pollOrders,delay);
+}
+function nextPollDelay(){
+    const t=orderStatusStore.timing;
+    const busy=orderState.orders.some(o=>{const d=orderStatusStore.describe(o);return !d.finished||d.refundDue;});
+    return busy?t.pollMs:t.slowPollMs;
+}
+function pollOrders(){
+    orderPollTimer=null;
+    if(orderPollBusy||document.hidden)return; // a hidden page resumes when it is shown again
+    if(navigator.onLine===false){renderOrders();scheduleOrderPoll(orderStatusStore.timing.pollMs);return;}
     orderPollBusy=true;
-    window.fetchOrderStatus(order.id).then(function(row){
-        if(trackedOrder!==order)return;
-        if(!row){forgetTrackedOrder();return;}
-        if(row.status!==trackedStatus){
-            const first=trackedStatus===null;
-            renderOrderStatus(row.status);
-            if(!first)announceOrderStatus(row.status);
-        }
-        if(orderStatusStore.describe(row.status).finished){
-            stopOrderPolling();
-            const storage=safeStorage();
-            if(storage)orderStatusStore.clear(storage);
-        }
+    const jobs=[];
+    if(recoveryArmed&&orderState.pending&&typeof window.recoverOrder==='function')jobs.push(recoverPendingOrder());
+    if(hasTrackedOrders()&&typeof window.fetchOrderStatuses==='function'){
+        const ids=orderState.orders.map(o=>o.id);
+        jobs.push(window.fetchOrderStatuses(ids).then(rows=>applyOrderRows(rows,ids)));
+    }
+    Promise.all(jobs).then(function(){
+        orderFailures=0;orderTroubleReported=false;
     }).catch(function(error){
-        console.error('Could not check order status:',error);
-    }).then(function(){orderPollBusy=false;});
+        orderFailures++;
+        if(isTrackingTroubled()&&!orderTroubleReported){orderTroubleReported=true;reportQuietly('order_tracking',error);}
+        else console.warn('Order status check failed, retrying:',error);
+    }).then(function(){
+        orderPollBusy=false;
+        renderOrders();
+        scheduleOrderPoll(orderFailures?orderStatusStore.timing.pollMs:nextPollDelay());
+    });
 }
-function announceOrderStatus(status){
-    const info=orderStatusStore.describe(status);
-    showToast(status==='cancelled'?'!':'✓','Order #'+trackedOrder.orderNo+': '+info.label,info.note);
-    if(status==='ready'&&navigator.vibrate){try{navigator.vibrate([120,80,120]);}catch(error){}}
+function applyOrderRows(rows,askedIds){
+    const before=JSON.stringify(orderState);
+    const result=orderStatusStore.applyStatuses(orderState,rows,askedIds);
+    orderState=result.state;
+    if(result.removed.length)console.warn('Forgetting orders the kitchen no longer lists:',result.removed.map(o=>o.orderNo));
+    if(JSON.stringify(orderState)!==before)persistOrders();
+    const alert=orderStatusStore.alertFor(result.changes);
+    if(alert){
+        showToast(alert.kind==='ready'?'✓':alert.kind==='cancelled'?'!':'•',alert.title,alert.sub,5000);
+        if(alert.vibrate&&navigator.vibrate){try{navigator.vibrate([120,80,120]);}catch(error){}}
+    }
 }
-function renderOrderStatus(status){
-    trackedStatus=status;
-    const steps=$id('order-steps'),note=$id('order-status-note');
-    if(!status||!orderStatusStore){
-        if(steps)steps.hidden=true;
-        if(note)note.textContent="We'll bring it to your table as soon as it's ready.";
-        updateOrderTracker();
-        return;
+// The page reloaded while an order was being sent. Ask the kitchen whether it arrived.
+function recoverPendingOrder(){
+    const pending=orderState.pending;
+    return window.recoverOrder(pending.requestId).then(function(row){
+        if(orderState.pending!==pending)return;
+        if(row){
+            const added=orderStatusStore.addOrder(orderState,{
+                id:String(row.id).toLowerCase(),orderNo:Number(row.order_no),
+                table:row.table_label!==undefined?row.table_label:currentTable(),
+                placedAt:pending.startedAt,total:Number(row.total),status:row.status,
+                orderType:row.order_type||(window.orderingMode&&window.orderingMode.type)||'dine_in'
+            });
+            orderState=added.state;
+            if(added.added)showToast('✓','We found your order #'+row.order_no,'It reached the kitchen before the page reloaded.',5000);
+        }
+        orderState=orderStatusStore.clearPending(orderState);
+        recoveryArmed=false;
+        persistOrders();
+    });
+}
+
+function orderCardHtml(order){
+    const info=orderStatusStore.describe(order);
+    const steps=orderStatusStore.steps.map(function(step,index){
+        const cls=info.step>index?'done':info.step===index?'current':'';
+        const label=orderStatusStore.labels[step];
+        return '<li class="'+cls+'"'+(info.step===index?' aria-current="step"':'')+'><span class="ok-dot"></span>'+label+'</li>';
+    }).join('');
+    return '<article class="track-card" data-status="'+info.status+'"'+(info.refundDue?' data-refund="due"':'')+'>'+
+        '<div class="tc-top"><span class="tc-no">#'+esc(order.orderNo)+'</span>'+
+        '<span class="tc-label">'+esc(info.label)+'</span>'+
+        (order.paid?'<span class="tc-paid">Paid</span>':'')+
+        (order.total!==null?'<span class="tc-total">'+money(order.total)+'</span>':'')+'</div>'+
+        '<ol class="ok-steps'+(info.status==='cancelled'?' cancelled':'')+'" aria-label="Progress of order '+esc(order.orderNo)+'">'+steps+'</ol>'+
+        '<p class="tc-note">'+esc(info.note)+'</p>'+
+        (orderStatusStore.canClear(order)?'<button type="button" class="tc-clear" data-clear-order="'+esc(order.id)+'">Clear from this phone</button>':'')+
+        '</article>';
+}
+function renderOrders(){
+    if(!orderStatusStore)return;
+    const troubled=hasTrackedOrders()&&isTrackingTroubled();
+    const warning=$id('order-tracking-warning');
+    if(warning)warning.hidden=!troubled;
+    const groupsEl=$id('order-groups');
+    if(groupsEl){
+        groupsEl.innerHTML=orderStatusStore.groupByTable(orderState.orders).map(function(group){
+            return '<section class="order-group"><h3 class="og-head">'+esc(group.heading)+'</h3>'+
+                group.orders.map(orderCardHtml).join('')+'</section>';
+        }).join('');
     }
-    const info=orderStatusStore.describe(status);
-    if(steps){
-        steps.hidden=false;
-        steps.classList.toggle('cancelled',status==='cancelled');
-        steps.querySelectorAll('li').forEach(function(li,index){
-            li.classList.toggle('done',info.step>index);
-            li.classList.toggle('current',info.step===index);
-            if(info.step===index)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');
-        });
+    const billEl=$id('order-bill');
+    if(billEl){
+        const bill=orderStatusStore.billSummary(orderState.orders);
+        billEl.hidden=bill.count<1;
+        if(bill.count){
+            billEl.innerHTML='<div class="ob-row"><span>'+(bill.count>1?'To pay for all '+bill.count+' orders':'To pay')+'</span>'+
+                '<b>'+money(bill.total)+'</b></div>'+
+                '<p>Orders '+bill.orderNos.map(n=>'#'+esc(n)).join(', ')+'. Pay at the table: staff can take payment for all of them at once.</p>';
+        }
     }
-    if(note)note.textContent=info.note;
     updateOrderTracker();
 }
 function updateOrderTracker(){
-    const pill=$id('order-tracker');if(!pill)return;
+    const pill=$id('order-tracker');if(!pill||!orderStatusStore)return;
     const onMenu=$id('menu-page').style.display!=='none'&&!$id('order-success').classList.contains('open')&&
         !$id('cart-page').classList.contains('open');
-    if(!trackedOrder||!trackedStatus||!onMenu){pill.hidden=true;return;}
-    const info=orderStatusStore.describe(trackedStatus);
-    setText('order-tracker-text','Order #'+trackedOrder.orderNo+' · '+info.label);
-    pill.dataset.status=info.status;
+    if(!hasTrackedOrders()||!onMenu){pill.hidden=true;return;}
+    const troubled=isTrackingTroubled();
+    setText('order-tracker-text',orderStatusStore.trackerText(orderState.orders,troubled));
+    pill.dataset.status=troubled?'trouble':orderState.orders.some(o=>o.status==='ready')?'ready':
+        orderStatusStore.describe(orderState.orders[orderState.orders.length-1]).status;
     pill.classList.toggle('lifted',$id('cart-bar').classList.contains('visible'));
     pill.hidden=false;
 }
+function setStatusScreenMode(fresh){
+    $id('order-success').classList.toggle('status-mode',!fresh);
+    setText('ok-kicker',fresh?'Order received':'Live status');
+    setText('ok-h',fresh?'Sent to the kitchen':'Your orders');
+}
 function openOrderStatus(){
-    if(!trackedOrder)return;
-    setText('order-id-text','#'+trackedOrder.orderNo);
-    document.querySelectorAll('[data-table-num]').forEach(el=>el.textContent=trackedOrder.table||'');
-    document.querySelectorAll('[data-table-row]').forEach(el=>el.hidden=!trackedOrder.table);
+    if(!hasTrackedOrders())return;
+    setStatusScreenMode(false);
     $id('order-success').classList.add('open');
-    updateOrderTracker();
-    if(!orderPollTimer&&!orderStatusStore.describe(trackedStatus).finished)startOrderPolling();
+    renderOrders();
+    scheduleOrderPoll(0);
 }
-function forgetTrackedOrder(){
-    stopOrderPolling();
-    trackedOrder=null;trackedStatus=null;
-    const storage=safeStorage();
-    if(storage&&orderStatusStore)orderStatusStore.clear(storage);
-    renderOrderStatus(null);
+function showUndo(order){
+    lastCleared=order;
+    setText('undo-text','Order #'+order.orderNo+' cleared');
+    const bar=$id('undo-bar');bar.hidden=false;
+    clearTimeout(undoTimer);
+    undoTimer=setTimeout(function(){bar.hidden=true;lastCleared=null;},6000);
 }
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&orderPollTimer)pollOrderStatus();});
-// Resume tracking after a reload. Runs once data.js has connected to the kitchen.
+function undoClear(){
+    if(!lastCleared)return;
+    orderState=orderStatusStore.restoreOrder(orderState,lastCleared,Date.now());
+    lastCleared=null;clearTimeout(undoTimer);
+    $id('undo-bar').hidden=true;
+    persistOrders();renderOrders();scheduleOrderPoll(0);
+}
+document.addEventListener('click',function(e){
+    const btn=e.target.closest('[data-clear-order]');
+    if(!btn||!orderStatusStore)return;
+    const result=orderStatusStore.clearOrder(orderState,btn.getAttribute('data-clear-order'));
+    if(!result.cleared){renderOrders();return;}
+    orderState=result.state;
+    persistOrders();renderOrders();showUndo(result.cleared);
+    if(!hasTrackedOrders()&&$id('order-success').classList.contains('status-mode'))backToMenu();
+});
+document.addEventListener('visibilitychange',function(){
+    if(document.hidden)return;
+    scheduleOrderPoll(0);
+    if($id('cart-page').classList.contains('open'))window.refreshTableBoard();
+});
+window.addEventListener('online',function(){scheduleOrderPoll(0);});
+window.addEventListener('offline',renderOrders);
+// Quietly report unexpected script errors for the owner to review later.
+window.addEventListener('error',function(e){
+    if(e.message)reportQuietly('page_error',e.message+' @ '+String(e.filename||'').split('/').pop()+':'+e.lineno);
+});
+window.addEventListener('unhandledrejection',function(e){reportQuietly('unhandled_promise',e.reason);});
+// Resume after a reload, once data.js has connected to the kitchen.
 document.addEventListener('DOMContentLoaded',function(){
+    if(!orderStatusStore)return;
     const storage=safeStorage();
-    const saved=storage&&orderStatusStore?orderStatusStore.load(storage,Date.now()):null;
-    if(!saved||typeof window.fetchOrderStatus!=='function')return;
-    trackedOrder=saved;
-    startOrderPolling();
+    if(!storage)return;
+    const loaded=orderStatusStore.load(storage,Date.now());
+    if(!loaded.ready)reportQuietly('load_orders',loaded.error);
+    else if(loaded.damaged)reportQuietly('load_orders','Some saved orders were unreadable and were skipped');
+    orderState=loaded.state;
+    recoveryArmed=Boolean(orderState.pending);
+    persistOrders();
+    renderOrders();
+    scheduleOrderPoll(0);
 });
 window.getBundleOrderPayload=function(){
     const bundle=getActiveBundle();
@@ -731,10 +904,10 @@ window.refreshBundlePricing=function(){
 };
 
 let toastTimer;
-function showToast(icon,msg,sub){
+function showToast(icon,msg,sub,ms){
     setText('toast-icon',icon);setText('toast-msg',msg);setText('toast-sub',sub||'');
     const t=$id('toast');t.classList.add('show');
-    clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+    clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),ms||2000);
 }
 
 window.addEventListener('popstate',function(){

@@ -669,10 +669,12 @@ grant execute on function public.order_statuses(uuid[]) to anon, authenticated;
 
 -- ── Find an order after the page reloaded mid-checkout ──────────
 -- Only the phone that created the random request id can know it.
+-- Returns the order type and table too, so a recovered order shows where it was placed.
+drop function if exists public.recover_order(uuid);
 create or replace function public.recover_order(p_request_id uuid)
-returns table (id uuid, order_no bigint, total numeric, status text)
+returns table (id uuid, order_no bigint, total numeric, status text, order_type text, table_label text)
 language sql stable security definer set search_path = public as $$
-  select o.id, o.order_no, o.total, o.status
+  select o.id, o.order_no, o.total, o.status, o.order_type, o.table_label
     from public.orders o
    where p_request_id is not null
      and o.client_request_id = p_request_id
