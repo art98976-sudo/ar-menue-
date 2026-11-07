@@ -2,308 +2,594 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Kitchen Dashboard</title>
+<meta name="color-scheme" content="light dark">
+<title>MenuVision · Dashboard</title>
+<script>
+  // Apply the saved theme before first paint so the page never flashes.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('mv-theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0F0E0D; --card:#181614; --card2:#211d1a; --line:#332F2A;
-  --gold:#D4AF37; --gold-dim:rgba(212,175,55,.3);
-  --ivory:#F5F0E8; --warm:#A99F91; --mute:#70695F;
-  --new:#E8833A; --prep:#D4AF37; --ready:#6BBF7A; --bad:#D9655B;
-  --serif:'Cormorant Garamond',Georgia,serif; --sans:'Inter',system-ui,-apple-system,sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--ivory);font-family:var(--sans);font-size:14px;
-  -webkit-font-smoothing:antialiased;min-height:100vh}
-button,input,textarea,select{font:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.hidden{display:none!important}
-.num{font-variant-numeric:tabular-nums}
-
-/* ── Login ─────────────────────────────────── */
-#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-.login-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);
-  border-radius:14px;padding:28px 22px}
-.login-card h1{font-family:var(--serif);font-weight:500;font-size:34px;line-height:1.05;margin-bottom:6px}
-.login-card h1 em{color:var(--gold)}
-.login-card p{color:var(--warm);font-size:13px;margin-bottom:22px}
-label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--mute);margin:0 0 6px}
-input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:9px;
-  padding:10px 12px;font-size:14px}
-input:focus,textarea:focus{border-color:var(--gold);outline:none}
-textarea{resize:vertical;min-height:62px;line-height:1.4}
-.field{margin-bottom:14px}
-.tag-options{display:flex;gap:12px;flex-wrap:wrap}
-.tag-options label{display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--warm);
-  font-size:12px;letter-spacing:0;text-transform:none}
-.tag-options input{width:auto}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;
-  border-radius:9px;border:1px solid var(--line);background:transparent;font-weight:600;font-size:13px;
-  white-space:nowrap}
-.btn:hover{border-color:var(--warm)}
-.btn.primary{background:var(--gold);border-color:var(--gold);color:#17140D}
-.btn.primary:hover{background:#c19f2f}
-.btn.danger{color:var(--bad)}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.btn.block{width:100%;height:46px}
-.err{color:var(--bad);font-size:13px;min-height:18px;margin-top:10px}
-
-/* ── App shell ─────────────────────────────── */
-header{position:sticky;top:0;z-index:10;background:rgba(15,14,13,.95);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--line)}
-.bar{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
-.brand{font-family:var(--serif);font-size:24px;font-weight:600;flex:1;min-width:0;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.brand small{font-family:var(--sans);font-size:11px;color:var(--mute);font-weight:500;
-  letter-spacing:.08em;text-transform:uppercase;margin-left:8px}
-.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;
-  user-select:none;text-transform:none;letter-spacing:0;margin:0;color:var(--ivory)}
-.switch input{position:absolute;opacity:0;width:1px;height:1px}
-.switch .track{width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;
-  transition:background .15s;flex:0 0 38px}
-.switch .track::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;
-  background:var(--ivory);transition:transform .15s}
-.switch input:checked+.track{background:var(--ready)}
-.switch input:checked+.track::after{transform:translateX(16px)}
-.switch input:focus-visible+.track{outline:2px solid var(--gold);outline-offset:2px}
-nav.tabs{max-width:1280px;margin:0 auto;display:flex;gap:4px;padding:0 16px;overflow-x:auto}
-nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:10px 12px;
-  font-weight:600;color:var(--mute);display:flex;align-items:center;gap:6px}
-nav.tabs button[aria-selected="true"]{color:var(--ivory);border-bottom-color:var(--gold)}
-.count{background:var(--new);color:#17140D;font-size:11px;font-weight:700;border-radius:9px;
-  padding:1px 7px;min-width:20px;text-align:center}
-main{max-width:1280px;margin:0 auto;padding:18px 16px 60px}
-h2{font-family:var(--serif);font-weight:500;font-size:26px;margin-bottom:4px}
-.sub{color:var(--mute);font-size:13px;margin-bottom:16px}
-.banner{background:rgba(217,101,91,.12);border:1px solid rgba(217,101,91,.4);color:#f0b4ae;
-  border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px}
-
-/* ── Orders ────────────────────────────────── */
-.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
-.col h3{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--warm);
-  display:flex;align-items:center;gap:8px;margin:0 0 10px}
-.col h3 .dot{width:8px;height:8px;border-radius:50%}
-.col .empty{color:var(--mute);font-size:13px;border:1px dashed var(--line);border-radius:12px;
-  padding:18px;text-align:center}
-.order{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--line);
-  border-radius:12px;padding:14px;margin-bottom:10px}
-.order[data-status="new"]{border-left-color:var(--new)}
-.order[data-status="preparing"]{border-left-color:var(--prep)}
-.order[data-status="ready"]{border-left-color:var(--ready)}
-.order.fresh{animation:fresh 1.2s ease-in-out 3}
-@keyframes fresh{50%{box-shadow:0 0 0 3px rgba(232,131,58,.45)}}
-.o-top{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
-.o-no{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1}
-.o-table{font-weight:700;font-size:13px;color:var(--gold)}
-.o-time{margin-left:auto;color:var(--mute);font-size:12px}
-.o-items{list-style:none;margin:0 0 8px}
-.o-items li{display:flex;gap:8px;padding:3px 0;font-size:14px}
-.o-items li.order-discount{color:var(--ready);font-weight:600}
-.o-items .q{font-weight:700;min-width:26px}
-.o-items .p{margin-left:auto;color:var(--warm)}
-.o-note{background:var(--card2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--warm);margin-bottom:8px}
-.o-total{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;
-  margin-bottom:12px;font-weight:600}
-.o-actions{display:flex;gap:8px}
-.o-actions .btn.primary{flex:1}
-.status-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  border-radius:6px;padding:3px 8px;border:1px solid var(--line);color:var(--warm)}
-.status-pill.cancelled{color:var(--bad);border-color:rgba(217,101,91,.4)}
-.status-pill.served{color:var(--ready);border-color:rgba(107,191,122,.4)}
-.done-list .order{border-left-color:var(--line);opacity:.85}
-.o-type{font-weight:700;font-size:12px;letter-spacing:.04em;padding:2px 8px;border-radius:6px}
-.o-type.dine_in{color:var(--gold);background:rgba(212,175,55,.12)}
-.table-add{display:flex;gap:8px;margin:0 0 16px;max-width:460px}
-.table-add input{flex:1;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2)}
-.tables-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.table-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-.table-card.off{opacity:.6}
-.table-card .tc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.table-card .tc-head b{font-family:var(--serif);font-size:22px}
-.table-card .tc-qr{background:#fff;border-radius:10px;padding:8px;margin-bottom:10px}
-.table-card .tc-qr svg{display:block;width:100%;height:auto}
-.table-card .tc-actions{display:flex;flex-wrap:wrap;gap:6px}
-.table-card .tc-actions .btn{height:34px;padding:0 10px;font-size:12.5px}
-.o-pay{display:flex;align-items:center;gap:8px;margin-top:8px}
-.o-pay:empty{display:none}
-.o-pay .btn{padding:6px 10px;font-size:12.5px}
-.pay-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:3px 8px;border:1px solid var(--line)}
-.pay-pill.paid,.pay-pill.refunded{color:var(--ready);border-color:rgba(107,191,122,.4)}
-.pay-pill.refund-due{color:var(--bad);border-color:rgba(217,101,91,.5)}
-.done-list .order[data-status="cancelled"]:has(.refund-due){opacity:1;border-left-color:var(--bad)}
-.err-box{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.err-box summary{cursor:pointer;font-weight:600}
-.err-list{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:13px}
-.err-list li{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding-top:8px}
-.err-list .err-time{color:var(--mute)}
-.err-list b{color:var(--gold)}
-.done-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:130px}
-.stat b{display:block;font-family:var(--serif);font-size:26px;font-weight:600;line-height:1.1}
-.stat span{font-size:11px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
-
-/* ── Menu editor ───────────────────────────── */
-.dishes{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
-.dish{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-.dish.off{opacity:.75}
-.dish-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.dish-head .ic{font-size:26px}
-.dish-head .nm{font-family:var(--serif);font-size:22px;font-weight:600;flex:1;min-width:0;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
-.price-wrap{position:relative}
-.price-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mute)}
-.price-wrap input{padding-left:26px;font-size:18px;font-weight:600;color:var(--gold)}
-.dish-foot{display:flex;align-items:center;gap:10px;margin-top:4px}
-.saved{font-size:12px;color:var(--ready);margin-right:auto}
-.saved.err{color:var(--bad);margin-top:0;min-height:0}
-.form-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:560px}
-
-/* ── Toast ─────────────────────────────────── */
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;background:var(--card2);
-  border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:calc(100% - 32px)}
-
-@media (max-width:900px){ .board{grid-template-columns:1fr} }
-@media (max-width:420px){ .dishes{grid-template-columns:1fr} .grid3{grid-template-columns:1fr 1fr} }
-@media (prefers-reduced-motion:reduce){ .order.fresh{animation:none;box-shadow:0 0 0 2px rgba(232,131,58,.45)} *{transition:none!important} }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dashboard.css?v=1">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-<!-- ═══ Login ═══ -->
-<section id="login" class="hidden">
-  <form class="login-card" id="login-form">
-    <h1>Kitchen <em>Dashboard</em></h1>
-    <p>Sign in with the owner account.</p>
-    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
-    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
-    <button class="btn primary block" type="submit" id="login-btn">Sign in</button>
-    <div class="err" id="login-err" role="alert"></div>
-  </form>
+<!-- ═══ Icons ═══ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-overview" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-orders" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+    <symbol id="i-dishes" viewBox="0 0 24 24"><path d="M5 17a7 7 0 0 1 14 0"/><path d="M12 10V8M10 8h4M3 17h18M5 20h14"/></symbol>
+    <symbol id="i-pairings" viewBox="0 0 24 24"><path d="M11 3l1.8 4.7 4.7 1.8-4.7 1.8L11 16l-1.8-4.7L4.5 9.5l4.7-1.8z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M14 14h3v3h-3zM20.5 14v.01M14 20.5h.01M17 20.5h3.5V17"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12 4 7.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4 20h16"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16M20 20v-4h-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></symbol>
+    <symbol id="i-tap" viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V12m0-1a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.8-2.4L4.3 15a1.5 1.5 0 0 1 2.3-1.9L9 15"/></symbol>
+  </defs>
+</svg>
+
+<!-- ═══ Sign in ═══ -->
+<section id="login" class="login hidden" aria-labelledby="login-h">
+  <div class="login-art" aria-hidden="true">
+    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=1200&q=80&auto=format&fit=crop" alt="" decoding="async">
+    <div class="login-quote">
+      <p class="eyebrow">MenuVision</p>
+      <p class="login-quote-text">Every dish, at its real size, on the table before it's ordered.</p>
+    </div>
+  </div>
+  <div class="login-pane">
+    <form class="login-card" id="login-form" novalidate>
+      <span class="wordmark" aria-hidden="true">MenuVision</span>
+      <h1 id="login-h">Welcome back</h1>
+      <p class="muted">Sign in with your owner account to manage your menu.</p>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" inputmode="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit" id="login-btn"><span class="btn-label">Sign in</span></button>
+      <p class="form-error" id="login-err" role="alert"></p>
+    </form>
+  </div>
 </section>
 
 <!-- ═══ App ═══ -->
-<section id="app" class="hidden">
-  <header>
-    <div class="bar">
-      <div class="brand" id="brand">Dashboard<small>Owner</small></div>
-      <label class="switch" title="When off, customers can't place orders">
-        <input type="checkbox" id="accepting"><span class="track"></span><span id="accepting-label">Taking orders</span>
-      </label>
-      <button class="btn" id="logout">Sign out</button>
+<div id="app" class="app hidden">
+  <!-- Sidebar (tablet & desktop) -->
+  <aside class="sidebar" aria-label="Main">
+    <div class="side-brand">
+      <span class="mono" id="side-mono" aria-hidden="true">M</span>
+      <span class="side-names">
+        <b id="side-name">Your restaurant</b>
+        <small>MenuVision</small>
+      </span>
     </div>
-    <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="orders" aria-selected="true">Live orders <span class="count num hidden" id="new-count">0</span></button>
-      <button role="tab" data-tab="done" aria-selected="false">Completed today</button>
-      <button role="tab" data-tab="menu" aria-selected="false">Menu &amp; prices</button>
-      <button role="tab" data-tab="tables" aria-selected="false">Tables &amp; QR</button>
-      <button role="tab" data-tab="info" aria-selected="false">Restaurant</button>
+    <nav class="side-nav" aria-label="Sections">
+      <a href="#overview" data-nav="overview"><svg class="ic"><use href="#i-overview"/></svg><span>Overview</span></a>
+      <a href="#orders" data-nav="orders"><svg class="ic"><use href="#i-orders"/></svg><span>Orders</span><span class="nav-count hidden" data-new-count>0</span></a>
+      <a href="#dishes" data-nav="dishes"><svg class="ic"><use href="#i-dishes"/></svg><span>Dishes</span></a>
+      <a href="#pairings" data-nav="pairings"><svg class="ic"><use href="#i-pairings"/></svg><span>Pairings</span></a>
+      <a href="#tables" data-nav="tables"><svg class="ic"><use href="#i-qr"/></svg><span>Tables &amp; QR</span></a>
+      <a href="#settings" data-nav="settings"><svg class="ic"><use href="#i-settings"/></svg><span>Settings</span></a>
     </nav>
+    <div class="side-foot">
+      <label class="switch switch-service">
+        <input type="checkbox" data-accepting>
+        <span class="track" aria-hidden="true"></span>
+        <span data-accepting-label>Taking orders</span>
+      </label>
+      <div class="side-actions">
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to light mode">
+          <svg class="ic ic-sun"><use href="#i-sun"/></svg><svg class="ic ic-moon"><use href="#i-moon"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm" type="button" data-logout><svg class="ic"><use href="#i-logout"/></svg>Sign out</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Top bar (phones) -->
+  <header class="topbar">
+    <div class="top-brand">
+      <span class="mono mono-sm" id="top-mono" aria-hidden="true">M</span>
+      <b id="top-name">Your restaurant</b>
+    </div>
+    <label class="switch switch-compact">
+      <input type="checkbox" data-accepting aria-describedby="top-accept-desc">
+      <span class="track" aria-hidden="true"></span>
+      <span class="sr-only" id="top-accept-desc">Taking orders</span>
+    </label>
+    <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to light mode">
+      <svg class="ic ic-sun"><use href="#i-sun"/></svg><svg class="ic ic-moon"><use href="#i-moon"/></svg>
+    </button>
+    <a class="icon-btn" href="#settings" data-nav="settings" aria-label="Settings"><svg class="ic"><use href="#i-settings"/></svg></a>
   </header>
 
-  <main>
-    <div class="banner hidden" id="offline">Live connection lost — reconnecting… New orders will appear once it's back.</div>
+  <main id="main" class="main" tabindex="-1">
+    <div class="banner banner-bad hidden" id="offline" role="status">
+      <svg class="ic"><use href="#i-alert"/></svg>
+      <span>Live connection lost. Reconnecting… New orders will appear as soon as it's back.</span>
+    </div>
+    <div class="banner banner-info hidden" id="upgrade-banner" role="note">
+      <svg class="ic"><use href="#i-alert"/></svg>
+      <span>Photo upload, logo, brand colour and menu analytics need a one-time database upgrade. Run <code>supabase/dashboard-upgrade-2026-11.sql</code> in the Supabase SQL Editor, then reload.</span>
+    </div>
 
-    <!-- Live orders -->
-    <div data-panel="orders">
-      <div class="stats">
-        <div class="stat"><b class="num" id="st-orders">0</b><span>Orders today</span></div>
-        <div class="stat"><b class="num" id="st-revenue">£0.00</b><span>Revenue today</span></div>
-        <div class="stat"><b class="num" id="st-open">0</b><span>In progress</span></div>
+    <!-- ── Overview ── -->
+    <section class="view" data-view="overview" aria-labelledby="overview-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow" id="ov-date">Today</p>
+          <h1 id="overview-h" tabindex="-1"><span id="ov-greeting">Good evening</span></h1>
+          <p class="lede" id="ov-sub">Here is how your menu is performing this week.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-ghost" href="index.html" target="_blank" rel="noopener"><svg class="ic"><use href="#i-eye"/></svg>View live menu</a>
+          <button class="btn btn-primary" type="button" data-new-dish><svg class="ic"><use href="#i-plus"/></svg>Add dish</button>
+        </div>
+      </header>
+
+      <div class="stat-grid" id="ov-stats" aria-live="polite">
+        <article class="stat-card skel-card"><span class="skel skel-line w40"></span><span class="skel skel-num"></span><span class="skel skel-chart"></span></article>
+        <article class="stat-card skel-card"><span class="skel skel-line w40"></span><span class="skel skel-num"></span><span class="skel skel-chart"></span></article>
+        <article class="stat-card skel-card"><span class="skel skel-line w40"></span><span class="skel skel-num"></span><span class="skel skel-chart"></span></article>
+        <article class="stat-card skel-card"><span class="skel skel-line w40"></span><span class="skel skel-num"></span><span class="skel skel-chart"></span></article>
       </div>
-      <div class="board">
-        <div class="col"><h3><span class="dot" style="background:var(--new)"></span>New</h3><div id="col-new"></div></div>
-        <div class="col"><h3><span class="dot" style="background:var(--prep)"></span>Preparing</h3><div id="col-preparing"></div></div>
-        <div class="col"><h3><span class="dot" style="background:var(--ready)"></span>Ready to serve</h3><div id="col-ready"></div></div>
+
+      <div class="ov-grid">
+        <section class="panel" aria-labelledby="ov-today-h">
+          <header class="panel-head">
+            <h2 id="ov-today-h">Today's service</h2>
+            <a class="link" href="#orders" data-nav="orders">Open orders<svg class="ic"><use href="#i-chevron"/></svg></a>
+          </header>
+          <div class="mini-stats">
+            <div><b class="num" id="st-orders">0</b><span>Orders</span></div>
+            <div><b class="num" id="st-revenue">£0.00</b><span>Revenue</span></div>
+            <div><b class="num" id="st-open">0</b><span>In progress</span></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-head"><span class="label">Revenue, last 7 days</span><b class="num" id="ov-week-revenue">£0.00</b></div>
+            <div class="bars" id="ov-revenue-bars" role="img" aria-label="Revenue for each of the last 7 days"></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="ov-top-h">
+          <header class="panel-head">
+            <h2 id="ov-top-h">Top dishes this week</h2>
+            <span class="label" id="ov-top-basis">by AR views</span>
+          </header>
+          <ol class="rank-list" id="ov-top"><li class="skel skel-row"></li><li class="skel skel-row"></li><li class="skel skel-row"></li></ol>
+        </section>
+
+        <section class="panel panel-wide" aria-labelledby="ov-attn-h">
+          <header class="panel-head">
+            <h2 id="ov-attn-h">Needs your attention</h2>
+          </header>
+          <ul class="attn-list" id="ov-attention"></ul>
+        </section>
       </div>
-    </div>
+    </section>
 
-    <!-- Completed -->
-    <div data-panel="done" class="hidden">
-      <h2>Completed today</h2>
-      <p class="sub">Served and cancelled orders since midnight.</p>
-      <div class="done-list" id="done-list"></div>
-      <details class="err-box" id="client-errors-box">
-        <summary>Problems reported by customer phones, last 7 days <span id="err-count"></span></summary>
-        <div id="client-errors"><p class="sub">Loading…</p></div>
-      </details>
-    </div>
+    <!-- ── Orders ── -->
+    <section class="view hidden" data-view="orders" aria-labelledby="orders-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Service</p>
+          <h1 id="orders-h" tabindex="-1">Orders</h1>
+          <p class="lede">New orders arrive here instantly, with a soft chime.</p>
+        </div>
+        <div class="seg" role="tablist" aria-label="Order lists">
+          <button role="tab" type="button" aria-selected="true" aria-controls="orders-live" id="tab-live" data-orders-tab="live">Live <span class="seg-count hidden" data-new-count>0</span></button>
+          <button role="tab" type="button" aria-selected="false" aria-controls="orders-done" id="tab-done" data-orders-tab="done" tabindex="-1">Completed today</button>
+          <button role="tab" type="button" aria-selected="false" aria-controls="orders-issues" id="tab-issues" data-orders-tab="issues" tabindex="-1">Phone issues <span id="err-count"></span></button>
+        </div>
+      </header>
 
-    <!-- Menu -->
-    <div data-panel="menu" class="hidden">
-      <h2>Menu &amp; prices</h2>
-      <p class="sub">Changes appear on customers' phones straight away. Add verified ingredients and nutrition values: calories per 100g multiplied by portion grams becomes the exact displayed portion calories. Confirm dietary and allergen information only when checked with the kitchen or supplier; unknown allergen information is treated as unsafe for affected customers.</p>
-      <div class="dishes" id="dishes"></div>
-    </div>
+      <div id="orders-live" role="tabpanel" aria-labelledby="tab-live" data-orders-panel="live">
+        <div class="board">
+          <section class="col" aria-labelledby="col-new-h"><h2 class="col-h" id="col-new-h"><span class="dot dot-new"></span>New</h2><div id="col-new"></div></section>
+          <section class="col" aria-labelledby="col-prep-h"><h2 class="col-h" id="col-prep-h"><span class="dot dot-prep"></span>Preparing</h2><div id="col-preparing"></div></section>
+          <section class="col" aria-labelledby="col-ready-h"><h2 class="col-h" id="col-ready-h"><span class="dot dot-ready"></span>Ready to serve</h2><div id="col-ready"></div></section>
+        </div>
+      </div>
+      <div id="orders-done" role="tabpanel" aria-labelledby="tab-done" data-orders-panel="done" class="hidden">
+        <div class="done-list" id="done-list"></div>
+      </div>
+      <div id="orders-issues" role="tabpanel" aria-labelledby="tab-issues" data-orders-panel="issues" class="hidden">
+        <section class="panel">
+          <header class="panel-head"><h2>Problems reported by customer phones</h2><span class="label">Last 7 days</span></header>
+          <div id="client-errors"><p class="muted">Loading…</p></div>
+        </section>
+      </div>
+    </section>
 
-    <!-- Restaurant -->
-    <!-- Tables & QR codes -->
-    <div data-panel="tables" class="hidden">
-      <h2>Tables &amp; QR codes</h2>
-      <p class="sub">Each table has its own QR code with a secret code inside, so only people at a real table can place a dine-in order. Print a code for every table. If a code is copied or lost, press <b>New code</b>: the old one stops working at once.</p>
-      <form class="table-add" id="table-form">
-        <input id="table-label" maxlength="20" placeholder="Table number, e.g. 5 or Patio1" aria-label="Table number" required>
-        <button class="btn primary" type="submit">Add table</button>
+    <!-- ── Dishes ── -->
+    <section class="view hidden" data-view="dishes" aria-labelledby="dishes-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Menu</p>
+          <h1 id="dishes-h" tabindex="-1">Dishes</h1>
+          <p class="lede">Changes appear on customers' phones straight away.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-new-dish><svg class="ic"><use href="#i-plus"/></svg>Add dish</button>
+        </div>
+      </header>
+      <div class="toolbar">
+        <label class="search">
+          <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+          <span class="sr-only">Search dishes</span>
+          <input type="search" id="dish-search" placeholder="Search dishes" autocomplete="off">
+        </label>
+        <div class="seg seg-scroll" role="group" aria-label="Filter by category" id="dish-filter">
+          <button type="button" aria-pressed="true" data-cat="all">All</button>
+          <button type="button" aria-pressed="false" data-cat="main">Mains</button>
+          <button type="button" aria-pressed="false" data-cat="side">Sides</button>
+          <button type="button" aria-pressed="false" data-cat="drink">Drinks</button>
+          <button type="button" aria-pressed="false" data-cat="dessert">Desserts</button>
+        </div>
+      </div>
+      <div class="dish-grid" id="dishes" aria-live="polite">
+        <div class="dish-card skel-card"><span class="skel skel-media"></span><div class="dc-body"><span class="skel skel-line w40"></span><span class="skel skel-line w70"></span></div></div>
+        <div class="dish-card skel-card"><span class="skel skel-media"></span><div class="dc-body"><span class="skel skel-line w40"></span><span class="skel skel-line w70"></span></div></div>
+        <div class="dish-card skel-card"><span class="skel skel-media"></span><div class="dc-body"><span class="skel skel-line w40"></span><span class="skel skel-line w70"></span></div></div>
+      </div>
+    </section>
+
+    <!-- ── Pairings ── -->
+    <section class="view hidden" data-view="pairings" aria-labelledby="pairings-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Recommendations</p>
+          <h1 id="pairings-h" tabindex="-1">Pairings</h1>
+          <p class="lede">See exactly what guests are offered with each dish, and shape it.</p>
+        </div>
+      </header>
+
+      <section class="panel settings-strip" aria-label="Recommendation settings">
+        <label class="switch"><input type="checkbox" id="recommendations-enabled"><span class="track" aria-hidden="true"></span><span>Suggestions on the menu</span></label>
+        <label class="switch"><input type="checkbox" id="ai-recommendations-enabled"><span class="track" aria-hidden="true"></span><span>AI suggestions <small class="muted">(needs the Supabase function)</small></span></label>
+        <label class="switch"><input type="checkbox" id="bundles-enabled"><span class="track" aria-hidden="true"></span><span>Combo deals</span></label>
+        <form class="inline-form" id="combo-form">
+          <label for="bundle-discount-percent">Combo discount</label>
+          <span class="input-affix"><input id="bundle-discount-percent" type="number" min="0" max="100" step="0.5" inputmode="decimal" required><span>%</span></span>
+          <button class="btn btn-ghost btn-sm" type="submit">Save</button>
+        </form>
+      </section>
+
+      <div class="pair-layout">
+        <div class="pair-picker" role="group" aria-label="Choose a dish" id="pair-picker"></div>
+        <div class="pair-detail" id="pair-detail" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ── Tables & QR ── -->
+    <section class="view hidden" data-view="tables" aria-labelledby="tables-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Tables</p>
+          <h1 id="tables-h" tabindex="-1">Tables &amp; QR codes</h1>
+          <p class="lede">Each table has its own secret code, so only guests at a real table can order dine-in. If a code is copied or lost, make a new one and the old card stops working at once.</p>
+        </div>
+      </header>
+      <form class="add-row" id="table-form" novalidate>
+        <div class="field">
+          <label for="table-label">New table</label>
+          <input id="table-label" maxlength="20" placeholder="e.g. 5 or Patio1" autocomplete="off" required aria-describedby="table-label-hint">
+          <p class="hint" id="table-label-hint">Letters, numbers, - or _ (up to 20).</p>
+        </div>
+        <button class="btn btn-primary" type="submit"><svg class="ic"><use href="#i-plus"/></svg>Add table</button>
       </form>
-      <div class="tables-list" id="tables-list"><p class="sub">Loading…</p></div>
-    </div>
+      <div class="table-grid" id="tables-list"><div class="qr-tile skel-card"><span class="skel skel-qr"></span></div></div>
+    </section>
 
-    <div data-panel="info" class="hidden">
-      <h2>Restaurant</h2>
-      <p class="sub">Shown at the top of the customer menu.</p>
-      <form class="form-card" id="info-form">
-        <div class="field"><label for="r-name">Restaurant name</label><input id="r-name" maxlength="60" required></div>
-        <div class="field"><label for="r-tagline">Tagline / address</label><input id="r-tagline" maxlength="120"></div>
-        <div class="field"><label for="r-badge">Menu intro text</label><textarea id="r-badge" maxlength="200"></textarea></div>
-        <div class="grid2">
-          <div class="field"><label for="r-currency">Currency symbol</label><input id="r-currency" maxlength="4" required></div>
-          <div class="field"><label for="r-tax">Tax / service %</label><input id="r-tax" type="number" min="0" max="99" step="0.01" required></div>
+    <!-- ── Settings ── -->
+    <section class="view hidden" data-view="settings" aria-labelledby="settings-h">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Restaurant</p>
+          <h1 id="settings-h" tabindex="-1">Settings</h1>
+          <p class="lede">Your name, logo and colour appear on the customer menu and your table cards.</p>
         </div>
-        <div class="field">
-          <label class="switch"><input id="recommendations-enabled" type="checkbox">
-            <span class="track"></span><span>Enable dish recommendations</span>
-          </label>
-          <p class="sub">Turn off to hide suggestions and stop recommendation lookups. The cart and menu keep working.</p>
+      </header>
+
+      <div class="settings-grid">
+        <form class="panel form-panel" id="info-form" novalidate>
+          <h2>Identity</h2>
+          <div class="field">
+            <label for="r-name">Restaurant name</label>
+            <input id="r-name" maxlength="60" required aria-describedby="r-name-err">
+            <p class="field-err" id="r-name-err"></p>
+          </div>
+          <div class="field"><label for="r-tagline">Tagline or address</label><input id="r-tagline" maxlength="120"></div>
+          <div class="field"><label for="r-badge">Menu intro</label><textarea id="r-badge" maxlength="200" rows="2"></textarea></div>
+
+          <h2 class="mt">Branding</h2>
+          <div class="brand-row">
+            <div class="field">
+              <span class="label-text" id="logo-label">Logo</span>
+              <div class="drop drop-logo" data-drop="logo" aria-labelledby="logo-label">
+                <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp" class="sr-only">
+                <div class="drop-preview" id="logo-preview" aria-hidden="true"></div>
+                <div class="drop-text">
+                  <label for="logo-file" class="btn btn-ghost btn-sm"><svg class="ic"><use href="#i-upload"/></svg>Upload logo</label>
+                  <p class="hint">Square PNG, JPG or WebP. Drag it here.</p>
+                  <button type="button" class="link link-danger hidden" id="logo-remove">Remove logo</button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="r-color-hex">Brand colour</label>
+              <div class="color-row">
+                <input type="color" id="r-color" aria-label="Pick brand colour">
+                <input id="r-color-hex" maxlength="7" spellcheck="false" autocomplete="off" aria-describedby="r-color-err">
+              </div>
+              <div class="swatches" role="group" aria-label="Suggested colours" id="swatches"></div>
+              <p class="field-err" id="r-color-err"></p>
+            </div>
+          </div>
+          <div class="brand-preview" id="brand-preview" aria-label="Preview of your customer menu header">
+            <span class="bp-mono" id="bp-mono">C</span>
+            <div><b class="bp-name" id="bp-name">Your restaurant</b><small id="bp-tag"></small></div>
+            <span class="bp-btn">View on table</span>
+          </div>
+
+          <h2 class="mt">Prices</h2>
+          <div class="grid-2">
+            <div class="field"><label for="r-currency">Currency symbol</label><input id="r-currency" maxlength="4" required></div>
+            <div class="field">
+              <label for="r-tax">Tax or service</label>
+              <span class="input-affix"><input id="r-tax" type="number" min="0" max="99" step="0.01" inputmode="decimal" required><span>%</span></span>
+            </div>
+          </div>
+          <div class="form-foot">
+            <span class="status-text" id="info-status" role="status"></span>
+            <button class="btn btn-primary" type="submit" id="info-save"><span class="btn-label">Save changes</span></button>
+          </div>
+        </form>
+
+        <div class="settings-side">
+          <section class="panel">
+            <h2>Appearance</h2>
+            <p class="muted">Only changes this dashboard, not the customer menu.</p>
+            <div class="seg" role="radiogroup" aria-label="Dashboard theme" id="theme-seg">
+              <button type="button" role="radio" aria-checked="false" data-theme-set="system">System</button>
+              <button type="button" role="radio" aria-checked="false" data-theme-set="light">Light</button>
+              <button type="button" role="radio" aria-checked="false" data-theme-set="dark">Dark</button>
+            </div>
+          </section>
+          <section class="panel">
+            <h2>Account</h2>
+            <p class="muted">Signed in as <b id="acct-email">owner</b></p>
+            <button class="btn btn-ghost" type="button" data-logout><svg class="ic"><use href="#i-logout"/></svg>Sign out</button>
+          </section>
         </div>
-        <div class="field">
-          <label class="switch"><input id="ai-recommendations-enabled" type="checkbox">
-            <span class="track"></span><span>Enable optional AI recommendations</span>
-          </label>
-          <p class="sub">Off by default. Requires the Supabase recommendation function and an OpenAI secret.</p>
-        </div>
-        <div class="field">
-          <label class="switch"><input id="bundles-enabled" type="checkbox">
-            <span class="track"></span><span>Enable combo deals</span>
-          </label>
-          <p class="sub">Builds a combo from tagged mains, drinks and desserts. Unsafe or unverified dishes are excluded for customers with saved allergy needs.</p>
-        </div>
-        <div class="field">
-          <label for="bundle-discount-percent">Combo discount (%)</label>
-          <input id="bundle-discount-percent" type="number" min="0" max="100" step="0.5" required>
-          <p class="sub">The database calculates the actual discount at checkout using this setting.</p>
-        </div>
-        <div class="dish-foot">
-          <span class="saved" id="info-status" role="status"></span>
-          <button class="btn primary" type="submit">Save changes</button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </section>
   </main>
-</section>
 
-<div id="toast" class="hidden" role="status"></div>
+  <!-- Bottom tabs (phones) -->
+  <nav class="tabbar" aria-label="Sections">
+    <a href="#overview" data-nav="overview"><svg class="ic"><use href="#i-overview"/></svg><span>Overview</span></a>
+    <a href="#orders" data-nav="orders"><svg class="ic"><use href="#i-orders"/></svg><span>Orders</span><span class="tab-count hidden" data-new-count>0</span></a>
+    <a href="#dishes" data-nav="dishes"><svg class="ic"><use href="#i-dishes"/></svg><span>Dishes</span></a>
+    <a href="#pairings" data-nav="pairings"><svg class="ic"><use href="#i-pairings"/></svg><span>Pairings</span></a>
+    <a href="#tables" data-nav="tables"><svg class="ic"><use href="#i-qr"/></svg><span>QR</span></a>
+  </nav>
+</div>
+
+<!-- ═══ Dish editor ═══ -->
+<dialog class="drawer" id="editor" aria-labelledby="ed-title">
+  <form id="ed-form" class="drawer-form" novalidate>
+    <header class="drawer-head">
+      <div>
+        <p class="eyebrow" id="ed-eyebrow">Edit dish</p>
+        <h2 id="ed-title">Dish</h2>
+      </div>
+      <button class="icon-btn" type="button" data-close-editor aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+    </header>
+
+    <div class="drawer-body">
+      <div class="ed-main">
+        <fieldset class="ed-section">
+          <legend>Photo &amp; 3D model</legend>
+          <div class="drop drop-photo" data-drop="photo">
+            <input type="file" id="ed-photo" accept="image/png,image/jpeg,image/webp" class="sr-only">
+            <div class="drop-preview" id="ed-photo-preview" aria-hidden="true"></div>
+            <div class="drop-text">
+              <svg class="ic ic-lg" aria-hidden="true"><use href="#i-image"/></svg>
+              <p><b>Drag a photo here</b> or <label for="ed-photo" class="link">browse</label></p>
+              <p class="hint" id="ed-photo-hint">JPG, PNG or WebP. Landscape works best. We resize it for fast phones.</p>
+            </div>
+          </div>
+          <div class="model-box" id="ed-model">
+            <div class="model-files" id="ed-model-files"></div>
+            <div class="model-actions">
+              <button class="btn btn-ghost btn-sm" type="button" id="ed-model-preview"><svg class="ic"><use href="#i-cube"/></svg>Preview in 3D</button>
+              <label class="btn btn-ghost btn-sm" for="ed-model-file"><svg class="ic"><use href="#i-upload"/></svg>Test a .glb file</label>
+              <input type="file" id="ed-model-file" accept=".glb,model/gltf-binary" class="sr-only">
+            </div>
+            <p class="hint" id="ed-model-hint"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="ed-section">
+          <legend>Essentials</legend>
+          <div class="grid-2">
+            <div class="field span-2">
+              <label for="ed-name">Name</label>
+              <input id="ed-name" maxlength="60" required aria-describedby="ed-name-err">
+              <p class="field-err" id="ed-name-err"></p>
+            </div>
+            <div class="field span-2 hidden" id="ed-id-field">
+              <label for="ed-id">Model file name</label>
+              <input id="ed-id" maxlength="40" spellcheck="false" autocomplete="off" aria-describedby="ed-id-hint ed-id-err">
+              <p class="hint" id="ed-id-hint">Lower-case letters, numbers and dashes. The 3D files must be called the same, e.g. <code>name.glb</code>.</p>
+              <p class="field-err" id="ed-id-err"></p>
+            </div>
+            <div class="field">
+              <label for="ed-price">Price</label>
+              <span class="input-affix input-affix-start"><span class="cur" data-currency>£</span><input id="ed-price" type="number" min="0" max="9999" step="0.01" inputmode="decimal" required aria-describedby="ed-price-err"></span>
+              <p class="field-err" id="ed-price-err"></p>
+            </div>
+            <div class="field">
+              <label for="ed-category">Category</label>
+              <select id="ed-category">
+                <option value="main">Main</option><option value="side">Side</option><option value="drink">Drink</option><option value="dessert">Dessert</option>
+              </select>
+            </div>
+            <div class="field span-2">
+              <label for="ed-description">Description</label>
+              <textarea id="ed-description" maxlength="200" rows="2" aria-describedby="ed-desc-count"></textarea>
+              <p class="hint counter" id="ed-desc-count">0 / 200</p>
+            </div>
+            <div class="field">
+              <label for="ed-icon">Icon</label>
+              <input id="ed-icon" maxlength="4" aria-describedby="ed-icon-hint">
+              <p class="hint" id="ed-icon-hint">An emoji, shown while photos load.</p>
+            </div>
+            <div class="field">
+              <span class="label-text">On the menu</span>
+              <label class="switch"><input type="checkbox" id="ed-available"><span class="track" aria-hidden="true"></span><span id="ed-available-label">Available</span></label>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="ed-section">
+          <legend>Portion &amp; nutrition</legend>
+          <div class="grid-3">
+            <div class="field"><label for="ed-size">Size</label><input id="ed-size" maxlength="20" placeholder="12 inch"></div>
+            <div class="field"><label for="ed-serves">Serves</label><input id="ed-serves" maxlength="20" placeholder="2–3 people"></div>
+            <div class="field"><label for="ed-weight">Weight</label><input id="ed-weight" maxlength="20" placeholder="400g"></div>
+            <div class="field"><label for="ed-prep_time">Prep time</label><input id="ed-prep_time" maxlength="20" placeholder="15 min"></div>
+            <div class="field"><label for="ed-rating">Rating</label><input id="ed-rating" maxlength="6" placeholder="4.8"></div>
+            <div class="field"><label for="ed-calories">Calories label</label><input id="ed-calories" maxlength="20" placeholder="320 kcal"></div>
+            <div class="field"><label for="ed-calories_per_100g">kcal per 100g</label><input id="ed-calories_per_100g" type="number" min="0" step="0.01" inputmode="decimal"></div>
+            <div class="field"><label for="ed-portion_grams">Portion (grams)</label><input id="ed-portion_grams" type="number" min="0" step="0.01" inputmode="decimal"></div>
+            <div class="field calc"><span class="label-text">Shown to guests</span><output id="ed-kcal-out" for="ed-calories_per_100g ed-portion_grams">—</output></div>
+          </div>
+          <div class="field">
+            <label for="ed-ingredients">Ingredients</label>
+            <input id="ed-ingredients" maxlength="300" placeholder="tomato, basil, mozzarella" aria-describedby="ed-ingredients-hint">
+            <p class="hint" id="ed-ingredients-hint">Separate with commas. Use verified ingredients only.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="ed-section">
+          <legend>Taste &amp; pairing</legend>
+          <div class="field">
+            <label for="ed-flavour">Flavours</label>
+            <input id="ed-flavour" maxlength="160" placeholder="citrus, spicy, creamy" aria-describedby="ed-flavour-hint">
+            <p class="hint" id="ed-flavour-hint">Dishes that share flavours are suggested together.</p>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="ed-price_band">Price band</label>
+              <select id="ed-price_band"><option value="budget">Budget</option><option value="mid">Mid</option><option value="premium">Premium</option></select>
+            </div>
+            <div class="field">
+              <label for="ed-meal_part">Meal part</label>
+              <select id="ed-meal_part"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="any">Any</option><option value="unspecified">Unspecified</option></select>
+            </div>
+          </div>
+          <label class="switch"><input type="checkbox" id="ed-promote"><span class="track" aria-hidden="true"></span><span>Chef's pick <small class="muted">(suggested more often)</small></span></label>
+        </fieldset>
+
+        <fieldset class="ed-section">
+          <legend>Dietary &amp; allergens</legend>
+          <p class="label-text" id="ed-dietary-l">Dietary</p>
+          <div class="chips" id="ed-dietary" role="group" aria-labelledby="ed-dietary-l"></div>
+          <p class="label-text" id="ed-allergens-l">Contains</p>
+          <div class="chips" id="ed-allergens" role="group" aria-labelledby="ed-allergens-l"></div>
+          <p class="label-text" id="ed-may-l">May contain (cross-contact)</p>
+          <div class="chips" id="ed-may" role="group" aria-labelledby="ed-may-l"></div>
+          <label class="check-row">
+            <input type="checkbox" id="ed-verified">
+            <span><b>Allergen information checked with the kitchen or supplier</b>
+            <small class="muted">Leave unticked until verified. Guests with allergies are never recommended unverified dishes.</small></span>
+          </label>
+        </fieldset>
+      </div>
+
+      <aside class="ed-preview" aria-label="Live preview">
+        <p class="eyebrow">Guest view</p>
+        <article class="pv-card" id="pv-card">
+          <div class="pv-media" id="pv-media"></div>
+          <div class="pv-body">
+            <div class="pv-head"><h3 id="pv-name">Dish name</h3><span id="pv-price" class="num">£0.00</span></div>
+            <p id="pv-desc" class="pv-desc"></p>
+            <p id="pv-facts" class="pv-facts"></p>
+            <div class="pv-btns"><span class="pv-ar"><svg class="ic"><use href="#i-cube"/></svg>View on table</span><span class="pv-add"><svg class="ic"><use href="#i-plus"/></svg></span></div>
+          </div>
+        </article>
+        <p class="hint">A preview of the card on the customer menu.</p>
+      </aside>
+    </div>
+
+    <footer class="drawer-foot">
+      <span class="status-text" id="ed-status" role="status"></span>
+      <button class="btn btn-ghost" type="button" data-close-editor>Cancel</button>
+      <button class="btn btn-primary" type="submit" id="ed-save"><span class="btn-label">Save dish</span></button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- ═══ 3D preview ═══ -->
+<dialog class="viewer" id="viewer" aria-labelledby="vw-title">
+  <header class="viewer-head">
+    <div>
+      <p class="eyebrow" id="vw-eyebrow">3D preview</p>
+      <h2 id="vw-title">Dish</h2>
+    </div>
+    <button class="icon-btn" type="button" id="vw-close" aria-label="Close 3D preview"><svg class="ic"><use href="#i-close"/></svg></button>
+  </header>
+  <div class="viewer-stage" id="vw-stage">
+    <div class="viewer-loading" id="vw-loading"><span class="spinner" aria-hidden="true"></span><span id="vw-loading-text">Loading 3D model…</span></div>
+  </div>
+  <footer class="viewer-foot">
+    <p class="muted" id="vw-dims"><svg class="ic"><use href="#i-tap"/></svg>Drag to turn, pinch or scroll to zoom.</p>
+    <div class="viewer-actions">
+      <button class="btn btn-ghost btn-sm" type="button" id="vw-spin" aria-pressed="true"><svg class="ic"><use href="#i-rotate"/></svg>Auto-rotate</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="vw-reset">Reset view</button>
+    </div>
+  </footer>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="config.js?v=2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script src="dashboard.js?v=6"></script>
+<script src="recommendations.js?v=5"></script>
+<script src="dashboard.js?v=7"></script>
 </body>
 </html>

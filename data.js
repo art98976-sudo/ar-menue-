@@ -229,6 +229,67 @@
     var p = document.getElementById('r-tagline'); if (p) p.textContent = r.tagline;
     var b = document.getElementById('r-badge'); if (b) b.textContent = r.badge;
     if (r.name) document.title = r.name + ' — Menu';
+    applyBranding(r);
+  }
+
+  // Brand colour and logo from the dashboard's Settings screen. Both are
+  // optional columns (supabase/dashboard-upgrade-2026-11.sql); when missing
+  // or empty the menu keeps its built-in gold and monogram.
+  function applyBranding(r) {
+    var hex = /^#[0-9a-f]{6}$/i.test(r.brand_color || '') ? r.brand_color : null;
+    var root = document.documentElement.style;
+    if (hex) {
+      var n = parseInt(hex.slice(1), 16), red = n >> 16, green = (n >> 8) & 255, blue = n & 255;
+      var mix = function (c) { return Math.round(c + (255 - c) * 0.35); };
+      var lum = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+      root.setProperty('--gold', hex);
+      root.setProperty('--gold-soft', 'rgb(' + mix(red) + ',' + mix(green) + ',' + mix(blue) + ')');
+      root.setProperty('--gold-dim', 'rgba(' + red + ',' + green + ',' + blue + ',.28)');
+      root.setProperty('--gold-ink', lum > 0.5 ? '#17140D' : '#FFFFFF');
+    } else {
+      ['--gold', '--gold-soft', '--gold-dim', '--gold-ink'].forEach(function (v) { root.removeProperty(v); });
+    }
+    var mono = document.getElementById('r-mono');
+    if (!mono) return;
+    var logo = /^https:\/\//.test(r.logo_url || '') ? r.logo_url : '';
+    var img = mono.querySelector('img');
+    if (logo) {
+      if (!img) {
+        img = document.createElement('img');
+        img.alt = '';
+        img.decoding = 'async';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block';
+        mono.textContent = '';
+        mono.appendChild(img);
+      }
+      if (img.getAttribute('src') !== logo) img.src = logo;
+    } else if (img) {
+      img.remove();
+      if (r.name) mono.textContent = r.name.replace(/^the\s+/i, '').charAt(0).toUpperCase();
+    }
+  }
+
+  // Dish photo uploaded in the dashboard. Without one, the card keeps the
+  // photo written in index.html (or the emoji placeholder for new dishes).
+  function applyDishImage(card, d) {
+    var url = /^https:\/\//.test(d.image_url || '') ? d.image_url : '';
+    if (!url) return;
+    var media = card.querySelector('.card-media');
+    if (!media) return;
+    var img = media.querySelector('img');
+    if (!img) {
+      img = document.createElement('img');
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      var placeholder = media.querySelector('.dish-placeholder');
+      if (placeholder) placeholder.replaceWith(img); else media.insertBefore(img, media.firstChild);
+    }
+    img.alt = d.name || '';
+    if (img.getAttribute('src') !== url) {
+      img.removeAttribute('srcset');
+      img.removeAttribute('sizes');
+      img.src = url;
+    }
   }
 
   function applyDish(d) {
@@ -284,6 +345,7 @@
     } else if (!d.promote && pick) {
       pick.remove();
     }
+    applyDishImage(card, d);
     if (typeof window.updateAllergenWarnings === 'function') window.updateAllergenWarnings(card);
   }
 
