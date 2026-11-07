@@ -411,6 +411,7 @@
     if (typeof window.refreshCustomerHistory === 'function') window.refreshCustomerHistory();
     if (document.getElementById('cart-page').classList.contains('open')) renderCartPage();
     if (currentModel) updateViewerUI(currentModel);
+    if (typeof window.onMenuDataChanged === 'function') window.onMenuDataChanged(); // experience.js
   }
 
   function loadAll() {

@@ -3,13 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0E0C0B">
+<meta name="theme-color" content="#14110F">
 <meta name="color-scheme" content="dark">
 <title>The Cozy Cup — Menu</title>
+<script>
+  /* Welcome intro once per visit. CSS also hides it after ~2.6s on its own. */
+  try { if (!sessionStorage.getItem('mv-welcomed')) document.documentElement.classList.add('mv-welcome'); } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="preconnect" href="https://images.unsplash.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=29">
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>
@@ -25,7 +30,38 @@
   <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.5h2" stroke-linecap="round"/></symbol>
   <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M6 9v10M18 9v10M5 9l2-4h10l2 4"/></symbol>
   <symbol id="i-ruler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4" stroke-linecap="round"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path style="fill:var(--heart-fill,none)" d="M12 20s-7.5-4.4-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.6 12 20 12 20Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12v7a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 6a3 3 0 0 1 0 5.5M17.5 19a5.5 5.5 0 0 0-2.4-4.5"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-9-1 2-2 3-3.5 3.5C9 7 8 5.5 8 4c-2 2.5-2 5.5-2 8v3a6 6 0 0 0 6 6Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-chili" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 7.5c3 .5 5 3 4.5 6.5-1 5-8 7.5-14 6.5 4-1.5 6-4 6.5-7.5.4-3 1-5 3-5.5Z"/><path d="M14.5 7.5c0-2 1-3.5 3-4"/></symbol>
+  <symbol id="i-grain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V8"/><path d="M12 8c-2-1-3-3-3-5 2 1 3 3 3 5Zm0 0c2-1 3-3 3-5-2 1-3 3-3 5Zm0 5c-2.5-.5-4-2.5-4-4.5 2.5.5 4 2.5 4 4.5Zm0 0c2.5-.5 4-2.5 4-4.5-2.5.5-4 2.5-4 4.5Z"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z"/></symbol>
+  <symbol id="i-egg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c3.5 0 6.5 6 6.5 10.5a6.5 6.5 0 0 1-13 0C5.5 9 8.5 3 12 3Z"/></symbol>
+  <symbol id="i-fish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z"/><path d="M3 12 1 9m2 3-2 3"/><circle cx="16" cy="11" r=".9" fill="currentColor"/></symbol>
+  <symbol id="i-nut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 4c4 0 7 3 7 7 0 5-4 9-7 9s-7-4-7-9c0-4 3-7 7-7Z"/><path d="M8 8.5c2.5 1 5.5 1 8 0"/></symbol>
+  <symbol id="i-seed" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="9" rx="2" ry="3"/><ellipse cx="15" cy="8" rx="2" ry="3"/><ellipse cx="11.5" cy="16" rx="2" ry="3"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/></symbol>
+  <symbol id="i-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h17a8.5 8.5 0 0 1-17 0Z"/><path d="M9 4.5c-1 1 1 2 0 3.5M13 4c-1 1 1 2 0 3.5"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 10 10 5 20 4c0 9-5 15-13 15Z"/><path d="M5 19 13 11"/></symbol>
+  <symbol id="i-share-plate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 5.5v15M4.5 13h15"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></symbol>
 </svg>
+
+<!-- ═══════════════════ WELCOME ═══════════════════ -->
+<div id="welcome" class="welcome" aria-hidden="true">
+  <div class="welcome-inner">
+    <span class="welcome-mono" id="welcome-mono">C</span>
+    <p class="welcome-kicker">Welcome to</p>
+    <p class="welcome-name" id="welcome-name">The Cozy Cup</p>
+    <p class="welcome-line">Tap any dish to see it on your table.</p>
+  </div>
+  <span class="welcome-skip">Tap to skip</span>
+</div>
 
 <!-- ═══════════════════ MENU ═══════════════════ -->
 <div id="menu-page">
@@ -38,12 +74,7 @@
     <p class="hero-tagline" id="r-tagline">Coffee &amp; kitchen · Leith Walk, Edinburgh</p>
     <h1 class="hero-title" id="r-name">The Cozy <em>Cup</em></h1>
     <p class="hero-intro" id="r-badge">Point your phone at the table — every dish appears at its real size</p>
-
-    <ol class="steps" aria-label="How to see a dish on your table">
-      <li><svg><use href="#i-cube"/></svg><span>Tap <b>View on table</b></span></li>
-      <li><svg><use href="#i-phone"/></svg><span>Point at your table</span></li>
-      <li><svg><use href="#i-ruler"/></svg><span>See it at real size</span></li>
-    </ol>
+    <p class="hero-hint"><span class="hero-hint-ic"><svg><use href="#i-cube"/></svg></span><span>Tap <b>See it on your table</b> on any dish</span></p>
   </header>
 
   <p class="mode-banner" id="mode-banner" role="status" hidden></p>
@@ -55,8 +86,30 @@
 
   <main class="menu">
 
+    <section class="discover" aria-labelledby="discover-h">
+      <h2 class="discover-h" id="discover-h">What are you in the mood for?</h2>
+      <div class="mood-row" role="group" aria-labelledby="discover-h">
+        <button class="mood" type="button" data-mood="comfort" aria-pressed="false"><svg><use href="#i-bowl"/></svg><b>Comfort</b><small>Warm &amp; hearty</small></button>
+        <button class="mood" type="button" data-mood="light" aria-pressed="false"><svg><use href="#i-leaf"/></svg><b>Light</b><small>Fresh &amp; bright</small></button>
+        <button class="mood" type="button" data-mood="share" aria-pressed="false"><svg><use href="#i-share-plate"/></svg><b>To share</b><small>For the table</small></button>
+        <button class="mood" type="button" data-mood="new" aria-pressed="false"><svg><use href="#i-sparkle"/></svg><b>Something new</b><small>Not tried yet</small></button>
+      </div>
+      <div class="filter-row" role="group" aria-label="Filter dishes">
+        <button class="chip" type="button" data-filter="veg" aria-pressed="false">Vegetarian</button>
+        <button class="chip" type="button" data-filter="vegan" aria-pressed="false">Vegan</button>
+        <button class="chip" type="button" data-filter="gf" aria-pressed="false">Gluten-free</button>
+        <button class="chip" type="button" data-filter="halal" aria-pressed="false">Halal</button>
+        <button class="chip" type="button" data-filter="spicy" aria-pressed="false">Spicy</button>
+        <button class="chip" type="button" data-filter="under10" aria-pressed="false">Under £10</button>
+      </div>
+      <div class="filter-meta">
+        <p class="filter-status" id="filter-status" role="status" aria-live="polite"></p>
+        <button class="link-btn" type="button" id="filter-clear" data-clear-filters hidden>Clear</button>
+      </div>
+    </section>
+
     <details id="safety-preferences" class="safety-preferences">
-      <summary>Set your allergy &amp; dietary needs <span id="safety-preference-summary">Not set</span></summary>
+      <summary><span class="sp-title">Allergies or dietary needs?</span> <span id="safety-preference-summary">Not set</span></summary>
       <p>Saved on this device so recommendations can respect them next time. Dishes without verified allergen details won't be recommended when you've selected an allergy. Always confirm ingredients with restaurant staff.</p>
       <fieldset class="preference-options">
         <legend>Allergies</legend>
@@ -86,7 +139,7 @@
     <section id="recommendations" class="recommendations" aria-labelledby="recommendations-title" hidden>
       <div class="recommendations-head">
         <div>
-          <h2 id="recommendations-title">You might also like</h2>
+          <h2 id="recommendations-title">Pairs beautifully with…</h2>
           <p id="recommendation-context">Picked for you from this menu</p>
         </div>
       </div>
@@ -107,6 +160,12 @@
       <button id="clear-order-history" class="history-clear" type="button" hidden>Clear saved history from this device</button>
     </section>
 
+    <div class="filter-empty" id="filter-empty" hidden>
+      <p class="fe-title">Nothing matches just yet</p>
+      <p>Try fewer filters, or ask your server. The kitchen may be able to adapt a dish.</p>
+      <button class="btn-ghost" type="button" data-clear-filters>Show all dishes</button>
+    </div>
+
     <section class="menu-section" id="mains" aria-labelledby="mains-h">
       <div class="section-head">
         <h2 id="mains-h">Mains</h2>
@@ -118,8 +177,7 @@
           <div class="card-media">
             <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=900&q=80&auto=format&fit=crop"
                  srcset="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=900&q=80&auto=format&fit=crop 900w"
-                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Margherita pizza with basil" loading="lazy" decoding="async">
-            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Margherita pizza with basil" loading="lazy" decoding="async" width="900" height="619">
             <span class="sold-pill">Sold out</span>
           </div>
           <div class="card-body">
@@ -127,7 +185,7 @@
             <p class="card-desc">Tomato, mozzarella, fresh basil</p>
             <p class="card-facts"><span class="card-size">12 inch · 2-3 people</span><span class="card-cal">320 kcal</span></p>
             <div class="card-btns">
-              <button class="card-ar-btn" onclick="openAR('pizza')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-ar-btn" onclick="openAR('pizza')" aria-label="See Margherita Pizza on your table"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
               <button class="card-add-btn" onclick="quickAdd('pizza')" aria-label="Add Margherita Pizza to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
           </div>
@@ -137,8 +195,7 @@
           <div class="card-media">
             <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80&auto=format&fit=crop"
                  srcset="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80&auto=format&fit=crop 900w"
-                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Beef burger with cheese and lettuce" loading="lazy" decoding="async">
-            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Beef burger with cheese and lettuce" loading="lazy" decoding="async" width="900" height="619">
             <span class="sold-pill">Sold out</span>
           </div>
           <div class="card-body">
@@ -146,7 +203,7 @@
             <p class="card-desc">Beef patty, cheese, lettuce</p>
             <p class="card-facts"><span class="card-size">5 inch · 1 person</span><span class="card-cal">540 kcal</span></p>
             <div class="card-btns">
-              <button class="card-ar-btn" onclick="openAR('burger')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-ar-btn" onclick="openAR('burger')" aria-label="See Classic Burger on your table"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
               <button class="card-add-btn" onclick="quickAdd('burger')" aria-label="Add Classic Burger to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
           </div>
@@ -156,8 +213,7 @@
           <div class="card-media">
             <img src="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=900&q=80&auto=format&fit=crop"
                  srcset="https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=900&q=80&auto=format&fit=crop 900w"
-                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Creamy pasta with herbs" loading="lazy" decoding="async">
-            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Creamy pasta with herbs" loading="lazy" decoding="async" width="900" height="619">
             <span class="sold-pill">Sold out</span>
           </div>
           <div class="card-body">
@@ -165,7 +221,7 @@
             <p class="card-desc">Herbs, garlic and parmesan</p>
             <p class="card-facts"><span class="card-size">300g · 1 person</span><span class="card-cal">480 kcal</span></p>
             <div class="card-btns">
-              <button class="card-ar-btn" onclick="openAR('pasta')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-ar-btn" onclick="openAR('pasta')" aria-label="See Creamy Pasta on your table"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
               <button class="card-add-btn" onclick="quickAdd('pasta')" aria-label="Add Creamy Pasta to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
           </div>
@@ -175,8 +231,7 @@
           <div class="card-media">
             <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=900&q=80&auto=format&fit=crop"
                  srcset="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=900&q=80&auto=format&fit=crop 900w"
-                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Sushi platter" loading="lazy" decoding="async">
-            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Sushi platter" loading="lazy" decoding="async" width="900" height="619">
             <span class="sold-pill">Sold out</span>
           </div>
           <div class="card-body">
@@ -184,7 +239,7 @@
             <p class="card-desc">Premium rolls with wasabi</p>
             <p class="card-facts"><span class="card-size">5 pieces · 1 person</span><span class="card-cal">310 kcal</span></p>
             <div class="card-btns">
-              <button class="card-ar-btn" onclick="openAR('sushi')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-ar-btn" onclick="openAR('sushi')" aria-label="See Sushi Platter on your table"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
               <button class="card-add-btn" onclick="quickAdd('sushi')" aria-label="Add Sushi Platter to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
           </div>
@@ -204,8 +259,7 @@
           <div class="card-media">
             <img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=900&q=80&auto=format&fit=crop"
                  srcset="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=600&q=80&auto=format&fit=crop 600w, https://images.unsplash.com/photo-1544145945-f90425340c7e?w=900&q=80&auto=format&fit=crop 900w"
-                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Glass of fresh lemonade with mint" loading="lazy" decoding="async">
-            <span class="ar-pill"><svg><use href="#i-cube"/></svg>AR · real size</span>
+                 sizes="(min-width:1024px) 33vw, (min-width:680px) 50vw, 100vw" alt="Glass of fresh lemonade with mint" loading="lazy" decoding="async" width="900" height="619">
             <span class="sold-pill">Sold out</span>
           </div>
           <div class="card-body">
@@ -213,7 +267,7 @@
             <p class="card-desc">Cold pressed, mint, lime</p>
             <p class="card-facts"><span class="card-size">350 ml · 1 person</span><span class="card-cal">85 kcal</span></p>
             <div class="card-btns">
-              <button class="card-ar-btn" onclick="openAR('drink')"><svg><use href="#i-cube"/></svg>View on table</button>
+              <button class="card-ar-btn" onclick="openAR('drink')" aria-label="See Fresh Lemonade on your table"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
               <button class="card-add-btn" onclick="quickAdd('drink')" aria-label="Add Fresh Lemonade to order"><svg><use href="#i-plus"/></svg><span class="in-cart-qty">0</span></button>
             </div>
           </div>
@@ -228,6 +282,9 @@
     </footer>
   </main>
 </div>
+
+<!-- My Selection button (hearted dishes) -->
+<button id="fav-fab" class="fav-fab" type="button" hidden aria-label="My selection"><svg><use href="#i-heart"/></svg><b id="fav-count">0</b></button>
 
 <!-- Floating order bar -->
 <button id="cart-bar" onclick="openCart()" aria-label="View your order">
@@ -327,6 +384,125 @@
   <span class="toast-text"><span class="toast-msg" id="toast-msg"></span><span class="toast-sub" id="toast-sub"></span></span>
 </div>
 
+<!-- ═══════════════════ BOTTOM SHEETS (experience.js) ═══════════════════ -->
+<div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+
+<!-- Dish detail -->
+<section id="dish-sheet" class="bsheet bsheet-tall" role="dialog" aria-modal="true" aria-labelledby="ds-name" hidden>
+  <div class="bsheet-grab" aria-hidden="true"></div>
+  <button class="bsheet-close" type="button" data-close-sheet aria-label="Close"><svg><use href="#i-close"/></svg></button>
+  <div class="bsheet-scroll">
+    <div class="ds-media bsheet-top" id="ds-media"></div>
+    <div class="ds-body">
+      <div class="ds-badges" id="ds-badges"></div>
+      <div class="ds-head"><h2 id="ds-name">Dish</h2><span class="ds-price" id="ds-price"></span></div>
+      <p class="ds-desc" id="ds-desc"></p>
+      <dl class="ds-facts" id="ds-facts"></dl>
+      <button class="ds-3d" type="button" id="ds-3d"><svg><use href="#i-cube"/></svg>View in 3D here</button>
+      <div id="ds-allergen-box"></div>
+      <div class="ds-ingredients" id="ds-ingredients" hidden><p class="ds-label">Ingredients</p><p id="ds-ingredients-text"></p></div>
+      <div id="ds-pairs"></div>
+    </div>
+  </div>
+  <div class="bsheet-actions">
+    <button class="icon-btn fav-toggle" type="button" id="ds-fav" data-fav="" aria-pressed="false" aria-label="Save to my selection"><svg><use href="#i-heart"/></svg></button>
+    <button class="card-ar-btn" type="button" id="ds-ar"><span class="ar-ic"><svg><use href="#i-cube"/></svg></span>See it on your table</button>
+    <button class="ds-add" type="button" id="ds-add" data-dish-add=""><svg><use href="#i-plus"/></svg><span>Add</span></button>
+  </div>
+</section>
+
+<!-- AR guide (first time per visit) -->
+<section id="ar-guide" class="bsheet" role="dialog" aria-modal="true" aria-labelledby="ag-title" hidden>
+  <div class="bsheet-grab" aria-hidden="true"></div>
+  <button class="bsheet-close" type="button" data-close-sheet aria-label="Close"><svg><use href="#i-close"/></svg></button>
+  <div class="bsheet-scroll ag-body bsheet-top">
+    <div class="ag-anim" aria-hidden="true">
+      <div class="ag-surface"></div>
+      <div class="ag-dish"></div>
+      <div class="ag-phone"><span></span></div>
+    </div>
+    <p class="eyebrow" id="ag-dish">Your dish</p>
+    <h2 id="ag-title">Point your camera at the table</h2>
+    <p class="ag-text">Move your phone slowly from side to side until the dish appears. <span id="ag-size">It appears at its real size.</span></p>
+    <ul class="ag-tips">
+      <li><svg><use href="#i-check"/></svg>Good light helps</li>
+      <li><svg><use href="#i-check"/></svg>Clear a little space</li>
+      <li><svg><use href="#i-check"/></svg>Walk around it to look closer</li>
+    </ul>
+  </div>
+  <div class="bsheet-actions column">
+    <button class="btn-gold glow" type="button" id="ag-start" data-autofocus><svg><use href="#i-cube"/></svg>Open camera</button>
+    <div class="ag-alt">
+      <button class="btn-ghost" type="button" id="ag-3d">View in 3D here</button>
+      <button class="btn-ghost" type="button" id="ag-compare">Compare dishes</button>
+    </div>
+  </div>
+</section>
+
+<!-- In-page 3D viewer and compare -->
+<section id="view3d" class="bsheet bsheet-full" role="dialog" aria-modal="true" aria-labelledby="v3-title" hidden>
+  <div class="v3-head bsheet-top">
+    <div class="bsheet-grab" aria-hidden="true"></div>
+    <h2 id="v3-title">3D view</h2>
+    <button class="bsheet-close" type="button" data-close-sheet aria-label="Close 3D view"><svg><use href="#i-close"/></svg></button>
+  </div>
+  <div class="v3-stage" id="v3-stage"></div>
+  <p class="v3-note" id="v3-note">Drag to turn, pinch to zoom.</p>
+  <div class="v3-compare" id="v3-compare-box">
+    <p class="eyebrow" id="v3-picker-label">Compare with another dish</p>
+    <div class="chip-row" id="v3-picker" role="group" aria-labelledby="v3-picker-label"></div>
+  </div>
+  <div class="bsheet-actions">
+    <button class="btn-gold glow" type="button" id="v3-ar" hidden><svg><use href="#i-cube"/></svg>See it on your table</button>
+  </div>
+</section>
+
+<!-- My Selection -->
+<section id="fav-sheet" class="bsheet" role="dialog" aria-modal="true" aria-labelledby="fav-title" hidden>
+  <div class="bsheet-grab" aria-hidden="true"></div>
+  <button class="bsheet-close" type="button" data-close-sheet aria-label="Close"><svg><use href="#i-close"/></svg></button>
+  <div class="fav-normal">
+    <div class="bsheet-scroll bsheet-top">
+      <p class="eyebrow">Saved on this phone</p>
+      <h2 id="fav-title">My selection</h2>
+      <p class="fav-lede">Show it to your server, or add everything to your order.</p>
+      <ul class="fav-list" id="fav-list"></ul>
+      <p class="fav-empty" id="fav-empty" hidden>Tap the heart on any dish to save it here.</p>
+      <p class="fav-total-row"><span>Together</span><b id="fav-total"></b></p>
+    </div>
+    <div class="bsheet-actions" id="fav-actions">
+      <button class="btn-ghost" type="button" id="fav-show">Show to server</button>
+      <button class="btn-gold" type="button" id="fav-order"><svg><use href="#i-plus"/></svg>Add all to order</button>
+    </div>
+  </div>
+  <div class="waiter-view" aria-live="polite">
+    <p class="eyebrow" id="waiter-table">Table</p>
+    <p class="waiter-h">We'd love</p>
+    <ul class="waiter-list" id="waiter-list"></ul>
+    <button class="btn-ghost" type="button" id="waiter-back">Back</button>
+  </div>
+</section>
+
+<!-- After viewing a dish in AR -->
+<section id="after-ar" class="bsheet" role="dialog" aria-modal="true" aria-labelledby="aa-title" hidden>
+  <div class="bsheet-grab" aria-hidden="true"></div>
+  <button class="bsheet-close" type="button" data-close-sheet aria-label="Close"><svg><use href="#i-close"/></svg></button>
+  <div class="bsheet-scroll bsheet-top">
+    <p class="eyebrow">How did it look?</p>
+    <h2 id="aa-title">Dish</h2>
+    <div class="aa-row">
+      <button class="btn-gold" type="button" id="aa-add" data-dish-add="" data-autofocus><svg><use href="#i-plus"/></svg><span>Add to order</span></button>
+      <button class="icon-btn fav-toggle" type="button" id="aa-fav" data-fav="" aria-pressed="false" aria-label="Save to my selection"><svg><use href="#i-heart"/></svg></button>
+    </div>
+    <div id="aa-pairs"></div>
+    <section class="share-block" aria-labelledby="aa-share-h">
+      <p class="eyebrow" id="aa-share-h">Share the moment</p>
+      <div class="share-preview" id="aa-share-preview"></div>
+      <button class="btn-ghost share-btn" type="button" id="aa-share"><svg><use href="#i-share"/></svg>Share</button>
+    </section>
+  </div>
+</section>
+
 <!-- ═══════════════════ DISH PREVIEW (desktop; phones open the AR camera) ═══════════════════ -->
 <button id="back-btn" class="icon-btn" onclick="closeViewer()" aria-label="Back to menu"><svg><use href="#i-back"/></svg></button>
 
@@ -369,7 +545,7 @@
 <script src="recommendations.js?v=5"></script>
 <script src="order-status.js?v=3"></script>
 <script src="script.js?v=30"></script>
-<script src="data.js?v=13"></script>
+<script src="data.js?v=14"></script>
 <script src="analytics.js?v=1"></script>
 
 <script>
@@ -427,5 +603,7 @@
 </script>
 <!-- Sensory layer: steam, haptics, AR instructions -->
 <script src="sensory.js?v=5"></script>
+<!-- Diner experience: welcome, dish sheet, AR guide, filters, selection, sharing -->
+<script src="experience.js?v=1"></script>
 </body>
 </html>
