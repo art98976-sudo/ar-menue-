@@ -2,7 +2,9 @@
   var STORAGE_KEY = 'menuvision.safety-preferences.v1';
   var ALLERGENS = [
     'celery', 'dairy', 'eggs', 'fish', 'gluten', 'mustard', 'nuts',
-    'peanuts', 'sesame', 'shellfish', 'soy', 'sulphites', 'wheat'
+    'peanuts', 'sesame', 'shellfish', 'soy', 'sulphites', 'wheat',
+    // added so all 14 UK allergens are covered ('shellfish' stays for older tags)
+    'crustaceans', 'molluscs', 'lupin'
   ];
   var DIETARY_NEEDS = ['veg', 'vegan', 'halal'];
 

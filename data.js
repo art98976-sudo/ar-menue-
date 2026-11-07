@@ -237,6 +237,8 @@
   // or empty the menu keeps its built-in gold and monogram.
   function applyBranding(r) {
     var hex = /^#[0-9a-f]{6}$/i.test(r.brand_color || '') ? r.brand_color : null;
+    // '#D4AF37' is the column's default, i.e. no colour chosen yet: keep the theme's own accent
+    if (hex && hex.toUpperCase() === '#D4AF37') hex = null;
     var root = document.documentElement.style;
     if (hex) {
       var n = parseInt(hex.slice(1), 16), red = n >> 16, green = (n >> 8) & 255, blue = n & 255;
@@ -335,6 +337,8 @@
     ingredients.textContent = m.ingredients.length ? 'Ingredients: ' + m.ingredients.join(', ') : '';
     card.querySelector('.card-price').textContent = money(d.price);
     card.classList.toggle('sold-out', !d.available);
+    var soldPill = card.querySelector('.sold-pill');
+    if (soldPill) soldPill.hidden = d.available !== false; // shown only for dishes the kitchen marked unavailable
     card.querySelector('.card-add-btn').disabled = !d.available;
     var pick = card.querySelector('.chef-pick-pill');
     if (d.promote && !pick) {
@@ -386,13 +390,13 @@
     card.className = 'food-card';
     card.dataset.dish = d.id;
     card.innerHTML = '<div class="card-media"><div class="dish-placeholder" aria-hidden="true">' + esc(m.icon || '🍽️') +
-      '</div><span class="sold-pill">Sold out</span></div><div class="card-body">' +
+      '</div><span class="sold-pill" hidden>Sold out</span></div><div class="card-body">' +
       '<div class="card-head"><h3 class="card-name">' + esc(m.name) + '</h3><span class="card-price">' + money(m.price) +
       '</span></div><p class="card-desc">' + esc(m.desc) + '</p><p class="card-facts"><span class="card-size">' +
       esc([m.size, m.serves].filter(Boolean).join(' · ')) + '</span><span class="card-cal">' + esc(m.calories) +
       '</span></p><p class="allergen-warning" hidden></p><div class="card-btns"><button class="card-add-btn" data-dish-add="' + esc(d.id) +
       '" aria-label="Add ' + esc(m.name) + ' to order"><svg><use href="#i-plus"/></svg>' +
-      '<span class="in-cart-qty">0</span></button></div></div>';
+      '<span class="in-cart-qty" hidden></span></button></div></div>';
     grid.appendChild(card);
     return card;
   }

@@ -109,7 +109,7 @@ function updateCartBar(){
     document.querySelectorAll('.food-card[data-dish]').forEach(card=>{
         const q=cart[card.dataset.dish]?cart[card.dataset.dish].qty:0;
         card.classList.toggle('in-cart',q>0);
-        const badge=card.querySelector('.in-cart-qty');if(badge)badge.textContent=q;
+        const badge=card.querySelector('.in-cart-qty');if(badge){badge.textContent=q||'';badge.hidden=!q;}
     });
 }
 

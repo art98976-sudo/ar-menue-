@@ -24,10 +24,10 @@
   var CATEGORY_LABEL = { main: 'Main', side: 'Side', drink: 'Drink', dessert: 'Dessert' };
   var DIETARY_TAGS = [['veg', 'Vegetarian'], ['vegan', 'Vegan'], ['halal', 'Halal']];
   var ALLERGEN_TAGS = [
-    ['celery', 'Celery'], ['dairy', 'Dairy'], ['eggs', 'Eggs'], ['fish', 'Fish'],
-    ['gluten', 'Gluten'], ['mustard', 'Mustard'], ['nuts', 'Nuts'],
-    ['peanuts', 'Peanuts'], ['sesame', 'Sesame'], ['shellfish', 'Shellfish'],
-    ['soy', 'Soy'], ['sulphites', 'Sulphites'], ['wheat', 'Wheat']
+    ['celery', 'Celery'], ['gluten', 'Gluten'], ['wheat', 'Wheat'], ['crustaceans', 'Crustaceans'],
+    ['eggs', 'Eggs'], ['fish', 'Fish'], ['lupin', 'Lupin'], ['dairy', 'Milk'], ['molluscs', 'Molluscs'],
+    ['mustard', 'Mustard'], ['nuts', 'Tree nuts'], ['peanuts', 'Peanuts'], ['sesame', 'Sesame'],
+    ['soy', 'Soya'], ['sulphites', 'Sulphites'], ['shellfish', 'Shellfish (unspecified)']
   ];
   var SWATCHES = [
     ['#C8A96A', 'Champagne'], ['#D4AF37', 'Gold'], ['#B4693F', 'Terracotta'],
