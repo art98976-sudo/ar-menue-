@@ -17,6 +17,21 @@
   var params = new URLSearchParams(location.search);
   var table = (params.get('table') || '').trim().slice(0, 20);
   var tableKey = (params.get('k') || '').trim().slice(0, 64);
+  // config.js → MENU_FLAGS.ORDER_MODES. Dine-in only: no collection/delivery,
+  // and a link without ?table= uses the configured table (TABLE_LABEL/TABLE_KEY).
+  var flags = window.MENU_FLAGS || {};
+  var orderModes = Array.isArray(flags.ORDER_MODES) && flags.ORDER_MODES.length ? flags.ORDER_MODES : ['dine_in', 'collection', 'delivery'];
+  var dineInOnly = orderModes.indexOf('collection') === -1 && orderModes.indexOf('delivery') === -1;
+  window.dineInOnly = dineInOnly;
+  if (dineInOnly && !table && flags.TABLE_LABEL) {
+    table = String(flags.TABLE_LABEL).trim().slice(0, 20);
+    tableKey = String(flags.TABLE_KEY || '').trim().slice(0, 64);
+  }
+  // Only offer the home order types the config allows.
+  var typeSelect = document.getElementById('order-type-select');
+  if (typeSelect) Array.prototype.slice.call(typeSelect.options).forEach(function (o) {
+    if (orderModes.indexOf(o.value) === -1) o.remove();
+  });
   var MODE_TEXT = {
     checking: 'Checking your table…',
     bad_table: "We don't recognise this table code. Please ask a member of staff for help.",
@@ -28,7 +43,7 @@
     window.orderingMode.status = status;
     var dineIn = status === 'ready';
     document.querySelectorAll('[data-table]').forEach(function (el) {
-      el.textContent = 'Dine-in · Table ' + table;
+      el.textContent = (dineInOnly ? 'Table ' : 'Dine-in · Table ') + table;
       el.hidden = !dineIn;
     });
     document.querySelectorAll('[data-table-num]').forEach(function (el) { el.textContent = table; });
@@ -36,13 +51,14 @@
     var banner = document.getElementById('mode-banner');
     if (banner) {
       banner.textContent = status === 'checking' ? '' : (MODE_TEXT[status] || '');
-      banner.hidden = !(status === 'bad_table' || status === 'home');
+      // Dine-in only: no mode banner; a wrong table code is still reported.
+      banner.hidden = dineInOnly ? status !== 'bad_table' : !(status === 'bad_table' || status === 'home');
       banner.dataset.mode = status;
     }
     var note = document.getElementById('order-mode-note');
-    if (note) { note.textContent = MODE_TEXT[status] || ''; note.hidden = dineIn; }
+    if (note) { note.textContent = MODE_TEXT[status] || ''; note.hidden = dineIn || dineInOnly; }
     var hint = document.getElementById('summary-hint');
-    if (hint) hint.textContent = dineIn ? 'Pay at the table when your food arrives' : 'We will confirm your collection or delivery order in the kitchen';
+    if (hint) hint.textContent = dineIn || dineInOnly ? 'Pay at the table when your food arrives' : 'We will confirm your collection or delivery order in the kitchen';
     if (typeof window.refreshOrderButton === 'function') window.refreshOrderButton();
   }
   function homeOrderType() {
@@ -53,10 +69,10 @@
     var fields = document.getElementById('home-order-fields');
     var address = document.getElementById('delivery-address-field');
     var delivery = homeOrderType() === 'delivery';
-    if (fields) fields.hidden = !!table || window.orderingMode.status !== 'home';
-    if (address) address.hidden = !delivery;
+    if (fields) fields.hidden = dineInOnly || !!table || window.orderingMode.status !== 'home';
+    if (address) address.hidden = dineInOnly || !delivery;
     var note = document.getElementById('order-mode-note');
-    if (note && window.orderingMode.status === 'home') note.textContent = MODE_TEXT.home;
+    if (note && window.orderingMode.status === 'home' && !dineInOnly) note.textContent = MODE_TEXT.home;
   }
   function homeOrderDetails() {
     var name = (document.getElementById('customer-name') || {}).value || '';
@@ -210,6 +226,10 @@
   /* ── Apply data to the page ─────────────────────────────────── */
   function applyRestaurant(r) {
     if (!r) return;
+    // config.js → MENU_FLAGS: the configured name and tagline win over the dashboard values.
+    r = Object.assign({}, r);
+    if (flags.RESTAURANT_NAME) r.name = flags.RESTAURANT_NAME;
+    if (flags.RESTAURANT_TAGLINE) r.tagline = flags.RESTAURANT_TAGLINE;
     currency = r.currency || currency;
     taxRate = Number(r.tax_rate);
     window.recommendationsEnabled = r.recommendations_enabled !== false;
@@ -395,7 +415,7 @@
       '</span></div><p class="card-desc">' + esc(m.desc) + '</p><p class="card-facts"><span class="card-size">' +
       esc([m.size, m.serves].filter(Boolean).join(' · ')) + '</span><span class="card-cal">' + esc(m.calories) +
       '</span></p><p class="allergen-warning" hidden></p><div class="card-btns"><button class="card-add-btn" data-dish-add="' + esc(d.id) +
-      '" aria-label="Add ' + esc(m.name) + ' to order"><svg><use href="#i-plus"/></svg>' +
+      '" aria-label="Add ' + esc(m.name) + ' to order"><svg><use href="#i-plus"/></svg><span class="card-add-label">Add</span>' +
       '<span class="in-cart-qty" hidden></span></button></div></div>';
     grid.appendChild(card);
     return card;

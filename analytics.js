@@ -12,6 +12,8 @@
    ════════════════════════════════════════════════════════════════ */
 (function () {
   var cfg = window.MENU_CONFIG;
+  // config.js → MENU_FLAGS.ANALYTICS: off until the database function exists (no 404s).
+  if ((window.MENU_FLAGS || {}).ANALYTICS !== true) return;
   if (!cfg || !cfg.supabaseUrl || /^YOUR_/.test(cfg.supabaseUrl) || typeof fetch !== 'function') return;
   var endpoint = cfg.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/log_menu_event';
 

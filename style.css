@@ -121,6 +121,10 @@ svg{flex:none}
 .table-line:has(.table-chip[hidden]){display:none}
 .table-chip{display:inline-flex;align-items:center;gap:8px;margin:6px 0 2px;padding:6px 12px 6px 10px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line-2);font-size:var(--fs-sm);font-weight:600}
 .table-chip::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.r-sub{display:flex;align-items:center;gap:8px;min-width:0;margin-top:3px}
+.r-sub .r-tagline{margin-top:0;min-width:0}
+.topbar .table-chip{flex:none;margin:0;padding:2px 9px 2px 8px;gap:6px;font-size:var(--fs-xs);white-space:nowrap}
+.topbar .table-chip::before{width:6px;height:6px}
 .mode-banner{margin:8px var(--page-x) 0;padding:12px var(--s2);border-radius:var(--r-md);background:var(--warn-bg);color:var(--warn);font-size:var(--fs-sm);line-height:1.45}
 .mode-banner[data-mode="bad_table"]{background:var(--bad-bg);color:var(--bad)}
 
@@ -179,14 +183,17 @@ svg{flex:none}
 .section-head h2{font:500 26px/1 var(--serif)}
 .section-head p{font-size:var(--fs-sm);color:var(--text-3);flex:1;display:flex;align-items:center;gap:12px;white-space:nowrap}
 .section-head p::after{content:'';flex:1;height:1px;background:var(--line)}
-.grid{display:grid;grid-template-columns:1fr;gap:var(--s4)}
-.food-card{position:relative;display:flex;flex-direction:column;cursor:pointer;animation:rise .45s var(--ease) both;transition:opacity var(--t3)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4)}
+.food-card{position:relative;display:flex;flex-direction:column;min-width:0;cursor:pointer;animation:rise .45s var(--ease) both;transition:opacity var(--t3)}
 .grid .food-card:nth-child(2){animation-delay:.04s}
 .grid .food-card:nth-child(3){animation-delay:.08s}
-.card-media{position:relative;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:var(--surface-3);box-shadow:var(--shadow-1)}
+.card-media{position:relative;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;background:linear-gradient(135deg,var(--surface-2),var(--surface-3));box-shadow:var(--shadow-1)}
 .card-media img{width:100%;height:100%;object-fit:cover;transition:transform .7s var(--ease),filter var(--t3),opacity var(--t3)}
 .card-media.is-loading{background:linear-gradient(100deg,var(--surface-3) 30%,var(--surface-2) 50%,var(--surface-3) 70%);background-size:300% 100%;animation:shimmer 1.4s ease infinite}
 .card-media.is-loading img{opacity:0}
+.mv-fade .card-media img{opacity:0;transition:transform .7s var(--ease),filter var(--t3),opacity .45s var(--ease)}
+.mv-fade .card-media img.is-loaded{opacity:1}
+.mv-fade .food-card.sold-out .card-media img.is-loaded{opacity:.6}
 .card-open{position:absolute;inset:0;z-index:1;width:100%;height:100%}
 .card-open:focus-visible{outline-offset:-4px;border-radius:var(--r-lg)}
 .card-badges{position:absolute;z-index:2;top:10px;left:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none}
@@ -199,10 +206,10 @@ svg{flex:none}
 .sold-pill{background:var(--bad-bg);color:var(--bad)}
 .card-media > .chef-pick-pill,.card-media > .sold-pill{position:absolute;z-index:2;top:10px;left:10px}
 .card-body{display:flex;flex-direction:column;padding:12px 2px 0}
-.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.card-name{font:500 22px/1.2 var(--serif);text-wrap:balance}
-.card-price{font:600 var(--fs-md)/1 var(--sans);color:var(--accent-text);white-space:nowrap}
-.card-desc{margin-top:2px;font-size:var(--fs-md);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
+.card-name{flex:1 1 auto;min-width:0;font:500 22px/1.2 var(--serif);text-wrap:balance;overflow-wrap:anywhere}
+.card-price{flex:none;font:600 var(--fs-md)/1 var(--sans);color:var(--accent-text);white-space:nowrap}
+.card-desc{margin-top:2px;font-size:var(--fs-md);color:var(--text-2);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
 .card-facts{display:flex;flex-wrap:wrap;align-items:center;margin-top:4px;font-size:var(--fs-sm);color:var(--text-3)}
 .card-facts span+span::before{content:'·';margin:0 8px}
 .card-facts span:empty{display:none}
@@ -227,10 +234,12 @@ svg{flex:none}
 .card-ar-btn:hover{filter:brightness(1.06)}
 .card-ar-btn:active{transform:scale(.97)}
 .card-add-btn{
-  position:relative;flex:0 0 52px;width:52px;min-height:52px;border-radius:var(--r-md);display:grid;place-items:center;
-  background:var(--surface);border:1px solid var(--line-2);color:var(--text);transition:border-color var(--t2),transform var(--t1);
+  position:relative;flex:none;min-height:52px;padding:0 16px 0 12px;border-radius:var(--r-md);display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--surface);border:1px solid var(--line-2);color:var(--text);font-size:var(--fs-md);font-weight:600;white-space:nowrap;
+  transition:border-color var(--t2),transform var(--t1);
 }
-.card-add-btn svg{width:22px;height:22px}
+.card-add-btn svg{width:20px;height:20px}
+.card-add-btn:only-child{flex:1}   /* dishes without a 3D model: Add is the only button */
 .card-add-btn:active{transform:scale(.92)}
 .in-cart-qty{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;background:var(--text);color:var(--bg);font-size:var(--fs-xs);font-weight:700;animation:pop .3s var(--spring)}
 .food-card.in-cart .card-add-btn{border-color:var(--text)}
@@ -601,6 +610,9 @@ svg{flex:none}
   .food-card:hover .card-media img{transform:scale(1.03)}
 }
 @media (max-width:420px){
+  /* phones: "My needs" shows as an icon (state in colour + aria-label) so the name keeps its room */
+  .needs-pill{width:44px;padding:0;justify-content:center}
+  .needs-pill-text{display:none}
   #ar-detail-card{flex-wrap:wrap;padding:14px 16px}
   #ar-cart-btn{flex:1 1 100%}
 }

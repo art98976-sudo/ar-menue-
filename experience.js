@@ -198,7 +198,11 @@
     var stored = false;
     try { stored = localStorage.getItem(PREF_KEY) !== null; } catch (e) {}
     var dismissed = local.get('mv-needs-prompt', '') === 'dismissed';
-    $('needs-prompt').hidden = stored || dismissed || needsSet();
+    var promptHidden = stored || dismissed || needsSet();
+    $('needs-prompt').hidden = promptHidden;
+    // The header chip appears once needs are set. If the prompt card is gone
+    // (dismissed or cleared), the chip stays as the way back in.
+    $('needs-pill').hidden = v === 'Not set' && !promptHidden;
   }
   $('needs-prompt-close').addEventListener('click', function () { local.set('mv-needs-prompt', 'dismissed'); renderPill(); });
 
@@ -717,6 +721,8 @@
   /* ── 12. "Most viewed in AR" (needs supabase/menu-experience-2026-11.sql) ── */
   function loadTopAr() {
     var cfg = window.MENU_CONFIG;
+    // config.js → MENU_FLAGS.MOST_VIEWED_AR: off until the database function exists (no 404s).
+    if ((window.MENU_FLAGS || {}).MOST_VIEWED_AR !== true) return;
     if (!cfg || !cfg.supabaseUrl || /^YOUR_/.test(cfg.supabaseUrl) || typeof fetch !== 'function') return;
     fetch(cfg.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/top_ar_dishes', {
       method: 'POST', headers: { 'content-type': 'application/json', apikey: cfg.supabaseAnonKey },
@@ -728,7 +734,16 @@
   }
 
   /* ── Wire up ────────────────────────────────────────────────── */
-  function refresh() { enhanceAll(); refreshNeeds(); applyMood(); watchSections(); }
+  // config.js → MENU_FLAGS.MOOD_FILTER_MIN_DISHES: mood chips only on a bigger menu.
+  function syncMoodRow() {
+    var flags = window.MENU_FLAGS || {};
+    var min = Number(flags.MOOD_FILTER_MIN_DISHES) || 0;
+    var show = $$('.food-card[data-dish]').length >= min;
+    var row = document.querySelector('.mood-row');
+    if (row) row.hidden = !show;
+    if (!show && mood) { mood = null; $$('[data-mood]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); }
+  }
+  function refresh() { enhanceAll(); refreshNeeds(); syncMoodRow(); applyMood(); watchSections(); }
   window.onMenuDataChanged = refresh;          // called by data.js after live menu updates
   // script.js re-reads preferences on change; refresh our badges right after it
   document.addEventListener('change', function (e) {
